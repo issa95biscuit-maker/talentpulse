@@ -251,6 +251,7 @@ footer p{font-size:.8rem;color:#6B5040;}
 .modal-overlay.open{display:flex;}
 .modal{background:var(--white);border-radius:20px;padding:36px;max-width:500px;width:90%;animation:fadeUp .3s ease;}
 @keyframes fadeUp{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
 .modal h3{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;margin-bottom:6px;}
 .modal .modal-sub{color:var(--gray);font-size:.86rem;margin-bottom:24px;}
 .modal-close{float:right;background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--gray);margin-top:-4px;}
@@ -606,45 +607,101 @@ footer p{font-size:.8rem;color:#6B5040;}
 </div>
 
 <script>
-// ======================== DATA ========================
-const JOBS = [
-  {id:1,title:'Lead Développeur Full-Stack',company:'Shopify France',city:'Paris',logo:'🛍️',contract:'CDI',mode:'Hybride',exp:'Senior',cat:'Technologie',salMin:65000,salMax:80000,tags:['React','Node.js'],posted:'Il y a 2h',featured:true,
-   desc:'Nous recherchons un Lead Développeur Full-Stack passionné pour rejoindre notre équipe parisienne. Vous serez responsable de l\'architecture et du développement de nouvelles fonctionnalités sur notre plateforme e-commerce.',
-   missions:['Concevoir et développer des features full-stack avec React et Node.js','Encadrer une équipe de 4 développeurs','Participer aux revues de code et définir les standards techniques','Collaborer étroitement avec les Product Managers','Optimiser les performances de l\'application'],
-   profile:['5+ ans d\'expérience en développement web','Maîtrise de React, TypeScript, Node.js','Expérience en management technique','Bon niveau d\'anglais']},
-  {id:2,title:'Product Manager Senior',company:'Doctolib',city:'Paris',logo:'🎯',contract:'CDI',mode:'Télétravail',exp:'Confirmé',cat:'Technologie',salMin:55000,salMax:70000,tags:['Agile','Data'],posted:'Il y a 5h',featured:false,
-   desc:'Doctolib recherche un Product Manager Senior pour piloter le développement de nouvelles fonctionnalités de notre plateforme santé utilisée par 70 millions de patients.',
-   missions:['Définir la vision et la roadmap produit','Analyser les données et KPIs','Travailler avec les équipes engineering et design','Conduire les interviews utilisateurs','Prioriser le backlog'],
-   profile:['3-5 ans d\'expérience en Product Management','Forte sensibilité data','Expérience en startup ou scale-up','Anglais courant']},
-  {id:3,title:'Analyste Financier',company:'BNP Paribas',city:'La Défense',logo:'🏦',contract:'CDI',mode:'Présentiel',exp:'Confirmé',cat:'Finance',salMin:42000,salMax:52000,tags:['Excel','SQL'],posted:'Hier',featured:false,
-   desc:'BNP Paribas recrute un Analyste Financier pour renforcer son équipe de gestion des risques. Vous aurez en charge l\'analyse des performances financières et la préparation de reportings.',
-   missions:['Produire les reportings financiers hebdomadaires','Analyser les écarts et proposer des actions correctives','Modéliser des scénarios financiers','Présenter les résultats à la direction'],
-   profile:['Bac+5 Finance/Gestion','2-4 ans d\'expérience','Excellente maîtrise d\'Excel et SQL','Rigueur et sens du détail']},
-  {id:4,title:'UX/UI Designer',company:'Air France',city:'Roissy',logo:'✈️',contract:'CDI',mode:'Hybride',exp:'Confirmé',cat:'Design',salMin:40000,salMax:55000,tags:['Figma','Design System'],posted:'Il y a 2j',featured:true,
-   desc:'Air France Digital recherche un UX/UI Designer talentueux pour concevoir l\'expérience des passagers sur nos applications web et mobile. Vous intégrerez une équipe design de 8 personnes.',
-   missions:['Concevoir des interfaces intuitives pour l\'application Air France','Créer et maintenir le design system','Mener des tests utilisateurs','Produire des prototypes haute fidélité','Collaborer avec les développeurs front-end'],
-   profile:['2-5 ans d\'expérience en UX/UI Design','Maîtrise de Figma','Portfolio solide','Sensibilité aux besoins des utilisateurs']},
-  {id:5,title:'Data Scientist',company:'Dataiku',city:'Paris',logo:'🤖',contract:'CDI',mode:'Télétravail',exp:'Confirmé',cat:'Data',salMin:58000,salMax:75000,tags:['Python','ML','SQL'],posted:'Il y a 3j',featured:false,
-   desc:'Dataiku, leader mondial de l\'IA pour les entreprises, recherche un Data Scientist pour rejoindre son équipe R&D. Vous travaillerez sur des problématiques de machine learning appliqué.',
-   missions:['Développer des modèles de machine learning','Analyser des datasets complexes','Créer des pipelines de données','Présenter les résultats aux clients','Contribuer à la recherche appliquée'],
-   profile:['3+ ans d\'expérience en Data Science','Maîtrise de Python, SQL, frameworks ML','Expérience avec des données massives','Niveau bac+5 en mathématiques ou informatique']},
-  {id:6,title:'Responsable Marketing Digital',company:'L\'Oréal',city:'Paris',logo:'💄',contract:'CDI',mode:'Hybride',exp:'Senior',cat:'Marketing',salMin:50000,salMax:65000,tags:['SEO','SEM','Analytics'],posted:'Il y a 4j',featured:false,
-   desc:'L\'Oréal recrute un Responsable Marketing Digital pour sa division Luxe. Vous piloterez la stratégie digitale de plusieurs marques iconiques.',
-   missions:['Définir et déployer la stratégie digitale','Gérer les campagnes paid media (Google, Meta)','Optimiser le SEO et la présence organique','Analyser les performances via Google Analytics','Manager une équipe de 3 personnes'],
-   profile:['5+ ans d\'expérience en marketing digital','Expertise SEO/SEA','Maîtrise des outils analytics','Créativité et sens des données']},
-  {id:7,title:'Développeur React Native',company:'BlaBlaCar',city:'Paris',logo:'🚗',contract:'CDI',mode:'Hybride',exp:'Confirmé',cat:'Technologie',salMin:48000,salMax:62000,tags:['React Native','TypeScript'],posted:'Il y a 5j',featured:false,
-   desc:'BlaBlaCar recherche un développeur React Native pour renforcer son équipe mobile. Vous développerez des features utilisées par 100 millions d\'utilisateurs.',
-   missions:['Développer des fonctionnalités sur l\'app iOS et Android','Maintenir et améliorer les performances','Participer aux sprints agiles','Rédiger des tests unitaires'],
-   profile:['2+ ans d\'expérience React Native','Bonne connaissance de TypeScript','Expérience de publication en App Store / Play Store','Passion pour le mobile']},
-  {id:8,title:'Chargé de Recrutement',company:'Capgemini',city:'Paris',logo:'🔷',contract:'CDI',mode:'Hybride',exp:'Junior',cat:'RH',salMin:32000,salMax:42000,tags:['ATS','Sourcing'],posted:'Il y a 6j',featured:false,
-   desc:'Capgemini France recrute un Chargé de Recrutement pour accompagner la croissance de l\'entreprise. Vous gérerez le recrutement de profils tech.',
-   missions:['Rédiger et diffuser les offres d\'emploi','Sourcer des candidats sur LinkedIn','Conduire les entretiens téléphoniques','Coordonner avec les managers opérationnels','Suivre les KPIs recrutement'],
-   profile:['0-2 ans d\'expérience en recrutement','Aisance relationnelle','Connaissance du secteur IT appréciée','Maîtrise des outils de sourcing']},
-];
-
+// ======================== STATE ========================
+let JOBS = [];
 let savedJobs = new Set();
 let appliedJobs = new Set();
 let activeCategory = null;
+let isLoading = false;
+let searchTimeout = null;
+
+// ======================== FRANCE TRAVAIL API ========================
+const CONTRACT_MAP = { 'CDI':'CDI','CDD':'CDD','Freelance':'LIB','Stage':'STA' };
+const CONTRACT_LABEL = { 'CDI':'CDI','CDD':'CDD','LIB':'Freelance','STA':'Stage','MIS':'Intérim','SAI':'Saisonnier' };
+
+function jobFromFT(j) {
+  return {
+    id: j.id,
+    title: j.intitule || 'Poste non précisé',
+    company: j.entreprise?.nom || 'Entreprise confidentielle',
+    city: j.lieuTravail?.libelle || 'France',
+    logo: getEmoji(j.secteurActiviteLibelle || ''),
+    contract: CONTRACT_LABEL[j.typeContrat] || j.typeContrat || 'CDI',
+    mode: j.experienceLibelle?.toLowerCase().includes('télétravail') ? 'Télétravail' : 'Présentiel',
+    exp: j.experienceLibelle || 'Non précisé',
+    cat: j.secteurActiviteLibelle || 'Autre',
+    salMin: j.salaire?.commentaire ? parseSal(j.salaire.commentaire) : 0,
+    salMax: 0,
+    salTxt: j.salaire?.libelle || j.salaire?.commentaire || 'Salaire non précisé',
+    tags: [j.typeContrat, j.qualificationLibelle].filter(Boolean),
+    posted: formatDate(j.dateCreation),
+    featured: false,
+    desc: j.description || 'Voir l\'offre complète sur France Travail.',
+    missions: [],
+    profile: [],
+    url: j.origineOffre?.urlOrigine || `https://candidat.francetravail.fr/offres/recherche/detail/${j.id}`,
+  };
+}
+
+function getEmoji(secteur) {
+  const s = secteur.toLowerCase();
+  if(s.includes('inform') || s.includes('num') || s.includes('tech')) return '💻';
+  if(s.includes('santé') || s.includes('médic') || s.includes('pharma')) return '🏥';
+  if(s.includes('finance') || s.includes('banque') || s.includes('assur')) return '💼';
+  if(s.includes('commerce') || s.includes('vente')) return '🛒';
+  if(s.includes('transport') || s.includes('logis')) return '🚚';
+  if(s.includes('btp') || s.includes('construct') || s.includes('immo')) return '🏗️';
+  if(s.includes('restaur') || s.includes('hôtel') || s.includes('tourisme')) return '🍽️';
+  if(s.includes('enseign') || s.includes('formation')) return '📚';
+  if(s.includes('industrie') || s.includes('manufactur')) return '🏭';
+  if(s.includes('communication') || s.includes('marketing')) return '📊';
+  return '🏢';
+}
+
+function parseSal(txt) {
+  const m = txt.match(/(\d[\d\s]*)/);
+  return m ? parseInt(m[1].replace(/\s/g,'')) : 0;
+}
+
+function formatDate(d) {
+  if(!d) return 'Récemment';
+  const diff = Math.floor((Date.now() - new Date(d)) / 86400000);
+  if(diff === 0) return 'Aujourd\'hui';
+  if(diff === 1) return 'Hier';
+  if(diff < 7) return `Il y a ${diff} jours`;
+  return `Il y a ${Math.floor(diff/7)} semaine(s)`;
+}
+
+async function fetchJobs(params = {}) {
+  isLoading = true;
+  showLoader();
+  try {
+    const qs = new URLSearchParams();
+    if(params.motsCles) qs.set('motsCles', params.motsCles);
+    if(params.typeContrat) qs.set('typeContrat', params.typeContrat);
+    qs.set('range', '0-19');
+
+    const res = await fetch(`/api/jobs?${qs}`);
+    if(!res.ok) throw new Error('Erreur API');
+    const data = await res.json();
+    JOBS = (data.resultats || []).map(jobFromFT);
+    document.getElementById('jobsCount').innerHTML = `<strong>${data.filtresPossibles ? (data.filtresPossibles[0]?.valeurs?.length || JOBS.length) : JOBS.length}</strong> offres trouvées`;
+  } catch(e) {
+    JOBS = [];
+    console.error(e);
+  }
+  isLoading = false;
+  renderJobsList();
+}
+
+function showLoader() {
+  const list = document.getElementById('jobsList');
+  if(list) list.innerHTML = `
+    <div style="text-align:center;padding:60px 20px">
+      <div style="width:40px;height:40px;border:3px solid var(--orange-mid);border-top-color:var(--orange);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px"></div>
+      <p style="color:var(--gray);font-size:.9rem">Chargement des offres France Travail...</p>
+    </div>`;
+}
 
 // ======================== ROUTING ========================
 function showPage(name) {
@@ -654,7 +711,7 @@ function showPage(name) {
   const el = document.getElementById('nav-'+name);
   if(el) el.classList.add('active-link');
   window.scrollTo(0,0);
-  if(name==='jobs'){renderJobs();}
+  if(name==='jobs'){ fetchJobs(buildParams()); }
   if(name==='profile'){renderSavedJobs();renderAppliedJobs();}
 }
 
@@ -665,74 +722,61 @@ function goToSearch(){
   const q = document.getElementById('heroSearch').value;
   if(q){ document.getElementById('liveSearchInput').value = q; }
   showPage('jobs');
-  renderJobs();
 }
 
 function quickSearch(term){
   document.getElementById('liveSearchInput').value = term;
   showPage('jobs');
-  renderJobs();
 }
 
 function filterByCategory(cat){
   activeCategory = cat;
-  document.querySelectorAll('.f-cat').forEach(cb => {
-    cb.checked = cb.value === cat;
-  });
+  document.querySelectorAll('.f-cat').forEach(cb => cb.checked = cb.value === cat);
   showPage('jobs');
-  renderJobs();
+}
+
+function buildParams() {
+  const search = document.getElementById('liveSearchInput')?.value || '';
+  const contracts = [...document.querySelectorAll('.f-contract:checked')].map(c => CONTRACT_MAP[c.value] || c.value);
+  const params = {};
+  if(search) params.motsCles = search;
+  if(contracts.length) params.typeContrat = contracts.join(',');
+  return params;
 }
 
 // ======================== RENDER JOBS ========================
 function renderJobs(){
-  const search = (document.getElementById('liveSearchInput')?.value||'').toLowerCase();
-  const contracts = [...document.querySelectorAll('.f-contract:checked')].map(c=>c.value);
-  const modes    = [...document.querySelectorAll('.f-mode:checked')].map(c=>c.value);
-  const exps     = [...document.querySelectorAll('.f-exp:checked')].map(c=>c.value);
-  const cats     = [...document.querySelectorAll('.f-cat:checked')].map(c=>c.value);
-  const sort     = document.getElementById('sortSelect')?.value||'recent';
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => fetchJobs(buildParams()), 500);
+}
 
-  let filtered = JOBS.filter(j => {
-    if(search && !j.title.toLowerCase().includes(search) && !j.company.toLowerCase().includes(search) && !j.tags.some(t=>t.toLowerCase().includes(search)) && !j.cat.toLowerCase().includes(search)) return false;
-    if(contracts.length && !contracts.includes(j.contract)) return false;
-    if(modes.length && !modes.includes(j.mode)) return false;
-    if(exps.length && !exps.includes(j.exp)) return false;
-    if(cats.length && !cats.includes(j.cat)) return false;
-    return true;
-  });
-
-  if(sort==='salary_desc') filtered.sort((a,b)=>b.salMax-a.salMax);
-  if(sort==='salary_asc') filtered.sort((a,b)=>a.salMin-b.salMin);
-
-  document.getElementById('jobsCount').innerHTML = `<strong>${filtered.length}</strong> offre${filtered.length>1?'s':''} trouvée${filtered.length>1?'s':''}`;
-
+function renderJobsList() {
   const list = document.getElementById('jobsList');
-  if(!filtered.length){
+  if(!list) return;
+  if(!JOBS.length){
     list.innerHTML=`<div class="no-results"><div class="icon">🔍</div><h3>Aucune offre trouvée</h3><p>Essayez d'élargir vos critères de recherche.</p></div>`;
     return;
   }
-  list.innerHTML = filtered.map(j => `
-    <div class="job-card ${j.featured?'featured':''} fade-in" onclick="showDetail(${j.id})">
-      ${j.featured?'<div class="featured-badge">⭐ Mis en avant</div>':''}
+  list.innerHTML = JOBS.map(j => `
+    <div class="job-card fade-in" onclick="showDetail('${j.id}')">
       <div class="company-logo">${j.logo}</div>
       <div>
         <div class="job-title">${j.title}</div>
         <div class="job-company">${j.company} · ${j.city}</div>
         <div class="job-tags">
           <span class="job-tag type">${j.contract}</span>
-          <span class="job-tag loc">${j.mode==='Télétravail'?'🏠':j.mode==='Hybride'?'🔄':'🏢'} ${j.mode}</span>
-          <span class="job-tag exp">${j.exp}</span>
-          ${j.tags.map(t=>`<span class="job-tag type">${t}</span>`).join('')}
+          <span class="job-tag loc">📍 ${j.city.split(' - ')[0]}</span>
+          ${j.tags.filter(Boolean).slice(0,2).map(t=>`<span class="job-tag type">${t}</span>`).join('')}
         </div>
       </div>
       <div class="job-right">
         <div>
-          <div class="job-salary">${fmtSal(j.salMin,j.salMax)}</div>
+          <div class="job-salary">${j.salTxt}</div>
           <div class="job-date">${j.posted}</div>
         </div>
         <div style="display:flex;gap:7px">
-          <button class="save-btn ${savedJobs.has(j.id)?'saved':''}" onclick="toggleSave(event,${j.id})">${savedJobs.has(j.id)?'♥':'♡'}</button>
-          <button class="apply-btn" onclick="openApply(event,${j.id})">Postuler</button>
+          <button class="save-btn ${savedJobs.has(j.id)?'saved':''}" onclick="toggleSave(event,'${j.id}')">${savedJobs.has(j.id)?'♥':'♡'}</button>
+          <button class="apply-btn" onclick="openApplyUrl(event,'${j.url}')">Postuler</button>
         </div>
       </div>
     </div>
@@ -740,6 +784,8 @@ function renderJobs(){
 }
 
 function fmtSal(min,max){
+  if(!min && !max) return 'Salaire non précisé';
+  if(!max) return `${(min/1000).toFixed(0)}k €+`;
   return `${(min/1000).toFixed(0)}k – ${(max/1000).toFixed(0)}k €`;
 }
 
@@ -747,16 +793,21 @@ function clearFilters(){
   document.querySelectorAll('.f-contract,.f-mode,.f-exp,.f-cat').forEach(cb=>cb.checked=false);
   document.getElementById('liveSearchInput').value='';
   activeCategory=null;
-  renderJobs();
+  fetchJobs();
 }
 
 // ======================== DETAIL PAGE ========================
+function openApplyUrl(e, url) {
+  e.stopPropagation();
+  window.open(url, '_blank');
+}
+
 function showDetail(id){
   const j = JOBS.find(x=>x.id===id);
   if(!j) return;
   document.getElementById('detailContent').innerHTML = `
     <div class="job-detail-main fade-in">
-      <div class="back-btn" onclick="history.back(); showPage('jobs')">← Retour aux offres</div>
+      <div class="back-btn" onclick="showPage('jobs')">← Retour aux offres</div>
       <div class="jd-header">
         <div class="jd-logo">${j.logo}</div>
         <div>
@@ -767,28 +818,19 @@ function showDetail(id){
       <div class="jd-meta">
         <span class="jd-tag job-tag type">${j.contract}</span>
         <span class="jd-tag job-tag loc">📍 ${j.city}</span>
-        <span class="jd-tag job-tag loc">${j.mode}</span>
         <span class="jd-tag job-tag exp">${j.exp}</span>
-        ${j.tags.map(t=>`<span class="jd-tag job-tag type">${t}</span>`).join('')}
+        ${j.tags.filter(Boolean).map(t=>`<span class="jd-tag job-tag type">${t}</span>`).join('')}
       </div>
       <div class="jd-section">
         <h3>Description du poste</h3>
-        <p>${j.desc}</p>
-      </div>
-      <div class="jd-section">
-        <h3>Vos missions</h3>
-        <ul>${j.missions.map(m=>`<li>${m}</li>`).join('')}</ul>
-      </div>
-      <div class="jd-section">
-        <h3>Profil recherché</h3>
-        <ul>${j.profile.map(p=>`<li>${p}</li>`).join('')}</ul>
+        <p style="white-space:pre-line">${j.desc}</p>
       </div>
     </div>
     <div class="jd-sidebar fade-in">
       <div class="jd-apply-card">
         <div class="jd-salary-big">${fmtSal(j.salMin,j.salMax)}</div>
         <div class="jd-salary-note">Salaire annuel brut</div>
-        <button class="apply-big" onclick="openApply(event,${j.id})">Postuler maintenant →</button>
+        <button class="apply-big" onclick="window.open('${j.url}','_blank')">Postuler sur France Travail →</button>
         <button class="save-big" onclick="toggleSaveDirect(${j.id},this)">${savedJobs.has(j.id)?'♥ Sauvegardé':'♡ Sauvegarder l\'offre'}</button>
         <div class="jd-info-list">
           <div class="jd-info-item"><div class="icon">📍</div><div><div class="label">Localisation</div><div class="val">${j.city}</div></div></div>
@@ -908,7 +950,7 @@ document.getElementById('applyModal').addEventListener('click',function(e){
 });
 
 // Init
-renderJobs();
+fetchJobs();
 </script>
 </body>
 </html>
