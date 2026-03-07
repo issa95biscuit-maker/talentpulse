@@ -1,0 +1,26 @@
+{
+  "name": "TalentPulse",
+  "short_name": "TalentPulse",
+  "description": "Trouvez votre prochain emploi parmi des milliers d'offres France Travail",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFAF5",
+  "theme_color": "#FF5C00",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='36' fill='%23FF5C00'/><text y='145' x='20' font-size='140'>⚡</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='%23FF5C00'/><text y='390' x='52' font-size='380'>⚡</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "lang": "fr"
+}
