@@ -1,13 +1,13 @@
 /**
- * TalentPulse — Proxy multi-sources
- * Sources : France Travail · La Bonne Alternance · Adzuna · Jooble
+ * TalentPulse — Proxy multi-sources v2
+ * DEBUG amélioré — retourne l'erreur exacte
  */
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  // MODE DIAGNOSTIC : /api/jobs?debug=1
+  // MODE DIAGNOSTIC
   if (req.query.debug === '1') {
     return res.status(200).json({
       env: {
@@ -15,9 +15,77 @@ module.exports = async function handler(req, res) {
         FT_CLIENT_SECRET: process.env.FT_CLIENT_SECRET ? '✅ présent' : '❌ MANQUANT',
         ADZUNA_APP_ID:    process.env.ADZUNA_APP_ID    ? '✅ présent' : '❌ manquant',
         ADZUNA_APP_KEY:   process.env.ADZUNA_APP_KEY   ? '✅ présent' : '❌ manquant',
+        GEMINI_API_KEY:   process.env.GEMINI_API_KEY   ? '✅ présent' : '❌ manquant',
       },
       message: 'Diagnostic TalentPulse OK'
     });
+  }
+
+  // MODE DEBUG COMPLET — teste chaque source et retourne les erreurs
+  if (req.query.debug === '2') {
+    const results = {};
+
+    // Test token FT
+    try {
+      const clientId     = (process.env.FT_CLIENT_ID     || '').trim();
+      const clientSecret = (process.env.FT_CLIENT_SECRET || '').trim();
+      const tokenRes = await fetch(
+        'https://entreprise.francetravail.fr/connexion/oauth2/access_token?realm=/partenaire',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            grant_type: 'client_credentials',
+            client_id: clientId, client_secret: clientSecret,
+            scope: 'api_offresdemploiv2 o2dsoffre',
+          }),
+        }
+      );
+      const tokenBody = await tokenRes.text();
+      if (!tokenRes.ok) {
+        results.ft_token = `❌ ERREUR ${tokenRes.status}: ${tokenBody.slice(0, 300)}`;
+      } else {
+        const tokenData = JSON.parse(tokenBody);
+        results.ft_token = `✅ Token OK (expire dans ${tokenData.expires_in}s)`;
+
+        // Test recherche FT
+        const searchRes = await fetch(
+          'https://api.francetravail.io/partenaire/offresdemploi/v2/offres/search?range=0-4',
+          { headers: { Authorization: `Bearer ${tokenData.access_token}`, Accept: 'application/json' } }
+        );
+        const searchBody = await searchRes.text();
+        if (!searchRes.ok) {
+          results.ft_search = `❌ ERREUR ${searchRes.status}: ${searchBody.slice(0, 300)}`;
+        } else {
+          const searchData = JSON.parse(searchBody);
+          results.ft_search = `✅ ${(searchData.resultats || []).length} offres reçues`;
+          results.ft_total = searchRes.headers.get('Content-Range') || 'pas de Content-Range';
+        }
+      }
+    } catch(e) {
+      results.ft_error = `❌ Exception: ${e.message}`;
+    }
+
+    // Test Adzuna
+    try {
+      const appId  = (process.env.ADZUNA_APP_ID  || '').trim();
+      const appKey = (process.env.ADZUNA_APP_KEY || '').trim();
+      const adzRes = await fetch(
+        `https://api.adzuna.com/v1/api/jobs/fr/search/1?app_id=${appId}&app_key=${appKey}&results_per_page=3&what=emploi`,
+        { headers: { Accept: 'application/json' } }
+      );
+      const adzBody = await adzRes.text();
+      if (!adzRes.ok) {
+        results.adzuna = `❌ ERREUR ${adzRes.status}: ${adzBody.slice(0, 200)}`;
+      } else {
+        const adzData = JSON.parse(adzBody);
+        results.adzuna = `✅ ${(adzData.results || []).length} offres reçues`;
+      }
+    } catch(e) {
+      results.adzuna_error = `❌ Exception: ${e.message}`;
+    }
+
+    return res.status(200).json({ debug: 2, results });
   }
 
   const {
@@ -35,9 +103,7 @@ module.exports = async function handler(req, res) {
     return fn().catch(e => { errors[name] = e.message; return []; });
   }
 
-  // ══════════════════════════════════════════════════════════
-  // 1. FRANCE TRAVAIL
-  // ══════════════════════════════════════════════════════════
+  // ── FRANCE TRAVAIL ──
   async function fetchFT() {
     const clientId     = (process.env.FT_CLIENT_ID     || '').trim();
     const clientSecret = (process.env.FT_CLIENT_SECRET || '').trim();
@@ -55,7 +121,10 @@ module.exports = async function handler(req, res) {
         }),
       }
     );
-    if (!tokenRes.ok) throw new Error('FT token ' + tokenRes.status);
+    if (!tokenRes.ok) {
+      const errBody = await tokenRes.text().catch(() => '');
+      throw new Error(`FT token ${tokenRes.status}: ${errBody.slice(0, 200)}`);
+    }
     const { access_token } = await tokenRes.json();
 
     const p = new URLSearchParams();
@@ -65,27 +134,23 @@ module.exports = async function handler(req, res) {
     if (codeROME)    p.append('codeROME',    codeROME);
     p.append('range', range);
 
-    // RÈGLE CRITIQUE : l'API FT n'accepte qu'UN SEUL paramètre de localisation
-    // commune (code INSEE 5 chiffres) est prioritaire car plus précis
-    // departement (2 chiffres) couvre tout le département
     if (commune) {
       p.append('commune', commune);
     } else if (departement) {
-      const deptFormatted = String(departement).padStart(2, '0');
-      p.append('departement', deptFormatted);
+      p.append('departement', String(departement).padStart(2, '0'));
     }
 
     const r = await fetch(
       `https://api.francetravail.io/partenaire/offresdemploi/v2/offres/search?${p}`,
       { headers: { Authorization: `Bearer ${access_token}`, Accept: 'application/json' } }
     );
-    if (!r.ok) throw new Error('FT search ' + r.status);
+    if (!r.ok) {
+      const errBody = await r.text().catch(() => '');
+      throw new Error(`FT search ${r.status}: ${errBody.slice(0, 200)}`);
+    }
 
-    // Récupérer le total depuis l'en-tête Content-Range
     const contentRange = r.headers.get('Content-Range') || '';
     const data = await r.json();
-
-    // Extraire le total réel ex: "offres 0-49/3421"
     let total = null;
     const crMatch = contentRange.match(/\/(\d+)$/);
     if (crMatch) total = parseInt(crMatch[1]);
@@ -110,174 +175,66 @@ module.exports = async function handler(req, res) {
     return { resultats, total };
   }
 
-  // ══════════════════════════════════════════════════════════
-  // 2. LA BONNE ALTERNANCE (sans clé)
-  // ══════════════════════════════════════════════════════════
+  // ── LA BONNE ALTERNANCE ──
   async function fetchLBA() {
     if (typeContrat && typeContrat !== 'DIN' && typeContrat !== 'STA') return [];
-
     const p = new URLSearchParams({ caller: 'talentpulse', sources: 'offres', radius: '30' });
     if (keyword)     p.set('romes', keyword);
     if (departement) p.set('insee', departement.padStart(2,'0') + '000');
-
-    const r = await fetch(
-      `https://labonnealternance.apprentissage.beta.gouv.fr/api/v1/jobs?${p}`,
-      { headers: { Accept: 'application/json' } }
-    );
+    const r = await fetch(`https://labonnealternance.apprentissage.beta.gouv.fr/api/v1/jobs?${p}`, { headers: { Accept: 'application/json' } });
     if (!r.ok) return [];
     const data = await r.json();
-
-    const offres = [
-      ...(data.jobs?.peJobs?.results || []),
-      ...(data.jobs?.lbaCompanies?.results || []),
-    ];
-
+    const offres = [...(data.jobs?.peJobs?.results || []), ...(data.jobs?.lbaCompanies?.results || [])];
     return offres.slice(0, 15).map((j, i) => ({
-      id:         'lba_' + (j.job?.id || i),
-      source:     'La Bonne Alternance',
-      sourceLogo: 'LBA',
-      title:      j.job?.title || j.title || 'Alternance / Stage',
-      company:    j.company?.name || j.name || 'Entreprise',
-      city:       j.place?.city || j.city || 'France',
-      contract:   j.job?.contractType || 'Alternance',
-      salary:     '',
-      exp:        'Débutant accepté',
-      desc:       j.job?.description || j.description || '',
-      url:        j.url || j.job?.url || 'https://labonnealternance.apprentissage.beta.gouv.fr',
-      posted:     j.job?.jobStartDate ? new Date(j.job.jobStartDate).toLocaleDateString('fr-FR') : '',
-      cat:        j.job?.romeAppellations?.[0] || 'Alternance',
+      id: 'lba_' + (j.job?.id || i), source: 'La Bonne Alternance', sourceLogo: 'LBA',
+      title: j.job?.title || j.title || 'Alternance / Stage',
+      company: j.company?.name || j.name || 'Entreprise',
+      city: j.place?.city || j.city || 'France',
+      contract: j.job?.contractType || 'Alternance', salary: '',
+      exp: 'Débutant accepté', desc: j.job?.description || j.description || '',
+      url: j.url || j.job?.url || 'https://labonnealternance.apprentissage.beta.gouv.fr',
+      posted: '', cat: 'Alternance',
     }));
   }
 
-  // ══════════════════════════════════════════════════════════
-  // 3. ADZUNA
-  // ══════════════════════════════════════════════════════════
+  // ── ADZUNA ──
   async function fetchAdzuna() {
     const appId  = (process.env.ADZUNA_APP_ID  || '').trim();
     const appKey = (process.env.ADZUNA_APP_KEY || '').trim();
     if (!appId || !appKey) return [];
-
     const page = Math.floor(offset / 20) + 1;
-
-    // Adzuna attend un nom de ville lisible, pas un code INSEE
-    // Mapping code INSEE/dept → nom ville pour Adzuna
     const ADZUNA_CITIES = {
-      '75': 'Paris', '92': 'Hauts-de-Seine', '93': 'Seine-Saint-Denis',
-      '94': 'Val-de-Marne', '91': 'Essonne', '77': 'Seine-et-Marne',
-      '78': 'Yvelines', "95": "Val-d'Oise",
-      '69123': 'Lyon', '13055': 'Marseille', '31555': 'Toulouse',
-      '06088': 'Nice', '44109': 'Nantes', '67482': 'Strasbourg',
-      '33063': 'Bordeaux', '59350': 'Lille', '34172': 'Montpellier',
-      '35238': 'Rennes', '38185': 'Grenoble', '76540': 'Rouen',
-      '83137': 'Toulon', '57463': 'Metz', '51108': 'Reims',
-      '63113': 'Clermont-Ferrand', '42218': 'Saint-Etienne',
-      '29019': 'Brest', '80021': 'Amiens', '14118': 'Caen',
-      '54395': 'Nancy', '45234': 'Orleans', '21231': 'Dijon',
+      '75':'Paris','92':'Hauts-de-Seine','93':'Seine-Saint-Denis','94':'Val-de-Marne',
+      '91':'Essonne','77':'Seine-et-Marne','78':'Yvelines','95':"Val-d'Oise",
+      '69':'Lyon','13':'Marseille','31':'Toulouse','06':'Nice','44':'Nantes',
+      '67':'Strasbourg','33':'Bordeaux','59':'Lille','34':'Montpellier',
+      '35':'Rennes','38':'Grenoble','76':'Rouen',
     };
-
-    const whereStr = commune
-      ? (ADZUNA_CITIES[commune] || 'France')
-      : departement
-        ? (ADZUNA_CITIES[departement] || 'France')
-        : 'France';
-
-    // Adzuna : app_id et app_key dans l'URL, pas dans les params
-    const p = new URLSearchParams({
-      results_per_page: String(Math.min(limit, 20)),
-      what: keyword || 'emploi',
-      where: whereStr,
-      content_type: 'application/json',
-    });
+    const whereStr = commune ? (ADZUNA_CITIES[commune] || 'France') : departement ? (ADZUNA_CITIES[departement] || 'France') : 'France';
+    const p = new URLSearchParams({ results_per_page: String(Math.min(limit, 20)), what: keyword || 'emploi', where: whereStr });
     if (typeContrat === 'CDI') p.set('full_time', '1');
-
-    const url = `https://api.adzuna.com/v1/api/jobs/fr/search/${page}?app_id=${appId}&app_key=${appKey}&${p}`;
-
-    const r = await fetch(url, { headers: { Accept: 'application/json' } });
-    if (!r.ok) {
-      const txt = await r.text().catch(() => '');
-      throw new Error(`Adzuna ${r.status}: ${txt.slice(0,100)}`);
-    }
+    const r = await fetch(`https://api.adzuna.com/v1/api/jobs/fr/search/${page}?app_id=${appId}&app_key=${appKey}&${p}`, { headers: { Accept: 'application/json' } });
+    if (!r.ok) { const t = await r.text().catch(()=>''); throw new Error(`Adzuna ${r.status}: ${t.slice(0,100)}`); }
     const data = await r.json();
-
     return (data.results || []).map(j => ({
-      id:         'adz_' + j.id,
-      source:     'Adzuna',
-      sourceLogo: 'ADZ',
-      title:      j.title || 'Poste',
-      company:    j.company?.display_name || 'Entreprise',
-      city:       j.location?.display_name || 'France',
-      contract:   j.contract_type === 'permanent' ? 'CDI' : j.contract_type || 'CDI',
-      salary:     j.salary_min && j.salary_max
-                    ? `${Math.round(j.salary_min/1000)}k–${Math.round(j.salary_max/1000)}k €/an`
-                    : j.salary_min ? `Dès ${Math.round(j.salary_min/1000)}k €/an` : '',
-      exp:        '',
-      desc:       j.description || '',
-      url:        j.redirect_url || 'https://www.adzuna.fr',
-      posted:     j.created ? new Date(j.created).toLocaleDateString('fr-FR') : '',
-      cat:        j.category?.label || '',
-      tags:       [],
-      nbPostes:   1,
-      qualification: '',
+      id: 'adz_' + j.id, source: 'Adzuna', sourceLogo: 'ADZ',
+      title: j.title || 'Poste', company: j.company?.display_name || 'Entreprise',
+      city: j.location?.display_name || 'France',
+      contract: j.contract_type === 'permanent' ? 'CDI' : j.contract_type || 'CDI',
+      salary: j.salary_min && j.salary_max ? `${Math.round(j.salary_min/1000)}k–${Math.round(j.salary_max/1000)}k €/an` : '',
+      exp: '', desc: j.description || '', url: j.redirect_url || 'https://www.adzuna.fr',
+      posted: j.created ? new Date(j.created).toLocaleDateString('fr-FR') : '', cat: j.category?.label || '',
     }));
   }
 
-  // ══════════════════════════════════════════════════════════
-  // 4. JOOBLE
-  // ══════════════════════════════════════════════════════════
-  async function fetchJooble() {
-    const apiKey = (process.env.JOOBLE_API_KEY || '').trim();
-    if (!apiKey) return [];
-
-    const locationStr = commune || departement || 'France';
-    const body = {
-      keywords: keyword || 'emploi',
-      location: locationStr,
-      page: String(Math.floor(offset / 20) + 1),
-    };
-    if (typeContrat === 'STA') body.employment_type = 'internship';
-
-    const r = await fetch(`https://jooble.org/api/${apiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-    if (!r.ok) throw new Error('Jooble ' + r.status);
-    const data = await r.json();
-
-    return (data.jobs || []).slice(0, 20).map((j, i) => ({
-      id:         'joo_' + (j.id || i),
-      source:     'Jooble',
-      sourceLogo: 'JOO',
-      title:      j.title || 'Poste',
-      company:    j.company || 'Entreprise',
-      city:       j.location || 'France',
-      contract:   j.type || 'CDI',
-      salary:     j.salary || '',
-      exp:        '',
-      desc:       j.snippet || '',
-      url:        j.link || 'https://jooble.org',
-      posted:     j.updated ? new Date(j.updated).toLocaleDateString('fr-FR') : '',
-      cat:        '',
-    }));
-  }
-
-  // ══════════════════════════════════════════════════════════
-  // AGGREGATION round-robin
-  // ══════════════════════════════════════════════════════════
+  // ── AGGREGATION ──
   try {
-    const requested = source === 'all'
-      ? ['ft', 'lba', 'adzuna', 'jooble']
-      : source.split(',').map(s => s.trim());
+    const requested = source === 'all' ? ['ft', 'lba', 'adzuna'] : source.split(',').map(s => s.trim());
+    const map = { ft: fetchFT, lba: fetchLBA, adzuna: fetchAdzuna };
+    const rawBatches = await Promise.all(requested.filter(s => map[s]).map(s => safe(map[s], s)));
 
-    const map = { ft: fetchFT, lba: fetchLBA, adzuna: fetchAdzuna, jooble: fetchJooble };
-
-    const rawBatches = await Promise.all(
-      requested.filter(s => map[s]).map(s => safe(map[s], s))
-    );
-
-    // FT renvoie {resultats, total}, les autres renvoient un tableau direct
     let ftTotal = null;
-    const batches = rawBatches.map(function(b) {
+    const batches = rawBatches.map(b => {
       if (b && b.resultats) { ftTotal = b.total; return b.resultats; }
       return b || [];
     });
@@ -285,19 +242,16 @@ module.exports = async function handler(req, res) {
     const results = [];
     const maxLen = Math.max(...batches.map(b => b.length), 0);
     for (let i = 0; i < maxLen; i++) {
-      for (const batch of batches) {
-        if (batch[i]) results.push(batch[i]);
-      }
+      for (const batch of batches) { if (batch[i]) results.push(batch[i]); }
     }
 
     return res.status(200).json({
       resultats: results,
-      total:     ftTotal || results.length,
-      sources:   requested,
-      errors:    Object.keys(errors).length ? errors : undefined,
+      total: ftTotal || results.length,
+      sources: requested,
+      errors: Object.keys(errors).length ? errors : undefined,
     });
-
-  } catch (e) {
+  } catch(e) {
     return res.status(500).json({ error: e.message });
   }
-}
+};
