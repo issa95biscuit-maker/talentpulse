@@ -5,14 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TalentPulse — Offres d'Emploi</title>
 <meta name="theme-color" content="#FF5C00">
-  <!-- Clerk Auth -->
-  <script
-    async
-    crossorigin="anonymous"
-    data-clerk-publishable-key="YOUR_CLERK_PUBLISHABLE_KEY" data-clerk-after-sign-in-url="/" data-clerk-after-sign-up-url="/"
-    src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"
-    type="text/javascript"
-  ></script>
+<!-- Auth intégrée — pas de Clerk -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="TalentPulse">
@@ -4237,7 +4230,7 @@ ul#nav-desktop,
   </div>
 
   <div class="drawer-auth">
-    <a onclick="openSignIn();closeDrawer()" class="drawer-btn-login">Se connecter</a>
+    <a onclick="AUTH.user ? (signOut();closeDrawer()) : (openSignIn();closeDrawer())" class="drawer-btn-login" id="drawer-signin-btn">Se connecter</a>
     <a onclick="openSignUp();closeDrawer()" class="drawer-btn-register">Créer un compte</a>
   </div>
 </div>
@@ -7021,7 +7014,7 @@ function animateLoadingSteps() {
   }, 1800);
 }
 
-async async function generateLettre() {
+async function generateLettre() {
   if(lettreGenerating) return;
   var poste = (document.getElementById('lf-poste')||{}).value||'';
   var entreprise = (document.getElementById('lf-entreprise')||{}).value||'';
@@ -8395,7 +8388,7 @@ function setProfTab(tab, el) {
 
   if(tab === 'matching') {
     if(JOBS.length === 0) {
-      container.innerHTML = '<div style="padding:32px;text-align:center"><p style="color:#6B7280">Cherchez des offres d'abord, puis revenez ici pour voir vos recommandations personnalisées.</p><button onclick="showPage('jobs')" style="margin-top:12px;padding:10px 24px;background:#FF5C00;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer">Voir les offres</button></div>';
+      container.innerHTML = '<div style="padding:32px;text-align:center"><p style="color:#6B7280">Cherchez des offres d\'abord, puis revenez ici pour voir vos recommandations personnalisées.</p><button onclick="showPage(\'jobs\')" style="margin-top:12px;padding:10px 24px;background:#FF5C00;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer">Voir les offres</button></div>';
     } else {
       renderMatchingTab(container);
     }
@@ -8428,9 +8421,14 @@ function setProfTab(tab, el) {
     if(!hist.length) {
       container.innerHTML = '<div style="padding:32px;text-align:center"><p style="color:#6B7280">Aucune offre consultée récemment.</p></div>';
     } else {
-      container.innerHTML = '<div style="padding-top:16px">' + hist.slice().reverse().slice(0,20).map(function(h){
-        return '<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #F3F4F6;cursor:pointer" onclick="showDetail('' + (h.id||'').replace(/'/g,"\'")+'')"><div style="font-size:1.2rem">' + (h.logo||'💼') + '</div><div><div style="font-size:.86rem;font-weight:700;color:#111827">' + escHtml(h.title||'') + '</div><div style="font-size:.75rem;color:#6B7280">' + escHtml(h.company||'') + '</div></div></div>';
-      }).join('') + '</div>';
+      var histDivs = hist.slice().reverse().slice(0,20).map(function(h){
+        var safeId = (h.id||'').replace(/'/g,'\\x27');
+        return '<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #F3F4F6;cursor:pointer" onclick="showDetail(\'' + safeId + '\')">'
+          + '<div style="font-size:1.2rem">' + (h.logo||'\u{1F4BC}') + '</div>'
+          + '<div><div style="font-size:.86rem;font-weight:700;color:#111827">' + escHtml(h.title||'') + '</div>'
+          + '<div style="font-size:.75rem;color:#6B7280">' + escHtml(h.company||'') + '</div></div></div>';
+      });
+      container.innerHTML = '<div style="padding-top:16px">' + histDivs.join('') + '</div>';
     }
     return;
   }
@@ -8461,6 +8459,127 @@ function buildJobCard(j) {
     + '</div></div>';
 }
 
+
+// ════════════════════════════════════════════════════════════
+// AUTH — Système intégré simple (localStorage)
+// ════════════════════════════════════════════════════════════
+var AUTH = { user: null };
+
+function authInit() {
+  var saved = localStorage.getItem('tp_user');
+  if (saved) {
+    try { AUTH.user = JSON.parse(saved); } catch(e) {}
+  }
+  authUpdateNav();
+}
+
+function authUpdateNav() {
+  var loginBtn  = document.getElementById('nav-login');
+  var regBtn    = document.getElementById('nav-register');
+  var userBtn   = document.getElementById('nav-user-btn');
+  if (AUTH.user) {
+    if (loginBtn)  loginBtn.style.display  = 'none';
+    if (regBtn)    regBtn.style.display    = 'none';
+    if (userBtn) {
+      userBtn.style.display = 'flex';
+      var initials = ((AUTH.user.prenom||'U')[0] + (AUTH.user.nom||'')[0]).toUpperCase();
+      userBtn.innerHTML = '<div class="nav-avatar">' + initials + '</div><span style="font-size:.82rem;font-weight:700;color:#111827">' + (AUTH.user.prenom||'Mon compte') + '</span>';
+    }
+  } else {
+    if (loginBtn)  loginBtn.style.display  = '';
+    if (regBtn)    regBtn.style.display    = '';
+    if (userBtn)   userBtn.style.display   = 'none';
+  }
+}
+
+function openSignIn()      { showPage('login'); }
+function openSignUp()      { showPage('login'); }
+function openUserProfile() { showPage('profile'); }
+
+function signOut() {
+  AUTH.user = null;
+  localStorage.removeItem('tp_user');
+  authUpdateNav();
+  showPage('home');
+  showToast('👋 Déconnexion réussie');
+}
+
+function authLogin(prenom, nom, email, password) {
+  if (!email || !password) { showToast('⚠️ Remplissez tous les champs'); return false; }
+  AUTH.user = { prenom: prenom||'', nom: nom||'', email: email };
+  localStorage.setItem('tp_user', JSON.stringify(AUTH.user));
+  // Pré-remplir le profil
+  if (!PROFILE.prenom && prenom) { PROFILE.prenom = prenom; PROFILE.nom = nom||''; PROFILE.email = email; saveProfile(); }
+  authUpdateNav();
+  showToast('✅ Connexion réussie !');
+  return true;
+}
+
+function switchAuthTab(tab) {
+  var signin = document.getElementById('form-signin');
+  var signup = document.getElementById('form-signup');
+  var tabSI  = document.getElementById('tab-signin');
+  var tabSU  = document.getElementById('tab-signup');
+  if(!signin) return;
+  if(tab === 'signin') {
+    signin.style.display = '';
+    signup.style.display = 'none';
+    tabSI.style.borderBottomColor = '#FF5C00'; tabSI.style.color = '#FF5C00'; tabSI.style.fontWeight = '700';
+    tabSU.style.borderBottomColor = 'transparent'; tabSU.style.color = '#6B7280'; tabSU.style.fontWeight = '600';
+  } else {
+    signin.style.display = 'none';
+    signup.style.display = '';
+    tabSU.style.borderBottomColor = '#FF5C00'; tabSU.style.color = '#FF5C00'; tabSU.style.fontWeight = '700';
+    tabSI.style.borderBottomColor = 'transparent'; tabSI.style.color = '#6B7280'; tabSI.style.fontWeight = '600';
+  }
+}
+
+function doSignIn() {
+  var email    = (document.getElementById('signin-email')||{}).value || '';
+  var password = (document.getElementById('signin-password')||{}).value || '';
+  if(!email || !password) { showToast('⚠️ Remplissez email et mot de passe'); return; }
+  // Vérifier si compte existant
+  var accounts = JSON.parse(localStorage.getItem('tp_accounts') || '[]');
+  var account  = accounts.find(function(a){ return a.email === email; });
+  if(!account) { showToast('❌ Compte introuvable. Cr\u00e9ez un compte.'); return; }
+  if(account.password !== btoa(password)) { showToast('❌ Mot de passe incorrect'); return; }
+  if(authLogin(account.prenom, account.nom, email, password)) {
+    closeDrawer();
+    showPage('home');
+  }
+}
+
+function doSignUp() {
+  var prenom   = (document.getElementById('signup-prenom')||{}).value || '';
+  var nom      = (document.getElementById('signup-nom')||{}).value || '';
+  var email    = (document.getElementById('signup-email')||{}).value || '';
+  var password = (document.getElementById('signup-password')||{}).value || '';
+  if(!email || !password) { showToast('⚠️ Email et mot de passe requis'); return; }
+  if(password.length < 6) { showToast('⚠️ Mot de passe : 6 caractères minimum'); return; }
+  var accounts = JSON.parse(localStorage.getItem('tp_accounts') || '[]');
+  if(accounts.find(function(a){ return a.email === email; })) {
+    showToast('❌ Cet email est déjà utilisé'); return;
+  }
+  accounts.push({ prenom:prenom, nom:nom, email:email, password:btoa(password) });
+  localStorage.setItem('tp_accounts', JSON.stringify(accounts));
+  if(authLogin(prenom, nom, email, password)) {
+    closeDrawer();
+    showPage('home');
+    showToast('🎉 Compte créé ! Bienvenue ' + (prenom||'') + ' !');
+  }
+}
+
+
+// Mettre à jour le drawer selon auth
+var _origAuthUpdateNav = authUpdateNav;
+authUpdateNav = function() {
+  _origAuthUpdateNav();
+  var btn = document.getElementById('drawer-signin-btn');
+  if(btn) btn.textContent = AUTH.user ? 'Se déconnecter' : 'Se connecter';
+  var regBtn = document.querySelector('.drawer-btn-register');
+  if(regBtn) regBtn.style.display = AUTH.user ? 'none' : '';
+};
+
 </script>
 
 <!-- bottom nav supprimée -->
@@ -8474,15 +8593,55 @@ function buildJobCard(j) {
         </div>
         <span><span style="color:#111827">Talent</span><span style="color:#FF5C00">Pulse</span></span>
       </div>
-      <h1 class="login-title">Bienvenue</h1>
-      <p class="login-sub">Connectez-vous pour accéder à vos offres et recommandations personnalisées.</p>
-      <div class="login-btns">
-        <button class="login-btn-primary" onclick="openSignUp()">Créer un compte gratuit</button>
-        <button class="login-btn-outline" onclick="openSignIn()">Se connecter</button>
+
+      <!-- Tabs -->
+      <div style="display:flex;border-bottom:2px solid #E5E7EB;margin-bottom:24px">
+        <button id="tab-signin" onclick="switchAuthTab('signin')" style="flex:1;padding:10px;background:none;border:none;border-bottom:3px solid #FF5C00;color:#FF5C00;font-weight:700;cursor:pointer;margin-bottom:-2px;font-size:.9rem">Connexion</button>
+        <button id="tab-signup" onclick="switchAuthTab('signup')" style="flex:1;padding:10px;background:none;border:none;border-bottom:3px solid transparent;color:#6B7280;font-weight:600;cursor:pointer;margin-bottom:-2px;font-size:.9rem">Créer un compte</button>
       </div>
-      <p class="login-legal">En continuant, vous acceptez nos <a onclick="openLegal('cgu')">CGU</a> et notre <a onclick="openLegal('privacy')">politique de confidentialité</a>.</p>
+
+      <!-- Formulaire Connexion -->
+      <div id="form-signin">
+        <div class="lf-group">
+          <label style="display:block;font-size:.78rem;font-weight:700;color:#374151;margin-bottom:5px">Email</label>
+          <input id="signin-email" class="lf-input" type="email" placeholder="vous@email.com">
+        </div>
+        <div class="lf-group" style="margin-top:12px">
+          <label style="display:block;font-size:.78rem;font-weight:700;color:#374151;margin-bottom:5px">Mot de passe</label>
+          <input id="signin-password" class="lf-input" type="password" placeholder="••••••••">
+        </div>
+        <button onclick="doSignIn()" class="login-btn-primary" style="margin-top:20px">Se connecter</button>
+      </div>
+
+      <!-- Formulaire Inscription -->
+      <div id="form-signup" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="lf-group">
+            <label style="display:block;font-size:.78rem;font-weight:700;color:#374151;margin-bottom:5px">Prénom</label>
+            <input id="signup-prenom" class="lf-input" placeholder="Marie">
+          </div>
+          <div class="lf-group">
+            <label style="display:block;font-size:.78rem;font-weight:700;color:#374151;margin-bottom:5px">Nom</label>
+            <input id="signup-nom" class="lf-input" placeholder="Dupont">
+          </div>
+        </div>
+        <div class="lf-group" style="margin-top:12px">
+          <label style="display:block;font-size:.78rem;font-weight:700;color:#374151;margin-bottom:5px">Email</label>
+          <input id="signup-email" class="lf-input" type="email" placeholder="vous@email.com">
+        </div>
+        <div class="lf-group" style="margin-top:12px">
+          <label style="display:block;font-size:.78rem;font-weight:700;color:#374151;margin-bottom:5px">Mot de passe</label>
+          <input id="signup-password" class="lf-input" type="password" placeholder="••••••••">
+        </div>
+        <button onclick="doSignUp()" class="login-btn-primary" style="margin-top:20px">Créer mon compte</button>
+      </div>
+
+      <p class="login-legal" style="margin-top:16px">En continuant, vous acceptez nos <a onclick="openLegal('cgu');showPage('conseils')" style="color:#FF5C00;cursor:pointer">CGU</a> et notre <a onclick="openLegal('privacy');showPage('conseils')" style="color:#FF5C00;cursor:pointer">politique de confidentialité</a>.</p>
     </div>
   </div>
 </div>
+
+<!-- Bottom nav cachée — gardée pour compatibilité JS -->
+<nav id="bottomNav" style="display:none!important" aria-hidden="true"></nav>
 </body>
 </html>
