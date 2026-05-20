@@ -6130,15 +6130,9 @@ window.addEventListener('appinstalled', function(){ showToast('TalentPulse insta
 setTimeout(loadRealStats, 800);
 
 
-// ======================== SERVICE WORKER ========================
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function() {
-    navigator.serviceWorker.register('/sw.js')
-      .then(function(reg) { console.log('SW registered:', reg.scope); })
-      .catch(function(err) { console.log('SW failed:', err); });
-  });
-}
-
+// ======================== SERVICE WORKER (DESACTIVE) ========================
+// Le SW est désinscrit + caches purgés dans le master_fix.js
+// pour éviter qu'une vieille version soit servie depuis le cache.
 // ======================== HERO CANVAS PARTICLES ========================
 function initHeroCanvas() {
   var canvas = document.getElementById('heroCanvas');
@@ -8982,534 +8976,464 @@ nav#mainNav {
 body.page-is-home #bottomNav { display: none !important; }
 </style>
 
+<!-- v55 corrections finales (selecteurs CSS errones) supprime -->
 <script>
-// ══════════════════════════════════════════════════════════════
-// CORRECTIONS FINALES — chargées EN DERNIER, surchargent tout
-// ══════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════════════
+// TALENTPULSE — MASTER FIX (audit + corrections complet)
+// Réécrit pour corriger tous les bugs fonctionnels sans toucher au design
+// ════════════════════════════════════════════════════════════════════════
 
-// 1. HAMBURGER — simple et robuste
-document.addEventListener('DOMContentLoaded', function() {
+(function() {
+  'use strict';
 
-  var drawer  = document.getElementById('navDrawer');
-  var overlay = document.getElementById('drawerOverlay');
-  var burger  = document.getElementById('navHamburger');
+  // ═══════════════════════════════════════════════════════════════════
+  // 1. ERROR HANDLER GLOBAL (Mission 14)
+  // ═══════════════════════════════════════════════════════════════════
+  window.addEventListener('error', function(e) {
+    console.error('[TP-ERR]', e.message, '@', e.filename + ':' + e.lineno);
+  });
+  window.addEventListener('unhandledrejection', function(e) {
+    console.error('[TP-PROMISE-ERR]', e.reason);
+  });
 
-  function openDrawer() {
-    if(!drawer) return;
-    drawer.classList.add('open');
-    if(overlay) overlay.classList.add('open');
-    if(burger)  burger.classList.add('open');
-    document.body.style.overflow = 'hidden';
+  // Safe localStorage parser
+  window._tpSafeParse = function(key, fallback) {
+    try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); }
+    catch(e) { console.warn('[TP] localStorage corrompu:', key); return fallback; }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════
+  // 2. SERVICE WORKER — DÉSACTIVATION (cache busting)
+  // ═══════════════════════════════════════════════════════════════════
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(function(regs) {
+      regs.forEach(function(r) { r.unregister(); });
+    }).catch(function(){});
+    if (window.caches) {
+      caches.keys().then(function(keys) {
+        keys.forEach(function(k) { caches.delete(k); });
+      }).catch(function(){});
+    }
   }
 
-  function closeDrawerFn() {
-    if(!drawer) return;
-    drawer.classList.remove('open');
-    if(overlay) overlay.classList.remove('open');
-    if(burger)  burger.classList.remove('open');
-    document.body.style.overflow = '';
-  }
-
-  // Rebind bouton hamburger
-  if(burger) {
-    burger.onclick = function(e) {
-      e.stopPropagation();
-      drawer && drawer.classList.contains('open') ? closeDrawerFn() : openDrawer();
+  // ═══════════════════════════════════════════════════════════════════
+  // 3. DRAWER — Open / Close / Toggle (Mission 3)
+  // ═══════════════════════════════════════════════════════════════════
+  function _drawerEls() {
+    return {
+      drawer:  document.getElementById('navDrawer'),
+      overlay: document.getElementById('drawerOverlay'),
+      burger:  document.getElementById('navHamburger'),
+      close:   document.getElementById('dwClose')
     };
   }
-  // Fermer via overlay
-  if(overlay) overlay.onclick = closeDrawerFn;
-  // Bouton X dans le drawer
-  var closeBtn = document.querySelector('.drawer-close');
-  if(closeBtn) closeBtn.onclick = closeDrawerFn;
 
-  // Exposer globalement
-  window.toggleDrawer = function() {
-    drawer && drawer.classList.contains('open') ? closeDrawerFn() : openDrawer();
+  window.openDrawer = function() {
+    var e = _drawerEls();
+    if (!e.drawer) return;
+    e.drawer.classList.add('open');
+    if (e.overlay) e.overlay.classList.add('open');
+    if (e.burger)  e.burger.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    e.drawer.setAttribute('aria-hidden', 'false');
   };
-  window.closeDrawer = closeDrawerFn;
+  window.closeDrawer = function() {
+    var e = _drawerEls();
+    if (!e.drawer) return;
+    e.drawer.classList.remove('open');
+    if (e.overlay) e.overlay.classList.remove('open');
+    if (e.burger)  e.burger.classList.remove('open');
+    document.body.style.overflow = '';
+    e.drawer.setAttribute('aria-hidden', 'true');
+  };
+  window.toggleDrawer = function() {
+    var d = document.getElementById('navDrawer');
+    if (d && d.classList.contains('open')) window.closeDrawer();
+    else window.openDrawer();
+  };
 
-  // Fermer tous les liens du drawer
-  if(drawer) {
-    drawer.querySelectorAll('.drawer-item, .drawer-btn-login, .drawer-btn-register').forEach(function(el) {
-      var orig = el.onclick;
-      el.onclick = function(e) {
-        closeDrawerFn();
-        if(orig) orig.call(this, e);
-      };
+  // ═══════════════════════════════════════════════════════════════════
+  // 4. NAVIGATION HELPER
+  // ═══════════════════════════════════════════════════════════════════
+  function _navigate(page, callback) {
+    window.closeDrawer();
+    setTimeout(function() {
+      if (typeof window.showPage === 'function') {
+        window.showPage(page);
+      }
+      if (typeof callback === 'function') {
+        setTimeout(callback, 100);
+      }
+    }, 80);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // 5. FONCTIONS LOGIN (Mission 4)
+  // Récupérées depuis l'ancien script 3 (corrections finales)
+  // ═══════════════════════════════════════════════════════════════════
+  if (typeof window.lpSwitchTab !== 'function') {
+    window.lpSwitchTab = function(tab) {
+      var formIn = document.getElementById('lp-form-in');
+      var formUp = document.getElementById('lp-form-up');
+      var tabIn  = document.getElementById('lp-tab-in');
+      var tabUp  = document.getElementById('lp-tab-up');
+      if (!formIn) return;
+      if (tab === 'in') {
+        formIn.style.display = '';
+        if (formUp) formUp.style.display = 'none';
+        if (tabIn)  tabIn.classList.add('active');
+        if (tabUp)  tabUp.classList.remove('active');
+      } else {
+        formIn.style.display = 'none';
+        if (formUp) formUp.style.display = '';
+        if (tabUp)  tabUp.classList.add('active');
+        if (tabIn)  tabIn.classList.remove('active');
+      }
+    };
+  }
+
+  if (typeof window.lpDoSignIn !== 'function') {
+    window.lpDoSignIn = function() {
+      var email = (document.getElementById('lp-email-in') || {}).value || '';
+      var pass  = (document.getElementById('lp-pass-in')  || {}).value || '';
+      var err   = document.getElementById('lp-err-in');
+      if (!email || !pass) {
+        if (err) { err.textContent = 'Remplissez email et mot de passe.'; err.style.display = ''; }
+        return;
+      }
+      var accounts = window._tpSafeParse('tp_accounts', []);
+      var acc = accounts.find(function(a){ return a.email === email; });
+      if (!acc) {
+        if (err) { err.textContent = 'Aucun compte avec cet email. Créez un compte.'; err.style.display = ''; }
+        return;
+      }
+      if (acc.password !== btoa(pass)) {
+        if (err) { err.textContent = 'Mot de passe incorrect.'; err.style.display = ''; }
+        return;
+      }
+      if (err) err.style.display = 'none';
+      window.AUTH = window.AUTH || {};
+      window.AUTH.user = { prenom: acc.prenom||'', nom: acc.nom||'', email: acc.email };
+      localStorage.setItem('tp_user', JSON.stringify(window.AUTH.user));
+      if (typeof window.authUpdateNav === 'function') window.authUpdateNav();
+      window.showPage('home');
+      if (typeof window.showToast === 'function') window.showToast('Bienvenue ' + (acc.prenom||'') + ' !');
+    };
+  }
+
+  if (typeof window.lpDoSignUp !== 'function') {
+    window.lpDoSignUp = function() {
+      var prenom = (document.getElementById('lp-prenom') || {}).value || '';
+      var nom    = (document.getElementById('lp-nom') || {}).value || '';
+      var email  = (document.getElementById('lp-email-up') || {}).value || '';
+      var pass   = (document.getElementById('lp-pass-up') || {}).value || '';
+      var phoneCode = (document.getElementById('lp-phone-code') || {}).value || '+33';
+      var phoneNum  = (document.getElementById('lp-phone') || {}).value || '';
+      var fullPhone = phoneNum.trim() ? phoneCode + phoneNum.replace(/^0/,'').replace(/\s/g,'') : '';
+      var err = document.getElementById('lp-err-up');
+      if (!email || !pass) {
+        if (err) { err.textContent = 'Email et mot de passe requis.'; err.style.display = ''; }
+        else if (typeof window.showToast === 'function') window.showToast('Email et mot de passe requis.');
+        return;
+      }
+      if (pass.length < 6) {
+        if (err) { err.textContent = 'Mot de passe trop court (6 caractères min.).'; err.style.display = ''; }
+        else if (typeof window.showToast === 'function') window.showToast('Mot de passe trop court.');
+        return;
+      }
+      if (!email.includes('@')) {
+        if (err) { err.textContent = 'Email invalide.'; err.style.display = ''; }
+        else if (typeof window.showToast === 'function') window.showToast('Email invalide.');
+        return;
+      }
+      var accounts = window._tpSafeParse('tp_accounts', []);
+      if (accounts.find(function(a){ return a.email === email; })) {
+        if (err) { err.textContent = 'Cet email est déjà utilisé.'; err.style.display = ''; }
+        else if (typeof window.showToast === 'function') window.showToast('Email déjà utilisé.');
+        return;
+      }
+      accounts.push({ prenom:prenom, nom:nom, email:email, password:btoa(pass), phone:fullPhone, createdAt:new Date().toISOString() });
+      localStorage.setItem('tp_accounts', JSON.stringify(accounts));
+      window.AUTH = window.AUTH || {};
+      window.AUTH.user = { prenom:prenom, nom:nom, email:email };
+      localStorage.setItem('tp_user', JSON.stringify(window.AUTH.user));
+      if (typeof window.PROFILE !== 'undefined' && window.PROFILE) {
+        window.PROFILE.prenom = prenom;
+        window.PROFILE.nom = nom;
+        window.PROFILE.email = email;
+        if (typeof window.saveProfile === 'function') window.saveProfile();
+      }
+      if (typeof window.authUpdateNav === 'function') window.authUpdateNav();
+      window.showPage('home');
+      if (typeof window.showToast === 'function') window.showToast('Compte créé ! Bienvenue ' + (prenom||'') + ' !');
+    };
+  }
+
+  // openSignIn / openSignUp → naviguent vers page-login
+  window.openSignIn = function() {
+    window.showPage('login');
+    setTimeout(function(){ if (window.lpSwitchTab) window.lpSwitchTab('in'); }, 100);
+  };
+  window.openSignUp = function() {
+    window.showPage('login');
+    setTimeout(function(){ if (window.lpSwitchTab) window.lpSwitchTab('up'); }, 100);
+  };
+
+  // ═══════════════════════════════════════════════════════════════════
+  // 6. DARK MODE — lecture au load (Mission 15)
+  // ═══════════════════════════════════════════════════════════════════
+  try {
+    var savedDark = localStorage.getItem('tpdark');
+    if (savedDark === '1' || savedDark === 'true') {
+      document.body.classList.add('dark-mode');
+    }
+  } catch(e) {}
+
+  if (typeof window.toggleDark !== 'function') {
+    window.toggleDark = function() {
+      document.body.classList.toggle('dark-mode');
+      try { localStorage.setItem('tpdark', document.body.classList.contains('dark-mode') ? '1' : '0'); } catch(e) {}
+    };
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // 7. BIND DRAWER ITEMS (Mission 3 — bug critique)
+  // ═══════════════════════════════════════════════════════════════════
+  function _bindDrawer() {
+    var els = _drawerEls();
+
+    // Hamburger
+    if (els.burger && !els.burger._tpBound) {
+      els.burger._tpBound = true;
+      els.burger.removeAttribute('onclick');
+      els.burger.addEventListener('click', function(ev) {
+        ev.preventDefault(); ev.stopPropagation();
+        window.toggleDrawer();
+      });
+      if (!els.burger.getAttribute('aria-label')) els.burger.setAttribute('aria-label', 'Menu');
+    }
+    // Overlay
+    if (els.overlay && !els.overlay._tpBound) {
+      els.overlay._tpBound = true;
+      els.overlay.addEventListener('click', window.closeDrawer);
+    }
+    // Close X
+    if (els.close && !els.close._tpBound) {
+      els.close._tpBound = true;
+      els.close.addEventListener('click', window.closeDrawer);
+      if (!els.close.getAttribute('aria-label')) els.close.setAttribute('aria-label', 'Fermer le menu');
+    }
+
+    // Items du drawer — actions
+    var actions = {
+      'dw-offres':    function(){ _navigate('jobs'); },
+      'dw-lettre':    function(){ _navigate('lettre', function(){
+                         var t = document.getElementById('ltab-lettre');
+                         if (t && window.switchLettreTab) window.switchLettreTab('lettre', t);
+                      }); },
+      'dw-matching':  function(){ _navigate('lettre', function(){
+                         var t = document.getElementById('ltab-match');
+                         if (t && window.switchLettreTab) window.switchLettreTab('match', t);
+                      }); },
+      'dw-conseils':  function(){ _navigate('conseils'); },
+      'dw-profil':    function(){ _navigate('profile'); },
+      'dw-pipeline':  function(){ _navigate('profile', function(){
+                         var btn = document.querySelector('[onclick*="setProfTab(\'kanban\'"]');
+                         if (window.setProfTab) window.setProfTab('kanban', btn);
+                      }); },
+      'dw-publier':   function(){ window.closeDrawer(); if (window.showToast) window.showToast('Espace recruteur — bientôt disponible'); },
+      'dw-recruteur': function(){ window.closeDrawer(); if (window.showToast) window.showToast('Espace recruteur — bientôt disponible'); },
+      'dw-about':     function(){ window.closeDrawer(); setTimeout(function(){ if (window.openLegal) window.openLegal('about'); }, 80); },
+      'dw-cgu':       function(){ window.closeDrawer(); setTimeout(function(){ if (window.openLegal) window.openLegal('cgu'); }, 80); },
+      'dw-privacy':   function(){ window.closeDrawer(); setTimeout(function(){ if (window.openLegal) window.openLegal('privacy'); }, 80); },
+      'dw-cookies':   function(){ window.closeDrawer(); setTimeout(function(){ if (window.openLegal) window.openLegal('cookies'); }, 80); },
+      'dw-contact':   function(){ window.closeDrawer(); setTimeout(function(){ if (window.openLegal) window.openLegal('contact'); }, 80); }
+    };
+
+    Object.keys(actions).forEach(function(id) {
+      var el = document.getElementById(id);
+      if (!el || el._tpBound) return;
+      el._tpBound = true;
+      el.removeAttribute('onclick');
+      el.style.cursor = 'pointer';
+      // Click handler
+      el.addEventListener('click', function(ev) {
+        ev.preventDefault();
+        try { actions[id](); } catch(err) { console.error('[TP] Action ' + id + ':', err); }
+      });
+      // Mission 13: keyboard accessibility
+      el.addEventListener('keydown', function(ev) {
+        if (ev.key === 'Enter' || ev.key === ' ') {
+          ev.preventDefault();
+          try { actions[id](); } catch(err) {}
+        }
+      });
+    });
+
+    // Boutons login/register du drawer
+    var dwBL = document.getElementById('dwBtnLogin');
+    var dwBR = document.getElementById('dwBtnRegister');
+    if (dwBL && !dwBL._tpBound) {
+      dwBL._tpBound = true;
+      dwBL.removeAttribute('onclick');
+      dwBL.addEventListener('click', function(ev) {
+        ev.preventDefault();
+        _navigate('login', function(){ if (window.lpSwitchTab) window.lpSwitchTab('in'); });
+      });
+    }
+    if (dwBR && !dwBR._tpBound) {
+      dwBR._tpBound = true;
+      dwBR.removeAttribute('onclick');
+      dwBR.addEventListener('click', function(ev) {
+        ev.preventDefault();
+        _navigate('login', function(){ if (window.lpSwitchTab) window.lpSwitchTab('up'); });
+      });
+    }
+    // Signout buttons
+    ['dwBtnSignout','dwSignout','signoutBtn'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el && !el._tpBound) {
+        el._tpBound = true;
+        el.removeAttribute('onclick');
+        el.addEventListener('click', function() {
+          window.closeDrawer();
+          if (window.signOut) window.signOut();
+        });
+      }
     });
   }
 
-  // 2. PANEL DETAIL — rebind closeJobDetail
-  window.closeJobDetail = function() {
-    var panel = document.getElementById('jobDetailPanel');
-    if(panel) {
-      panel.classList.remove('open');
-      panel.scrollTop = 0;
+  // ═══════════════════════════════════════════════════════════════════
+  // 8. NAV HEADER bindings
+  // ═══════════════════════════════════════════════════════════════════
+  function _bindNavHeader() {
+    var nL = document.getElementById('nav-login');
+    var nR = document.getElementById('nav-register');
+    var nU = document.getElementById('nav-user-btn');
+    if (nL && !nL._tpBound) {
+      nL._tpBound = true;
+      nL.addEventListener('click', function(ev){ ev.preventDefault(); window.openSignIn(); });
     }
-  };
-
-  // Bouton retour dans le panel
-  var backBtn = document.querySelector('.jdp-back');
-  if(backBtn) backBtn.onclick = window.closeJobDetail;
-
-  // Fermer panel avec Escape
-  document.addEventListener('keydown', function(e) {
-    if(e.key === 'Escape') {
-      closeDrawerFn();
-      window.closeJobDetail();
+    if (nR && !nR._tpBound) {
+      nR._tpBound = true;
+      nR.addEventListener('click', function(ev){ ev.preventDefault(); window.openSignUp(); });
     }
-  });
+    if (nU && !nU._tpBound) {
+      nU._tpBound = true;
+      nU.addEventListener('click', function(ev) {
+        ev.preventDefault();
+        if (window.openUserProfile) window.openUserProfile();
+        else window.showPage('profile');
+      });
+    }
+    // Logo TalentPulse → home
+    var logo = document.querySelector('.nav-logo');
+    if (logo && !logo._tpBound) {
+      logo._tpBound = true;
+      logo.style.cursor = 'pointer';
+      logo.addEventListener('click', function(){ window.showPage('home'); });
+    }
+  }
 
-  // 3. SHOWDETAIL — s'assurer qu'elle ouvre le panel
-  var _origShowDetail = window.showDetail;
-  window.showDetail = function(id) {
-    if(_origShowDetail) _origShowDetail(id);
-    // Forcer l'ouverture du panel
-    setTimeout(function() {
-      var panel = document.getElementById('jobDetailPanel');
-      if(panel && !panel.classList.contains('open')) {
-        panel.classList.add('open');
+  // ═══════════════════════════════════════════════════════════════════
+  // 9. ESCAPE / KEYBOARD (Mission 13)
+  // ═══════════════════════════════════════════════════════════════════
+  function _bindKeyboard() {
+    if (window._tpKbBound) return;
+    window._tpKbBound = true;
+    document.addEventListener('keydown', function(ev) {
+      if (ev.key === 'Escape') {
+        window.closeDrawer();
+        if (window.closeJobDetail) window.closeJobDetail();
+        if (window.closeLegal) window.closeLegal();
+        if (window.closeModal) window.closeModal();
       }
-    }, 50);
-  };
+      if (ev.key === 'Tab') document.body.classList.add('keyboard-nav');
+    });
+    document.addEventListener('mousedown', function(){
+      document.body.classList.remove('keyboard-nav');
+    });
+  }
 
-  // 4. AUTH — Login/Inscription redirige bien vers page login
-  window.openSignIn = function() { showPage('login'); };
-  window.openSignUp = function() { showPage('login'); };
-
-  // Relier les boutons nav
-  var loginBtn = document.getElementById('nav-login');
-  var regBtn   = document.getElementById('nav-register');
-  if(loginBtn) loginBtn.onclick = function(e) { e.preventDefault(); showPage('login'); };
-  if(regBtn)   regBtn.onclick   = function(e) { e.preventDefault(); showPage('login'); };
-
-  // 5. INIT AUTH
-  if(typeof authInit === 'function') authInit();
-
-  // 6. ANIMATION TITRE
-  var phrases = [
-    'prochain emploi', 'prochain CDI', 'alternance idéale',
-    'futur stage', 'prochaine mission', 'job en télétravail',
-    'reconversion réussie', 'premier CDI'
-  ];
-  var animEl = document.getElementById('heroAnimText');
-  if(animEl) {
-    var animIdx = 0;
+  // ═══════════════════════════════════════════════════════════════════
+  // 10. ANIMATION HERO TITRE
+  // ═══════════════════════════════════════════════════════════════════
+  function _heroAnim() {
+    var el = document.getElementById('heroAnimText');
+    if (!el || el._tpAnim) return;
+    el._tpAnim = true;
+    var phrases = ['prochain emploi','prochain CDI','alternance idéale','futur stage','prochaine mission','job en télétravail','reconversion réussie','premier CDI'];
+    var idx = 0;
+    el.style.transition = 'opacity .3s ease, transform .3s ease';
     setInterval(function() {
-      animEl.style.opacity = '0';
-      animEl.style.transform = 'translateY(-8px)';
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(-8px)';
       setTimeout(function() {
-        animIdx = (animIdx + 1) % phrases.length;
-        animEl.textContent = phrases[animIdx];
-        animEl.style.opacity = '1';
-        animEl.style.transform = 'translateY(0)';
+        idx = (idx + 1) % phrases.length;
+        el.textContent = phrases[idx];
+        el.style.opacity = '1';
+        el.style.transform = 'translateY(0)';
       }, 280);
     }, 2800);
   }
 
-  // 7. Cacher bottom nav sur home au démarrage
-  document.body.classList.add('page-is-home');
-  var bnav = document.getElementById('bottomNav');
-  if(bnav) bnav.style.display = 'none';
+  // ═══════════════════════════════════════════════════════════════════
+  // 11. INIT
+  // ═══════════════════════════════════════════════════════════════════
+  function _init() {
+    console.log('[TP] Master Init…');
 
-  console.log('[TalentPulse] Init OK — drawer, panel, auth, animation ✓');
-});
-
-// ═══════════════════════════════════════
-// LOGIN PAGE — fonctions finales
-// ═══════════════════════════════════════
-function lpSwitchTab(tab) {
-  var formIn = document.getElementById('lp-form-in');
-  var formUp = document.getElementById('lp-form-up');
-  var tabIn  = document.getElementById('lp-tab-in');
-  var tabUp  = document.getElementById('lp-tab-up');
-  if(!formIn) return;
-  if(tab === 'in') {
-    formIn.style.display = '';
-    formUp.style.display = 'none';
-    tabIn.classList.add('active');
-    tabUp.classList.remove('active');
-  } else {
-    formIn.style.display = 'none';
-    formUp.style.display = '';
-    tabUp.classList.add('active');
-    tabIn.classList.remove('active');
-  }
-}
-
-function lpDoSignIn() {
-  var email = (document.getElementById('lp-email-in')||{}).value||'';
-  var pass  = (document.getElementById('lp-pass-in')||{}).value||'';
-  var err   = document.getElementById('lp-err-in');
-  if(!email || !pass) { if(err){err.textContent='Remplissez email et mot de passe.';err.style.display='';} return; }
-  var accounts = JSON.parse(localStorage.getItem('tp_accounts')||'[]');
-  var acc = accounts.find(function(a){ return a.email === email; });
-  if(!acc) { if(err){err.textContent='Aucun compte avec cet email. Créez un compte.';err.style.display='';} return; }
-  if(acc.password !== btoa(pass)) { if(err){err.textContent='Mot de passe incorrect.';err.style.display='';} return; }
-  if(err) err.style.display = 'none';
-  AUTH.user = { prenom: acc.prenom||'', nom: acc.nom||'', email: acc.email };
-  localStorage.setItem('tp_user', JSON.stringify(AUTH.user));
-  if(typeof authUpdateNav === 'function') authUpdateNav();
-  showPage('home');
-  showToast('✅ Bienvenue ' + (acc.prenom||'') + ' !');
-}
-
-function lpDoSignUp() {
-  var prenom = (document.getElementById('lp-prenom')||{}).value||'';
-  var nom    = (document.getElementById('lp-nom')||{}).value||'';
-  var email  = (document.getElementById('lp-email-up')||{}).value||'';
-  var pass   = (document.getElementById('lp-pass-up')||{}).value||'';
-  var phoneCode  = (document.getElementById('lp-phone-code')||{}).value||'+33';
-  var phoneNum   = (document.getElementById('lp-phone')||{}).value||'';
-  var fullPhone  = phoneNum.trim() ? phoneCode + phoneNum.replace(/^0/,'').replace(/\s/g,'') : '';
-  var err    = document.getElementById('lp-err-up');
-  if(!email || !pass) { if(err){err.textContent='Email et mot de passe requis.';err.style.display='';} return; }
-  if(pass.length < 6)  { if(err){err.textContent='Mot de passe trop court (6 caractères min.).';err.style.display='';} return; }
-  if(!email.includes('@')){ if(err){err.textContent='Email invalide.';err.style.display='';} return; }
-  var accounts = JSON.parse(localStorage.getItem('tp_accounts')||'[]');
-  if(accounts.find(function(a){ return a.email === email; })) {
-    if(err){err.textContent='Cet email est déjà utilisé.';err.style.display='';} return;
-  }
-  accounts.push({ prenom:prenom, nom:nom, email:email, password:btoa(pass), phone:fullPhone, createdAt:new Date().toISOString() });
-  localStorage.setItem('tp_accounts', JSON.stringify(accounts));
-  AUTH.user = { prenom:prenom, nom:nom, email:email };
-  localStorage.setItem('tp_user', JSON.stringify(AUTH.user));
-  // Pré-remplir le profil
-  if(typeof PROFILE !== 'undefined') {
-    PROFILE.prenom = prenom; PROFILE.nom = nom; PROFILE.email = email;
-    if(typeof saveProfile === 'function') saveProfile();
-  }
-  if(typeof authUpdateNav === 'function') authUpdateNav();
-  showPage('home');
-  showToast('🎉 Compte créé ! Bienvenue ' + (prenom||'') + ' !');
-}
-
-</script>
-<script>
-
-// ═══════════════════════════════════════════════
-// v51 UX ENHANCEMENTS
-// ═══════════════════════════════════════════════
-
-// Loading overlay global
-(function(){
-  if(document.getElementById('tpLoadingOverlay')) return;
-  var ov = document.createElement('div');
-  ov.id = 'tpLoadingOverlay';
-  ov.className = 'tp-loading-overlay';
-  ov.innerHTML = '<div class="tp-loading-spinner"></div>';
-  document.body.appendChild(ov);
-})();
-
-window.showLoading = function() {
-  var ov = document.getElementById('tpLoadingOverlay');
-  if(ov) ov.classList.add('show');
-};
-window.hideLoading = function() {
-  var ov = document.getElementById('tpLoadingOverlay');
-  if(ov) ov.classList.remove('show');
-};
-
-// Debounce helper
-window.debounce = function(fn, ms) {
-  var t;
-  return function() {
-    var args = arguments, ctx = this;
-    clearTimeout(t);
-    t = setTimeout(function(){ fn.apply(ctx, args); }, ms);
-  };
-};
-
-// Validation visuelle des inputs
-document.addEventListener('blur', function(e) {
-  var el = e.target;
-  if(el.tagName !== 'INPUT' && el.tagName !== 'TEXTAREA') return;
-  if(el.type === 'email' && el.value) {
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(el.value)) {
-      el.classList.add('is-error');
-    } else {
-      el.classList.remove('is-error');
-      el.classList.add('is-success');
+    // Activer la home par défaut
+    var home = document.getElementById('page-home');
+    if (home && !home.classList.contains('active')) {
+      document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+      home.classList.add('active');
     }
-  }
-  if(el.type === 'tel' && el.value) {
-    if(el.value.replace(/\D/g, '').length < 8) {
-      el.classList.add('is-error');
-    } else {
-      el.classList.remove('is-error');
-    }
-  }
-}, true);
-
-document.addEventListener('input', function(e) {
-  var el = e.target;
-  if(el.classList && el.classList.contains('is-error')) {
-    el.classList.remove('is-error');
-  }
-}, true);
-
-// Empêcher double submit
-document.addEventListener('click', function(e) {
-  var btn = e.target.closest('button[type="submit"], .lp-btn-primary');
-  if(!btn || btn.disabled) return;
-  if(btn.dataset.submitting === '1') { e.preventDefault(); return; }
-  btn.dataset.submitting = '1';
-  setTimeout(function(){ btn.dataset.submitting = '0'; }, 2000);
-});
-
-// Smooth scroll sur les liens #
-document.addEventListener('click', function(e) {
-  var link = e.target.closest('a[href^="#"]');
-  if(!link) return;
-  var target = document.querySelector(link.getAttribute('href'));
-  if(target) {
-    e.preventDefault();
-    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-});
-
-// Détection état de chargement réseau
-if(navigator.connection) {
-  var conn = navigator.connection;
-  if(conn.effectiveType === '2g' || conn.saveData) {
-    document.body.classList.add('slow-connection');
-  }
-}
-
-console.log('[TP v51] Polish UX actif');
-
-
-
-// ═══════════════════════════════════════════════
-// POLISH JS v50
-// ═══════════════════════════════════════════════
-
-// Détection navigation clavier (pour afficher focus rings)
-document.addEventListener('keydown', function(e) {
-  if(e.key === 'Tab') document.body.classList.add('keyboard-nav');
-});
-document.addEventListener('mousedown', function() {
-  document.body.classList.remove('keyboard-nav');
-});
-
-// showToast amélioré
-var _tpToastTimeout;
-window.showToast = function(msg, type) {
-  var existing = document.querySelector('.toast-msg');
-  if(existing) existing.remove();
-  clearTimeout(_tpToastTimeout);
-  
-  var t = document.createElement('div');
-  t.className = 'toast-msg';
-  t.textContent = msg;
-  if(type === 'error') t.style.background = '#DC2626';
-  else if(type === 'success') t.style.background = '#059669';
-  document.body.appendChild(t);
-  
-  requestAnimationFrame(function() {
-    t.classList.add('show');
-  });
-  
-  _tpToastTimeout = setTimeout(function() {
-    t.classList.remove('show');
-    setTimeout(function(){ t.remove(); }, 300);
-  }, 3000);
-};
-
-// Gestion réseau hors ligne
-window.addEventListener('online',  function() { window.showToast('🌐 Connexion rétablie', 'success'); });
-window.addEventListener('offline', function() { window.showToast('📡 Hors ligne', 'error'); });
-
-// Performance: lazy load images
-document.addEventListener('DOMContentLoaded', function() {
-  if('IntersectionObserver' in window) {
-    var imgs = document.querySelectorAll('img[data-src]');
-    var io = new IntersectionObserver(function(entries) {
-      entries.forEach(function(e) {
-        if(e.isIntersecting) {
-          e.target.src = e.target.dataset.src;
-          e.target.removeAttribute('data-src');
-          io.unobserve(e.target);
-        }
-      });
-    });
-    imgs.forEach(function(img) { io.observe(img); });
-  }
-});
-
-// Capture erreurs globales pour debug
-window.addEventListener('error', function(e) {
-  console.error('[TP GLOBAL ERROR]', e.message, e.filename, e.lineno);
-});
-window.addEventListener('unhandledrejection', function(e) {
-  console.error('[TP PROMISE ERROR]', e.reason);
-});
-
-
-// === TP MASTER INIT === (charge en dernier)
-(function(){
-  function init() {
-    // Exposer fonctions critiques sur window
-    ['showPage','toggleDrawer','closeDrawer','showDetail','closeJobDetail',
-     'openSignIn','openSignUp','signOut','openUserProfile','openApply','toggleSave',
-     'showToast','openLegal','closeLegal','lpSwitchTab','lpDoSignIn','lpDoSignUp',
-     'switchLettreTab','setProfTab','authInit','authUpdateNav','goToSearch',
-     'heroAutocomplete','heroCityAutocomplete','filterBySource','fetchJobs','buildParams'
-    ].forEach(function(n){
-      try { if(typeof eval(n)==='function' && !window[n]) window[n]=eval(n); } catch(e){}
-    });
-
-    // DRAWER
-    var drawer  = document.getElementById('navDrawer');
-    var overlay = document.getElementById('drawerOverlay');
-    var burger  = document.getElementById('navHamburger');
-    var dwClose = document.getElementById('dwClose');
-
-    function oDw(){ if(!drawer)return; drawer.classList.add('open'); if(overlay)overlay.classList.add('open'); if(burger)burger.classList.add('open'); document.body.style.overflow='hidden'; }
-    function cDw(){ if(!drawer)return; drawer.classList.remove('open'); if(overlay)overlay.classList.remove('open'); if(burger)burger.classList.remove('open'); document.body.style.overflow=''; }
-    function tDw(){ if(drawer && drawer.classList.contains('open'))cDw(); else oDw(); }
-
-    window.toggleDrawer = tDw;
-    window.closeDrawer  = cDw;
-
-    if(burger)  burger.onclick  = function(e){ e.stopPropagation(); tDw(); };
-    if(overlay) overlay.onclick = cDw;
-    if(dwClose) dwClose.onclick = cDw;
-
-    // LIENS DRAWER
-    function b(id, cb){
-      var el = document.getElementById(id);
-      if(el){
-        el.style.cursor='pointer';
-        el.onclick = function(e){ e.preventDefault(); cDw(); setTimeout(cb, 50); };
-      }
-    }
-    b('dw-offres',    function(){ if(window.showPage) window.showPage('jobs'); });
-    b('dw-lettre',    function(){ if(window.showPage) window.showPage('lettre'); });
-    b('dw-matching',  function(){
-      if(window.showPage) window.showPage('lettre');
-      setTimeout(function(){
-        if(window.switchLettreTab){
-          var el = document.getElementById('ltab-match');
-          window.switchLettreTab('match', el);
-        }
-      },150);
-    });
-    b('dw-conseils',  function(){ if(window.showPage) window.showPage('conseils'); });
-    b('dw-profil',    function(){ if(window.showPage) window.showPage('profile'); });
-    b('dw-pipeline',  function(){
-      if(window.showPage) window.showPage('profile');
-      setTimeout(function(){ if(window.setProfTab) window.setProfTab('kanban', null); }, 150);
-    });
-    b('dw-publier',   function(){ if(window.showPage) window.showPage('login'); });
-    b('dw-recruteur', function(){ if(window.showToast) window.showToast('Espace recruteur bientot disponible'); });
-    b('dw-about',     function(){ if(window.openLegal) window.openLegal('about'); });
-    b('dw-cgu',       function(){ if(window.openLegal) window.openLegal('cgu'); });
-    b('dw-privacy',   function(){ if(window.openLegal) window.openLegal('privacy'); });
-    b('dw-cookies',   function(){ if(window.openLegal) window.openLegal('cookies'); });
-    b('dw-contact',   function(){ if(window.openLegal) window.openLegal('contact'); });
-
-    var bL = document.getElementById('dwBtnLogin');
-    var bR = document.getElementById('dwBtnRegister');
-    if(bL) bL.onclick = function(){
-      cDw();
-      if(window.AUTH && window.AUTH.user){
-        if(window.signOut) window.signOut();
-      } else {
-        setTimeout(function(){
-          if(window.showPage) window.showPage('login');
-          setTimeout(function(){ if(window.lpSwitchTab) window.lpSwitchTab('in'); }, 120);
-        }, 50);
-      }
-    };
-    if(bR) bR.onclick = function(){
-      cDw();
-      setTimeout(function(){
-        if(window.showPage) window.showPage('login');
-        setTimeout(function(){ if(window.lpSwitchTab) window.lpSwitchTab('up'); }, 120);
-      }, 50);
-    };
-
-    // NAV BOUTONS
-    var nL = document.getElementById('nav-login');
-    var nR = document.getElementById('nav-register');
-    if(nL) nL.onclick = function(e){ e.preventDefault(); if(window.showPage) window.showPage('login'); setTimeout(function(){ if(window.lpSwitchTab) window.lpSwitchTab('in'); },120); };
-    if(nR) nR.onclick = function(e){ e.preventDefault(); if(window.showPage) window.showPage('login'); setTimeout(function(){ if(window.lpSwitchTab) window.lpSwitchTab('up'); },120); };
-
-    // Refresh drawer auth state
-    function refresh() {
-      var user = window.AUTH && window.AUTH.user;
-      if(bL) bL.textContent = user ? 'Se deconnecter' : 'Se connecter';
-      if(bR) bR.style.display = user ? 'none' : '';
-    }
-    window.refreshDrawerAuth = refresh;
-    refresh();
-
-    // PANEL
-    window.closeJobDetail = function(){
-      var p = document.getElementById('jobDetailPanel');
-      if(p){ p.classList.remove('open'); p.scrollTop=0; }
-    };
-    var back = document.querySelector('.jdp-back');
-    if(back) back.onclick = window.closeJobDetail;
-
-    var origShow = window.showDetail;
-    if(origShow) {
-      window.showDetail = function(id){
-        origShow(id);
-        setTimeout(function(){
-          var p = document.getElementById('jobDetailPanel');
-          if(p && !p.classList.contains('open')) p.classList.add('open');
-        }, 60);
-      };
-    }
-
-    // AUTH
-    if(window.authInit) try { window.authInit(); } catch(e){}
-    if(window.authUpdateNav) try { window.authUpdateNav(); } catch(e){}
-
-    // ANIM TITRE
-    var phrases = ['prochain emploi','prochain CDI','alternance ideale','futur stage','prochaine mission','job en teletravail','reconversion reussie'];
-    var el = document.getElementById('heroAnimText');
-    if(el && !el._ta) {
-      el._ta = true;
-      var i = 0;
-      el.style.transition = 'opacity .3s, transform .3s';
-      setInterval(function(){
-        el.style.opacity='0'; el.style.transform='translateY(-8px)';
-        setTimeout(function(){
-          i = (i+1) % phrases.length;
-          el.textContent = phrases[i];
-          el.style.opacity='1'; el.style.transform='translateY(0)';
-        }, 300);
-      }, 2800);
-    }
-
-    // HOME STATE
     document.body.classList.add('page-is-home');
-    var bn = document.getElementById('bottomNav');
-    if(bn) bn.style.display='none';
 
-    // ESCAPE
-    document.addEventListener('keydown', function(e){
-      if(e.key==='Escape'){ cDw(); if(window.closeJobDetail) window.closeJobDetail(); if(window.closeLegal) window.closeLegal(); }
-    });
+    // Bindings
+    _bindDrawer();
+    _bindNavHeader();
+    _bindKeyboard();
+    _heroAnim();
 
-    
-    window.showPage = showPage;
+    // Init auth
+    if (typeof window.authInit === 'function') {
+      try { window.authInit(); } catch(e){}
+    }
+    if (typeof window.authUpdateNav === 'function') {
+      try { window.authUpdateNav(); } catch(e){}
+    }
 
-    // Exposer sur window proprement
-    window.showPage = window.showPage;
+    // Charger Gamif
+    if (typeof window.loadGamif === 'function') {
+      try { window.loadGamif(); } catch(e){}
+    }
+    if (typeof window.updateGamifUI === 'function') {
+      try { window.updateGamifUI(); } catch(e){}
+    }
 
-
-    console.log('[TP] Init OK');
+    console.log('[TP] Master OK ✓');
   }
 
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-  else init();
+  // ═══════════════════════════════════════════════════════════════════
+  // 12. RUN
+  // ═══════════════════════════════════════════════════════════════════
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _init);
+  } else {
+    _init();
+  }
+  // Re-bind après load (sécurité au cas où d'autres scripts modifient le DOM)
+  window.addEventListener('load', function() {
+    setTimeout(function() {
+      _bindDrawer();
+      _bindNavHeader();
+    }, 150);
+  });
+
 })();
-// === END TP MASTER INIT
+
 </script>
 <style>
 /* ════ PAGES — CSS FINAL (override tout) ════ */
