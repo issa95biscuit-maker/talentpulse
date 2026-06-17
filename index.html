@@ -204,6 +204,38 @@ textarea.form-input{resize:vertical;min-height:90px;font-family:inherit}
 .conseil-title{font-weight:700;margin-bottom:6px}
 .conseil-sub{font-size:.85rem;color:var(--mid)}
 
+/* ═══ 12B. MÉTIERS EN TENSION ═══ */
+.metier-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.metier-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px;cursor:pointer;transition:.2s}
+.metier-card:hover{border-color:var(--orange);box-shadow:var(--shadow)}
+.metier-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}
+.metier-card-title{font-weight:700;font-size:.98rem;line-height:1.3}
+.metier-tension{font:700 .68rem/1 inherit;letter-spacing:.03em;padding:4px 8px;border-radius:6px;white-space:nowrap}
+.metier-tension.high{background:#FEE2E2;color:#B91C1C}
+.metier-tension.mid{background:#FEF3C7;color:#92400E}
+.metier-tension.low{background:#DBEAFE;color:#1E40AF}
+.metier-card-sub{font-size:.82rem;color:var(--mid)}
+.metier-search{margin-bottom:16px}
+
+/* ─ fiche détail métier (réutilise le panneau .detail existant) ─ */
+.fm-eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--orange);margin-bottom:6px}
+.fm-title{font-size:1.4rem;font-weight:800;line-height:1.2;margin-bottom:8px}
+.fm-tension-row{display:flex;align-items:center;gap:8px;margin-bottom:20px;font-size:.85rem}
+.fm-section{margin-top:26px;padding-top:20px;border-top:1px solid var(--line)}
+.fm-section-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--orange);margin-bottom:6px}
+.fm-section-title{font-size:1.05rem;font-weight:700;margin-bottom:12px}
+.fm-bars{display:flex;align-items:flex-end;gap:10px;height:140px;margin-top:14px}
+.fm-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.fm-bar-val{font-size:.74rem;font-weight:700;margin-bottom:4px}
+.fm-bar{width:100%;max-width:38px;border-radius:5px 5px 0 0}
+.fm-bar-region{font-size:.66rem;color:var(--mid);margin-top:6px;text-align:center;line-height:1.25}
+.fm-skill-tag{display:inline-block;background:var(--orange-soft);color:var(--orange-d);font-size:.78rem;font-weight:600;padding:5px 10px;border-radius:8px;margin:0 6px 6px 0}
+.fm-loading{padding:30px 0;text-align:center;color:var(--mid);font-size:.88rem}
+.fm-error{padding:16px;background:#FEE2E2;color:#B91C1C;border-radius:10px;font-size:.85rem;margin-top:14px}
+.fm-cta{margin-top:24px;background:var(--slate);color:#fff;border-radius:12px;padding:20px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+.fm-cta-text{font-size:.92rem;font-weight:600;max-width:260px}
+.fm-cta .btn{flex-shrink:0}
+
 /* ═══ 13. PROFILE ═══ */
 .profile-head{background:linear-gradient(135deg,var(--slate),var(--slate-2));color:#fff;padding:32px 20px;text-align:center}
 .profile-avatar{width:80px;height:80px;background:var(--orange);border-radius:50%;display:grid;place-items:center;font-size:2rem;font-weight:800;margin:0 auto 12px;color:#fff}
@@ -512,6 +544,10 @@ body.dark .filter-drawer{background:var(--white)}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
         Conseils carrière
       </a>
+      <a class="drawer-item" data-nav="metiers" tabindex="0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18.7 8 13 13.7l-3-3L7 14"/></svg>
+        Métiers en tension
+      </a>
       <a class="drawer-item" data-nav="profile" tabindex="0">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         Mon profil
@@ -739,6 +775,26 @@ body.dark .filter-drawer{background:var(--white)}
   </div>
 </main>
 
+<!-- ═══ MÉTIERS EN TENSION PAGE ═══ -->
+<main class="page" id="page-metiers">
+  <div class="section container">
+    <h1 class="section-title">Métiers en tension</h1>
+    <p class="section-sub">Où sont les postes, comment s'y former, combien ça paie</p>
+    <input class="form-input metier-search" id="metierSearch" placeholder="Rechercher un métier…">
+    <div class="metier-grid" id="metiersGrid"></div>
+  </div>
+</main>
+
+<!-- ═══ FICHE MÉTIER DETAIL (panneau latéral, même mécanique que .detail) ═══ -->
+<aside class="detail" id="metierDetail" aria-hidden="true">
+  <div class="detail-head">
+    <button class="detail-close" id="metierDetailClose" aria-label="Fermer">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="detail-body" id="metierDetailBody"></div>
+</aside>
+
 <!-- ═══ PROFILE PAGE ═══ -->
 <main class="page" id="page-profile">
   <div class="profile-head">
@@ -942,6 +998,69 @@ const CONSEILS = [
   { emoji: '📈', title: 'Développer son réseau', body: 'LinkedIn est incontournable. Participez à des événements. Cultivez vos contacts.' },
   { emoji: '🧠', title: 'Gérer son stress', body: 'Pratiquez la respiration. Préparez-vous bien. Acceptez les refus comme un apprentissage.' },
 ];
+
+// Métiers en tension — codeRome utilisé pour interroger /api/fiche-metier (ROME 4.0)
+// tension : 'high' | 'mid' | 'low' — sert juste au badge couleur sur la carte liste.
+// Les champs salaire/formation/regions sont éditables ici en attendant le branchement
+// complet sur l'API Marché du travail ; les compétences/savoirs viennent de l'API.
+const METIERS = [
+  {
+    codeRome: 'J1501', titre: 'Infirmier / Aide-soignant', tension: 'high', tensionLabel: '87/100',
+    secteur: 'Santé',
+    intro: "L'infirmier assure les soins, le suivi médical et l'accompagnement des patients. L'aide-soignant travaille en lien direct avec l'infirmier sur les soins du quotidien.",
+    regions: [
+      { nom: 'Centre-Val de Loire', val: 94 }, { nom: 'Bourgogne-Franche-Comté', val: 88 },
+      { nom: 'Normandie', val: 81 }, { nom: 'Hauts-de-France', val: 76 },
+      { nom: 'Île-de-France', val: 63 }, { nom: 'PACA', val: 58 },
+    ],
+    salaires: [
+      { label: 'Aide-soignant débutant', val: 1750 }, { label: 'Aide-soignant 10 ans+', val: 2050 },
+      { label: 'Infirmier débutant', val: 2250 }, { label: 'Infirmier 10 ans+', val: 2850 },
+      { label: 'Infirmier spécialisé', val: 3400 },
+    ],
+    formation: [
+      { duree: '10 mois', nom: 'DEAS — Diplôme d\'État d\'Aide-Soignant', detail: 'Accessible sans diplôme préalable, en IFAS.' },
+      { duree: '3 ans', nom: 'IFSI — Diplôme d\'État Infirmier', detail: 'Accessible post-bac ou en reconversion (passerelles 25 ans+).' },
+    ],
+  },
+  {
+    codeRome: 'N4105', titre: 'Chauffeur PL / Logistique', tension: 'high', tensionLabel: '79/100',
+    secteur: 'Transport & Logistique',
+    intro: "Le chauffeur poids lourd assure le transport de marchandises sur route. Un métier en forte tension partout en France, notamment sur le longue distance.",
+    regions: [
+      { nom: 'Grand Est', val: 85 }, { nom: 'Hauts-de-France', val: 80 },
+      { nom: 'Bretagne', val: 70 }, { nom: 'Auvergne-Rhône-Alpes', val: 66 },
+      { nom: 'Île-de-France', val: 55 }, { nom: 'Occitanie', val: 52 },
+    ],
+    salaires: [
+      { label: 'Chauffeur débutant', val: 1900 }, { label: 'Chauffeur 5 ans+', val: 2200 },
+      { label: 'Chauffeur longue distance', val: 2500 }, { label: 'Chauffeur spécialisé (citerne, etc.)', val: 2750 },
+    ],
+    formation: [
+      { duree: '3 à 5 mois', nom: 'Titre professionnel Conducteur transport routier', detail: 'Financable par France Travail, permis C/CE inclus.' },
+      { duree: '1 semaine', nom: 'FIMO/FCO', detail: 'Formation obligatoire complémentaire pour exercer.' },
+    ],
+  },
+  {
+    codeRome: 'F1603', titre: 'Plombier / Électricien (BTP)', tension: 'mid', tensionLabel: '71/100',
+    secteur: 'BTP',
+    intro: "Installation, entretien et réparation des réseaux d'eau ou d'électricité dans les bâtiments. Secteur en tension chronique, notamment chez les artisans indépendants.",
+    regions: [
+      { nom: 'Bretagne', val: 76 }, { nom: 'Pays de la Loire', val: 72 },
+      { nom: 'Nouvelle-Aquitaine', val: 68 }, { nom: 'Auvergne-Rhône-Alpes', val: 60 },
+      { nom: 'Île-de-France', val: 48 },
+    ],
+    salaires: [
+      { label: 'Apprenti', val: 900 }, { label: 'Débutant qualifié', val: 1850 },
+      { label: '5 ans+', val: 2300 }, { label: 'Artisan à son compte', val: 2900 },
+    ],
+    formation: [
+      { duree: '2 ans', nom: 'CAP Installateur sanitaire / électricien', detail: 'En alternance, accessible dès la sortie du collège.' },
+      { duree: '1 an', nom: 'Titre professionnel adulte', detail: 'Pour une reconversion rapide, financable CPF/France Travail.' },
+    ],
+  },
+];
+
 const LEGAL_CONTENT = {
   about: {
     title: 'À propos de TalentPulse',
@@ -1075,6 +1194,7 @@ function showPage(name) {
   if (name === 'jobs') { renderSavedSearches(); renderActiveFilterChips(); }
   if (name === 'profile') renderProfile();
   if (name === 'conseils') renderConseils();
+  if (name === 'metiers') renderMetiers();
   if (name === 'home') renderCategories();
 }
 
@@ -1810,6 +1930,162 @@ function renderConseils() {
     const c = CONSEILS[+el.dataset.i];
     openLegalModal(c.title, `<p>${esc(c.body)}</p>`);
   }));
+}
+
+// ─── 9B. MÉTIERS EN TENSION ───────────────────────────────────────
+let metiersRendered = false;
+const ficheMetierCache = {}; // évite de rappeler l'API si on rouvre la même fiche
+
+function tensionClass(t) { return t === 'high' ? 'high' : t === 'mid' ? 'mid' : 'low'; }
+function tensionWord(t)  { return t === 'high' ? 'Forte tension' : t === 'mid' ? 'Tension moyenne' : 'Tension modérée'; }
+function tensionColor(v) { return v >= 80 ? '#B91C1C' : v >= 60 ? '#D97706' : '#1E40AF'; }
+
+function renderMetiers() {
+  drawMetiersGrid(METIERS);
+  if (metiersRendered) return;
+  metiersRendered = true;
+  on($('#metierSearch'), 'input', (e) => {
+    const q = e.target.value.trim().toLowerCase();
+    const filtered = METIERS.filter(m =>
+      m.titre.toLowerCase().includes(q) || m.secteur.toLowerCase().includes(q));
+    drawMetiersGrid(filtered);
+  });
+  on($('#metierDetailClose'), 'click', closeMetierDetail);
+}
+
+function drawMetiersGrid(list) {
+  $('#metiersGrid').innerHTML = list.map((m, i) => `
+    <article class="metier-card" data-code="${m.codeRome}" tabindex="0">
+      <div class="metier-card-top">
+        <div class="metier-card-title">${esc(m.titre)}</div>
+        <span class="metier-tension ${tensionClass(m.tension)}">${m.tensionLabel}</span>
+      </div>
+      <div class="metier-card-sub">${esc(m.secteur)} · ${tensionWord(m.tension)}</div>
+    </article>`).join('') || `<p style="color:var(--mid)">Aucun métier ne correspond à votre recherche.</p>`;
+  $$('#metiersGrid .metier-card').forEach(el => on(el, 'click', () => openMetierDetail(el.dataset.code)));
+}
+
+async function openMetierDetail(codeRome) {
+  const m = METIERS.find(x => x.codeRome === codeRome);
+  if (!m) return;
+
+  const body = $('#metierDetailBody');
+  body.innerHTML = `
+    <div class="fm-eyebrow">${esc(m.secteur)}</div>
+    <h1 class="fm-title">${esc(m.titre)}</h1>
+    <div class="fm-tension-row">
+      <span class="metier-tension ${tensionClass(m.tension)}">${m.tensionLabel}</span>
+      ${tensionWord(m.tension)}
+    </div>
+    <p>${esc(m.intro)}</p>
+
+    <div class="fm-section">
+      <div class="fm-section-label">Marché</div>
+      <div class="fm-section-title">Où sont les postes</div>
+      <div class="fm-bars">
+        ${m.regions.map(r => `
+          <div class="fm-bar-col">
+            <div class="fm-bar-val">${r.val}</div>
+            <div class="fm-bar" style="height:${r.val}%;background:${tensionColor(r.val)}"></div>
+            <div class="fm-bar-region">${esc(r.nom)}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="fm-section">
+      <div class="fm-section-label">Formation</div>
+      <div class="fm-section-title">Comment se former</div>
+      ${m.formation.map(f => `
+        <p style="margin-bottom:10px"><b>${esc(f.duree)}</b> — ${esc(f.nom)}<br>
+        <span style="color:var(--mid);font-size:.85rem">${esc(f.detail)}</span></p>`).join('')}
+    </div>
+
+    <div class="fm-section">
+      <div class="fm-section-label">Rémunération</div>
+      <div class="fm-section-title">Combien ça paie</div>
+      ${m.salaires.map(s => `
+        <p style="margin-bottom:6px;display:flex;justify-content:space-between">
+          <span style="color:var(--mid)">${esc(s.label)}</span><b>${s.val.toLocaleString('fr-FR')} €</b>
+        </p>`).join('')}
+    </div>
+
+    <div class="fm-section" id="fmCompetencesSection">
+      <div class="fm-section-label">Compétences</div>
+      <div class="fm-section-title">Ce que recherchent les recruteurs</div>
+      <div class="fm-loading" id="fmCompetencesLoading">Chargement depuis France Travail…</div>
+    </div>
+
+    <div class="fm-cta">
+      <div class="fm-cta-text">Une lettre de motivation pour ce métier, écrite par l'IA</div>
+      <button class="btn btn-primary" id="fmLettreBtn">Générer ma lettre</button>
+    </div>
+  `;
+
+  $('#metierDetail').classList.add('open');
+  document.body.classList.add('no-scroll');
+
+  on($('#fmLettreBtn'), 'click', () => {
+    closeMetierDetail();
+    showPage('lettre');
+    $('#lettrePoste').value = m.titre;
+  });
+
+  loadFicheMetierCompetences(codeRome);
+}
+
+async function loadFicheMetierCompetences(codeRome) {
+  const target = $('#fmCompetencesSection');
+  if (!target) return;
+
+  // Cache simple pour éviter de rappeler l'API si la fiche a déjà été chargée
+  if (ficheMetierCache[codeRome]) {
+    renderCompetences(target, ficheMetierCache[codeRome]);
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/fiche-metier?codeRome=${encodeURIComponent(codeRome)}`);
+    if (!res.ok) throw new Error('Réponse API invalide');
+    const data = await res.json();
+    ficheMetierCache[codeRome] = data;
+    renderCompetences(target, data);
+  } catch (err) {
+    const loading = $('#fmCompetencesLoading');
+    if (loading) {
+      loading.outerHTML = `<div class="fm-error">Compétences indisponibles pour le moment. Réessayez plus tard.</div>`;
+    }
+  }
+}
+
+function renderCompetences(target, data) {
+  // La forme exacte de la réponse ROME 4.0 peut varier ; on reste défensif
+  // et on essaie plusieurs chemins plausibles avant d'abandonner proprement.
+  const groupes = data?.groupesCompetencesMobilisees || data?.competences || [];
+  const loading = $('#fmCompetencesLoading');
+  if (!loading) return;
+
+  if (!Array.isArray(groupes) || groupes.length === 0) {
+    loading.outerHTML = `<div class="fm-error">Aucune compétence détaillée disponible pour ce métier.</div>`;
+    return;
+  }
+
+  const tags = [];
+  groupes.forEach(g => {
+    const items = g.competencesCles || g.items || g.competences || [];
+    items.forEach(c => {
+      const label = c.libelle || c.nom || (typeof c === 'string' ? c : null);
+      if (label) tags.push(label);
+    });
+  });
+
+  loading.outerHTML = tags.length
+    ? tags.slice(0, 14).map(t => `<span class="fm-skill-tag">${esc(t)}</span>`).join('')
+    : `<div class="fm-error">Aucune compétence détaillée disponible pour ce métier.</div>`;
+}
+
+function closeMetierDetail() {
+  $('#metierDetail').classList.remove('open');
+  document.body.classList.remove('no-scroll');
 }
 
 // ─── 10. CATEGORIES (home) ────────────────────────────────────────
