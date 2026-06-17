@@ -1004,7 +1004,7 @@ const $ = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
 const on = (el, evt, fn) => el && el.addEventListener(evt, fn);
 function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
-function sourceClass(s) { return s === 'France Travail' ? 'tag-ft' : s === 'Adzuna' ? 'tag-adzuna' : s === 'Alternance' ? 'tag-alt' : ''; }
+function sourceClass(s) { return s === 'France Travail' ? 'tag-ft' : s === 'Adzuna' ? 'tag-adzuna' : (s === 'Alternance' || s === 'La Bonne Alternance') ? 'tag-alt' : ''; }
 const AVATAR_COLORS = ['#FF5C00','#0EA5E9','#8B5CF6','#059669','#DC2626','#D97706','#DB2777','#0891B2'];
 function avatarColor(name) {
   let h = 0;
@@ -1238,24 +1238,34 @@ function matchBadge(score) {
 }
 
 // ─── 6. JOBS ──────────────────────────────────────────────────────
+// ─── CHARGEMENT DES OFFRES ───────────────────────────────────────────
+// Le backend /api/jobs agrège DÉJÀ France Travail + Adzuna + La Bonne
+// Alternance en un seul appel (param source=all) et renvoie des objets
+// normalisés { id, source, title, company, city, contract, salary, exp,
+// desc, url, posted, cat }. On ne ré-interroge donc PAS d'autres endpoints
+// séparés — un seul fetch suffit.
 async function loadJobs(params = {}) {
   const list = $('#jobsList');
   list.innerHTML = Array(5).fill('<div class="skel skel-job"></div>').join('');
-  const sources = [
-    fetchSource(API, params, parseFTJob, 'resultats'),       // France Travail
-    fetchSource('/api/adzuna', params, parseAdzunaJob, 'results'),    // Adzuna
-    fetchSource('/api/alternance', params, parseAltJob, 'results'),   // La Bonne Alternance
-  ];
-  const results = await Promise.allSettled(sources);
+
+  const loc = resolveLocationQuery(params.city || '');
+  const qs = new URLSearchParams();
+  if (params.kw)        qs.set('motsCles', params.kw);
+  if (loc.commune)      qs.set('commune', loc.commune);
+  if (loc.departement)  qs.set('departement', loc.departement);
+  qs.set('range', '0-49');
+  qs.set('source', 'all');
+
   let jobs = [];
-  results.forEach(r => { if (r.status === 'fulfilled' && r.value) jobs = jobs.concat(r.value); });
-  // Dédupliquer par titre+entreprise
-  const seen = new Set();
-  jobs = jobs.filter(j => {
-    const k = (j.title + j.company).toLowerCase();
-    if (seen.has(k)) return false;
-    seen.add(k); return true;
-  });
+  try {
+    const res = await fetch(`${API}?${qs}`);
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    jobs = (data.resultats || []).map(parseAggregatedJob).filter(Boolean);
+  } catch {
+    jobs = [];
+  }
+
   State.jobs = jobs.length ? jobs : DEMO_JOBS;
   // En mode démo (fallback), filtrer aussi localement par localisation pour rendre le filtre démontrable
   if (!jobs.length && params.city) {
@@ -1269,25 +1279,31 @@ async function loadJobs(params = {}) {
   renderJobs();
 }
 
-async function fetchSource(url, params, parser, key) {
-  try {
-    const qs = new URLSearchParams();
-    if (params.kw) { qs.set('motsCles', params.kw); qs.set('what', params.kw); }
-    const loc = resolveLocationQuery(params.city || '');
-    if (loc.commune)     { qs.set('commune', loc.commune); qs.set('where', loc.commune); }
-    if (loc.departement) { qs.set('departement', loc.departement); }
-    qs.set('range', '0-19');
-    const res = await fetch(`${url}?${qs}`);
-    if (!res.ok) throw new Error();
-    const data = await res.json();
-    return (data[key] || []).map(parser).filter(Boolean);
-  } catch {
-    return [];
-  }
+// Mappe le format DÉJÀ normalisé renvoyé par /api/jobs (agrégateur multi-sources)
+function parseAggregatedJob(j) {
+  if (!j || !j.id || !j.title) return null;
+  return {
+    id: j.id,
+    title: j.title,
+    company: j.company || 'Entreprise',
+    city: j.city || '',
+    dept: '',
+    contract: j.contract || '',
+    salary: j.salary || '',
+    desc: j.desc || '',
+    missions: '', profil: '',
+    experience: j.exp || '',
+    permis: '', competencesReq: '', horaires: '', teletravail: '',
+    langues: '', niveauEtudes: '', avantages: '',
+    tempsPlein: '',
+    url: j.url || '',
+    posted: j.posted || '',
+    source: j.source || 'France Travail'
+  };
 }
 
 function parseAdzunaJob(j) {
-  if (!j || !j.id) return null;
+  if (!j || !j.id || !j.title) return null;
   return {
     id: 'az_' + j.id,
     title: j.title || 'Offre',
@@ -1307,7 +1323,7 @@ function parseAdzunaJob(j) {
 }
 
 function parseAltJob(j) {
-  if (!j) return null;
+  if (!j || !(j.intitule || j.title)) return null;
   const id = j.id || j.cleMinistereEducatif || Math.random().toString(36).slice(2);
   return {
     id: 'alt_' + id,
@@ -1328,7 +1344,7 @@ function parseAltJob(j) {
 }
 
 function parseFTJob(j) {
-  if (!j || !j.id) return null;
+  if (!j || !j.id || !j.intitule) return null; // rejette les entrées vides/incomplètes (bug API ou erreur backend)
   const teletravailTxt = (j.complementExercice || '') + ' ' + (j.description || '');
   const teletravail = /t[ée]l[ée]travail/i.test(teletravailTxt)
     ? (/total|complet|100%/i.test(teletravailTxt) ? 'Oui (total)' : 'Partiel') : 'Non';
