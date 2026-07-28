@@ -4,19 +4,24 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TalentPulse — Offres d'emploi</title>
-<meta name="description" content="Trouvez votre prochain emploi parmi des milliers d'offres France Travail, Adzuna et alternance.">
+<meta name="description" content="Recherchez des offres d’emploi issues de sources partenaires connectées.">
 <meta name="theme-color" content="#FF5C00">
-<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23FF5C00'/><text y='.9em' font-size='80' x='10'>⚡</text></svg>">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="robots" content="index,follow">
+<meta property="og:title" content="TalentPulse — Offres d'emploi">
+<meta property="og:description" content="Recherchez des offres d'emploi issues de sources connectées.">
+<meta property="og:type" content="website">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23FF5C00'/%3E%3Cpath d='M57 12 23 55h27l-7 33 34-47H52z' fill='white'/%3E%3C/svg%3E">
 <style>
 /* ═══ 1. RESET & TOKENS ═══ */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --orange:#FF5C00; --orange-d:#E04E00; --orange-soft:#FFF4EE;
+  --orange:#FF6A00; --orange-d:#E05A00; --orange-2:#FF8A3D; --orange-soft:#FFF3EA;
   --slate:#0F172A; --slate-2:#334155; --mid:#64748B; --gray:#94A3B8;
-  --line:#E2E8F0; --line-2:#F1F5F9; --bg:#FAFAFB; --white:#fff;
-  --radius:10px; --radius-lg:14px;
-  --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04);
-  --shadow-lg:0 8px 32px rgba(0,0,0,.10);
+  --line:rgba(15,23,42,.08); --line-2:#F1F3F8; --bg:#F7F8FB; --white:#fff;
+  --radius:14px; --radius-lg:20px;
+  --shadow:0 1px 2px rgba(15,23,42,.04),0 8px 24px rgba(15,23,42,.05);
+  --shadow-lg:0 16px 48px rgba(15,23,42,.12);
   --ease:cubic-bezier(.22,.8,.36,1);
 }
 body{font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:var(--slate);background:var(--bg);min-height:100vh}
@@ -48,7 +53,8 @@ body.dark .filter-head,body.dark .filter-foot{border-color:var(--line)}
 body.dark .co-avatar{color:#fff}
 
 /* ═══ 3. NAVBAR ═══ */
-.nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:24px;padding:12px 24px;background:var(--white);border-bottom:1px solid var(--line)}
+.nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:24px;padding:14px 20px;background:rgba(255,255,255,.72);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid transparent}
+.nav-links,.nav-btn-ghost,.nav-btn-primary,.nav-icon-btn{display:none!important}
 .logo{display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:800;font-size:1.05rem;color:var(--slate);flex-shrink:0}
 .logo-icon{width:28px;height:28px;display:grid;place-items:center;background:var(--orange);color:#fff;border-radius:8px}
 .logo-icon svg{width:18px;height:18px}
@@ -68,7 +74,7 @@ body.dark .co-avatar{color:#fff}
 .nav-user{display:none;align-items:center;gap:8px;padding:4px 12px 4px 4px;border:1px solid var(--line);border-radius:99px;cursor:pointer}
 .nav-user.on{display:flex}
 .nav-avatar{width:30px;height:30px;border-radius:50%;background:var(--orange);color:#fff;display:grid;place-items:center;font-weight:700;font-size:.85rem}
-.nav-burger{width:36px;height:36px;display:flex;flex-direction:column;justify-content:center;gap:4px;padding:8px;border-radius:8px;border:1px solid var(--line)}
+.nav-burger{width:44px;height:44px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;padding:0;border-radius:50%;border:none;background:#fff;box-shadow:var(--shadow)}
 .nav-burger span{display:block;width:18px;height:2px;background:var(--slate);border-radius:1px;transition:.2s}
 @media(max-width:768px){
   .nav-btn-ghost,.nav-btn-primary{display:none}
@@ -82,19 +88,20 @@ body.dark .co-avatar{color:#fff}
 }
 
 /* ═══ 4. DRAWER ═══ */
-.drawer{position:fixed;inset:0 -320px 0 auto;width:min(300px,85vw);background:var(--white);z-index:200;display:flex;flex-direction:column;transition:right .3s var(--ease);box-shadow:none}
-.drawer.open{right:0;box-shadow:var(--shadow-lg)}
+.drawer{position:fixed;inset:0;width:100%;background:rgba(250,250,252,.98);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);z-index:200;display:flex;flex-direction:column;opacity:0;pointer-events:none;transform:scale(1.03);transition:opacity .35s var(--ease),transform .35s var(--ease)}
+.drawer.open{opacity:1;pointer-events:auto;transform:none}
 .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:150;opacity:0;pointer-events:none;transition:opacity .3s}
 .drawer-overlay.open{opacity:1;pointer-events:auto}
-.drawer-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--line)}
+.drawer-head{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:none;max-width:560px;margin:0 auto;width:100%}
+.drawer-close{width:44px;height:44px;border-radius:50%;background:#fff;box-shadow:var(--shadow)}
 .drawer-close{width:32px;height:32px;display:grid;place-items:center;border-radius:8px;color:var(--slate-2)}
 .drawer-close:hover{background:var(--line-2)}
-.drawer-body{flex:1;overflow-y:auto;padding:12px 16px}
+.drawer-body{flex:1;overflow-y:auto;padding:24px;max-width:560px;margin:0 auto;width:100%}
 .drawer-section{margin-bottom:16px}
 .drawer-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--gray);padding:0 8px;margin-bottom:6px}
-.drawer-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;font-weight:600;color:var(--slate-2);cursor:pointer;transition:.15s}
+.drawer-item{display:flex;align-items:center;gap:16px;padding:18px 20px;border-radius:16px;font-weight:700;font-size:1.25rem;color:var(--slate);cursor:pointer;transition:.2s var(--ease)}
 .drawer-item:hover,.drawer-item:focus-visible{background:var(--orange-soft);color:var(--orange);outline:none}
-.drawer-item svg{width:18px;height:18px;flex-shrink:0;color:var(--mid)}
+.drawer-item svg{width:24px;height:24px;flex-shrink:0;color:var(--mid)}
 .drawer-item:hover svg{color:var(--orange)}
 .drawer-foot{padding:16px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
 .drawer-foot .btn{width:100%;justify-content:center}
@@ -114,38 +121,59 @@ body.dark .co-avatar{color:#fff}
 .page.active{display:block}
 .container{max-width:1100px;margin:0 auto;padding:0 20px}
 
-/* ═══ 7. HERO ═══ */
-.hero{padding:48px 20px 32px;text-align:center;background:linear-gradient(180deg,#fff,var(--bg))}
-.hero-grid{max-width:1200px;margin:0 auto}
-.hero-eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;font-weight:600;color:var(--slate);background:#fff;border:1px solid var(--line);padding:7px 16px;border-radius:99px;margin-bottom:16px;box-shadow:var(--shadow)}
-.hero-eyebrow svg{width:14px;height:14px;color:var(--orange);flex-shrink:0}
-.hero-title{font-size:clamp(1.8rem,5vw,2.7rem);font-weight:800;line-height:1.15;margin-bottom:14px}
-.hero-title em{font-style:normal;color:var(--orange);display:inline-block;transition:opacity .25s ease,transform .25s ease}
-.hero-title em.swap{opacity:0;transform:translateY(-8px)}
-.hero-sub{font-size:1rem;color:var(--mid);max-width:560px;margin:0 auto 28px}
-.search{max-width:680px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:6px;display:grid;grid-template-columns:1fr 1fr auto;gap:6px}
-.search-field{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;transition:.15s}
+/* ═══ 7. HERO — SPLASH STYLE ═══ */
+.hero{
+  position:relative;overflow:hidden;padding:72px 20px 0;text-align:center;
+  background:
+    radial-gradient(ellipse 700px 420px at 88% 74%, rgba(255,106,0,.38), transparent 62%),
+    radial-gradient(ellipse 500px 300px at 8% 30%, rgba(255,255,255,.8), transparent 60%),
+    linear-gradient(168deg,#F9FAFD 0%,#EFF1F7 40%,#1A1E2A 66%,#0C0E15 100%);
+}
+.hero::before{
+  content:'';position:absolute;top:-14%;right:-12%;width:64%;height:56%;
+  background:radial-gradient(circle,rgba(255,255,255,.95),rgba(255,255,255,0) 68%);
+  border-radius:50%;pointer-events:none;
+}
+.hero::after{
+  content:'';position:absolute;bottom:26%;left:-18%;width:56%;height:40%;
+  background:radial-gradient(ellipse,rgba(255,138,61,.14),transparent 70%);
+  border-radius:50%;pointer-events:none;filter:blur(20px);
+}
+.hero-grid{position:relative;max-width:640px;margin:0 auto;z-index:1}
+.hero-logo-big{display:flex;flex-direction:column;align-items:center;gap:18px;margin-bottom:36px}
+.hero-logo-icon{width:88px;height:88px;border-radius:22px;background:linear-gradient(135deg,var(--orange),#FF8A3D);display:grid;place-items:center;box-shadow:0 12px 32px rgba(255,92,0,.4)}
+.hero-logo-icon svg{width:48px;height:48px;color:#fff}
+.hero-wordmark{font-size:2.2rem;font-weight:800;letter-spacing:-.5px;color:var(--slate)}
+.hero-wordmark span{color:var(--orange)}
+.hero-eyebrow{display:none}
+.hero-title{display:none}
+.hero-sub{display:none}
+.search{max-width:520px;margin:0 auto;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border:none;border-radius:24px;box-shadow:0 24px 64px rgba(12,14,21,.22);padding:12px;display:flex;flex-direction:column;gap:0}
+.search-field{display:flex;align-items:center;gap:10px;padding:14px 16px;border-radius:12px;transition:.15s;border-bottom:1px solid var(--line-2)}
+.search-field:last-of-type{border-bottom:none}
 .search-field:focus-within{background:var(--line-2)}
-.search-field svg{width:16px;height:16px;color:var(--mid);flex-shrink:0}
-.search-field input{flex:1;font-size:.92rem;min-width:0}
-.search-btn{padding:12px 24px;background:var(--orange);color:#fff;border-radius:10px;font-weight:700}
-.search-btn:hover{background:var(--orange-d)}
-@media(max-width:640px){.search{grid-template-columns:1fr}.search-field{border-bottom:1px solid var(--line)}.search-field:last-of-type{border:none}}
-.hero-stats{display:flex;justify-content:center;gap:32px;margin-top:32px;flex-wrap:wrap}
-.stat-num{font-size:1.6rem;font-weight:800;color:var(--orange)}
-.stat-lbl{font-size:.78rem;color:var(--mid)}
+.search-field svg{width:18px;height:18px;color:var(--slate-2);flex-shrink:0}
+.search-field input{flex:1;font-size:.95rem;min-width:0}
+.search-btn{margin-top:6px;padding:17px 24px;background:linear-gradient(135deg,var(--orange-2),var(--orange));color:#fff;border-radius:14px;font-weight:700;font-size:1.02rem;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 8px 24px rgba(255,106,0,.35);transition:transform .25s var(--ease),box-shadow .25s var(--ease)}
+.search-btn:active{transform:scale(.98)}
+.search-btn:hover{filter:brightness(1.05)}
+.search-btn svg{width:18px;height:18px}
+.hero-stats{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,1fr);gap:0;max-width:640px;margin:40px auto 0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:24px 12px;backdrop-filter:blur(8px)}
+.hero-stat{display:flex;flex-direction:column;align-items:center;gap:8px;border-right:1px solid rgba(255,255,255,.1)}
+.hero-stat:last-child{border-right:none}
+.hero-stat svg{width:22px;height:22px;color:var(--orange)}
+.stat-num{font-size:1.5rem;font-weight:800;color:#fff}
+.stat-lbl{font-size:.68rem;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.6px;font-weight:600}
+.hero-badge{position:relative;z-index:1;display:inline-flex;align-items:center;gap:8px;margin:20px auto 0;padding:9px 18px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:99px;font-size:.8rem;color:rgba(255,255,255,.75)}
+.hero-badge svg{width:15px;height:15px;color:var(--orange)}
+.hero-bottom-space{position:relative;z-index:1;height:44px}
 .hero-visual{display:none}
 @media(min-width:1024px){
-  .hero{text-align:left;padding:64px 40px 48px}
-  .hero-grid{display:grid;grid-template-columns:1.15fr .85fr;align-items:center;gap:48px}
-  .hero-sub{margin:0 0 28px}
-  .search{margin:0}
-  .hero-stats{justify-content:flex-start}
-  .hero-visual{display:flex;position:relative;height:340px;align-items:center;justify-content:center}
-  .hero-blob{width:300px;height:300px;border-radius:42% 58% 60% 40%/45% 40% 60% 55%;background:linear-gradient(135deg,var(--orange-soft),#FFE0CC);position:relative}
-  .hero-float{position:absolute;width:56px;height:56px;border-radius:50%;background:#fff;box-shadow:var(--shadow-lg);display:grid;place-items:center;font-size:1.5rem}
-  .hero-float-1{top:6%;right:14%}
-  .hero-float-2{bottom:10%;left:6%}
+  .hero{padding:72px 20px 0}
+  .hero-logo-icon{width:104px;height:104px;border-radius:26px}
+  .hero-logo-icon svg{width:56px;height:56px}
+  .hero-wordmark{font-size:2.7rem}
+  .hero-stats{max-width:720px}
 }
 
 /* ═══ 8. SECTIONS ═══ */
@@ -155,7 +183,8 @@ body.dark .co-avatar{color:#fff}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
 .cat-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px;cursor:pointer;transition:.2s;text-align:left}
 .cat-card:hover{border-color:var(--orange);transform:translateY(-2px);box-shadow:var(--shadow)}
-.cat-emoji{font-size:1.8rem;margin-bottom:8px}
+.cat-icon{width:44px;height:44px;margin-bottom:12px;border-radius:12px;display:grid;place-items:center;background:var(--orange-soft);color:var(--orange)}
+.cat-icon svg{width:23px;height:23px}
 .cat-name{font-weight:700;margin-bottom:2px}
 .cat-count{font-size:.78rem;color:var(--mid)}
 
@@ -170,11 +199,17 @@ body.dark .co-avatar{color:#fff}
 .chip{padding:6px 14px;border:1px solid var(--line);border-radius:99px;font-size:.82rem;font-weight:600;color:var(--slate-2);cursor:pointer;transition:.15s;background:#fff}
 .chip.active{background:var(--slate);color:#fff;border-color:var(--slate)}
 .chip:hover:not(.active){border-color:var(--orange);color:var(--orange)}
-.jobs-list{display:flex;flex-direction:column;gap:10px}
-.job{position:relative;background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;cursor:pointer;transition:.2s}
-.job:hover{border-color:var(--orange);box-shadow:var(--shadow)}
+.jobs-list{display:flex;flex-direction:column;gap:16px}
+@keyframes cardIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.jobs-list .job{animation:cardIn .4s var(--ease) both}
+.jobs-list .job:nth-child(2){animation-delay:.05s}
+.jobs-list .job:nth-child(3){animation-delay:.1s}
+.jobs-list .job:nth-child(4){animation-delay:.15s}
+.jobs-list .job:nth-child(5){animation-delay:.2s}
+.job{position:relative;background:#fff;border:1px solid var(--line);border-radius:22px;padding:24px;cursor:pointer;transition:transform .3s var(--ease),box-shadow .3s var(--ease),border-color .3s}
+.job:hover{border-color:rgba(255,106,0,.35);box-shadow:var(--shadow-lg);transform:translateY(-2px)}
 .job-top{display:flex;gap:14px;margin-bottom:4px}
-.co-avatar{position:relative;width:56px;height:56px;border-radius:12px;display:grid;place-items:center;font-weight:800;font-size:1.3rem;color:#fff;flex-shrink:0}
+.co-avatar{position:relative;width:56px;height:56px;border-radius:16px;display:grid;place-items:center;font-weight:800;font-size:1.3rem;color:#fff;flex-shrink:0}
 .co-verified-badge{position:absolute;bottom:-3px;right:-3px;width:18px;height:18px;border-radius:50%;background:#fff;display:grid;place-items:center;box-shadow:0 0 0 2px #fff}
 .co-verified-badge svg{width:14px;height:14px}
 .job-info{min-width:0;flex:1}
@@ -183,9 +218,9 @@ body.dark .co-avatar{color:#fff}
 .job-co{font-size:.86rem;color:var(--slate-2);display:flex;align-items:center;gap:5px;margin-top:3px}
 .job-co .verified-check{width:14px;height:14px;color:#2563EB;flex-shrink:0}
 .job-loc{font-size:.82rem;color:var(--mid);margin-top:2px}
-.job-sal{font-size:.92rem;font-weight:700;color:var(--orange);margin-top:6px}
+.job-sal{font-size:1.05rem;font-weight:800;color:var(--orange);margin-top:8px;letter-spacing:-.2px}
 .job-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
-.tag{font-size:.72rem;font-weight:600;padding:3px 9px;border-radius:99px;background:var(--line-2);color:var(--slate-2)}
+.tag{font-size:.74rem;font-weight:600;padding:5px 12px;border-radius:99px;background:var(--line-2);color:var(--slate-2)}
 .tag-orange{background:var(--orange-soft);color:var(--orange)}
 .job-actions{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid var(--line-2)}
 .job-time{font-size:.78rem;color:var(--mid)}
@@ -231,7 +266,8 @@ textarea.form-input{resize:vertical;min-height:90px;font-family:inherit}
 .conseil-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
 .conseil{background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px;cursor:pointer;transition:.2s}
 .conseil:hover{border-color:var(--orange);box-shadow:var(--shadow)}
-.conseil-emoji{font-size:1.6rem;margin-bottom:8px}
+.conseil-icon{width:42px;height:42px;margin-bottom:12px;border-radius:12px;display:grid;place-items:center;background:var(--orange-soft);color:var(--orange)}
+.conseil-icon svg{width:22px;height:22px}
 .conseil-title{font-weight:700;margin-bottom:6px}
 .conseil-sub{font-size:.85rem;color:var(--mid)}
 
@@ -438,6 +474,12 @@ body.dark #page-login{background:var(--bg)}
 .tag-adzuna{background:#F0FDF4;color:#15803D}
 .tag-alt{background:#FFF7ED;color:#C2410C}
 
+/* ═══ PAGE TRANSITIONS PREMIUM ═══ */
+@keyframes pageIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.page{animation:pageIn .35s var(--ease) both}
+.btn,.chip{transition:all .25s var(--ease)}
+.btn:hover{transform:translateY(-1px)}
+
 /* ═══ 18g. FOCUS & TRANSITIONS RENFORCÉS ═══ */
 .btn,.chip,.nav-btn,.drawer-item,.job,.cat-card,.conseil,.ptab,.tab,.auth-tab,
 .page-btn,.kcard-btn,.save-btn,.share-btn,.ssearch,.sort-select,.form-input,
@@ -538,13 +580,33 @@ body.dark .filter-reset-link{color:var(--orange)}
 .card-quick-apply:hover{background:var(--orange);color:#fff}
 .cv-missing-note{font-size:.78rem;color:var(--mid);background:var(--line-2);border-radius:8px;padding:10px 12px;margin-top:10px}
 
+/* ═══ PROFESSIONAL ICON SYSTEM ═══ */
+.ui-icon{display:inline-flex;align-items:center;justify-content:center;vertical-align:-2px;flex:0 0 auto}
+.ui-icon svg{width:1em;height:1em;display:block}
+.badge-pill .ui-icon{font-size:14px}
+.empty-icon{width:54px;height:54px;margin:0 auto 14px;border-radius:16px;display:grid;place-items:center;background:var(--orange-soft);color:var(--orange);font-size:26px}
+.cv-missing-note{display:flex;align-items:flex-start;gap:8px}
+body.dark .cat-icon,body.dark .conseil-icon,body.dark .empty-icon{background:var(--orange-soft)}
+
 /* ═══ 19. UTILS ═══ */
 .spinner{width:18px;height:18px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
 @keyframes spin{to{transform:rotate(360deg)}}
 .hide{display:none!important}
+
+/* Correctifs production */
+.skip-link{position:fixed;left:16px;top:-80px;z-index:1000;background:#fff;color:#0F172A;padding:10px 14px;border-radius:8px;box-shadow:var(--shadow-lg);font-weight:700}
+.skip-link:focus{top:16px}
+.env-banner{display:none;padding:9px 16px;text-align:center;background:#FFF7ED;color:#9A3412;border-bottom:1px solid #FED7AA;font-size:.82rem;font-weight:700}
+.env-banner.show{display:block}
+button:disabled{opacity:.55;cursor:not-allowed;transform:none!important}
+@media(prefers-reduced-motion:reduce){
+ *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
 </style>
 </head>
 <body>
+<a href="#mainContent" class="skip-link">Aller au contenu principal</a>
+<div class="env-banner" id="envBanner" role="status">Mode aperçu — connectez les API serveur avant toute mise en production.</div>
 
 <!-- ═══ NAVBAR ═══ -->
 <nav class="nav">
@@ -554,7 +616,7 @@ body.dark .filter-reset-link{color:var(--orange)}
   </div>
   <div class="nav-links" id="navLinks">
     <a class="nav-link active" data-nav="jobs">Offres d'emploi</a>
-    <a class="nav-link" data-nav="lettre">Lettre IA</a>
+    <a class="nav-link" data-nav="lettre">Lettre</a>
     <a class="nav-link" data-nav="conseils">Conseils</a>
     <a class="nav-link" data-nav="profile" data-ptab="pipeline">Mes candidatures</a>
   </div>
@@ -585,7 +647,7 @@ body.dark .filter-reset-link{color:var(--orange)}
       </a>
       <a class="drawer-item" data-nav="lettre" tabindex="0">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-        Générateur de lettre IA
+        Assistant de lettre
       </a>
       <a class="drawer-item" data-nav="conseils" tabindex="0">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
@@ -623,40 +685,48 @@ body.dark .filter-reset-link{color:var(--orange)}
 </aside>
 
 <!-- ═══ HOME PAGE ═══ -->
-<main class="page active" id="page-home">
+<main class="page active" id="page-home" tabindex="-1"><span id="mainContent"></span>
   <section class="hero">
     <div class="hero-grid">
-      <div class="hero-content">
-        <div class="hero-eyebrow">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 5v6c0 5.5 3.4 9 8 11 4.6-2 8-5.5 8-11V5l-8-3z"/></svg>
-          52 000+ offres disponibles
+      <div class="hero-logo-big">
+        <div class="hero-logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+        <div class="hero-wordmark">Talent<span>Pulse</span></div>
+      </div>
+      <form class="search" id="searchForm">
+        <div class="search-field">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="searchKw" placeholder="Poste, métier, mot-clé…" autocomplete="off">
+          <div class="ac-list" id="acKw"></div>
         </div>
-        <h1 class="hero-title">Trouvez votre <em id="heroWord">prochaine mission</em></h1>
-        <p class="hero-sub">Offres France Travail, Adzuna et alternance — réunies dans une seule plateforme. Lettres IA, matching CV, suivi de candidatures.</p>
-        <form class="search" id="searchForm">
-          <div class="search-field">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            <input type="text" id="searchKw" placeholder="Poste, métier, mot-clé…" autocomplete="off">
-            <div class="ac-list" id="acKw"></div>
-          </div>
-          <div class="search-field">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            <input type="text" id="searchCity" placeholder="Ville, département…" autocomplete="off">
-            <div class="ac-list" id="acCity"></div>
-          </div>
-          <button class="search-btn" type="submit">Rechercher</button>
-        </form>
-        <div class="hero-stats">
-          <div><div class="stat-num">52 000+</div><div class="stat-lbl">Offres</div></div>
-          <div><div class="stat-num">3</div><div class="stat-lbl">Sources</div></div>
-          <div><div class="stat-num">100%</div><div class="stat-lbl">Gratuit</div></div>
+        <div class="search-field">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <input type="text" id="searchCity" placeholder="Ville, département…" autocomplete="off">
+          <div class="ac-list" id="acCity"></div>
+        </div>
+        <button class="search-btn" type="submit">
+          Rechercher
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </form>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+          <div class="stat-num" id="liveJobCount">—</div><div class="stat-lbl">Offres disponibles</div>
+        </div>
+        <div class="hero-stat">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20z"/></svg>
+          <div class="stat-num">Multi</div><div class="stat-lbl">Sources connectées</div>
+        </div>
+        <div class="hero-stat">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 5v6c0 5.5 3.4 9 8 11 4.6-2 8-5.5 8-11V5l-8-3z"/><path d="m9 12 2 2 4-4"/></svg>
+          <div class="stat-num">100%</div><div class="stat-lbl">Gratuit</div>
         </div>
       </div>
-      <div class="hero-visual" aria-hidden="true">
-        <div class="hero-blob"></div>
-        <div class="hero-float hero-float-1">🔍</div>
-        <div class="hero-float hero-float-2">📈</div>
+      <div class="hero-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 5v6c0 5.5 3.4 9 8 11 4.6-2 8-5.5 8-11V5l-8-3z"/><path d="m9 12 2 2 4-4"/></svg>
+        Disponibilité et fraîcheur selon les sources connectées
       </div>
+      <div class="hero-bottom-space"></div>
     </div>
   </section>
 
@@ -921,7 +991,7 @@ body.dark .filter-reset-link{color:var(--orange)}
       <div class="export-card" style="margin-top:16px">
         <h4>Exporter mon dossier</h4>
         <p>Générez un PDF avec votre profil complet, prêt à partager avec un recruteur.</p>
-        <button class="btn btn-outline" id="exportPdf" style="width:100%">📄 Télécharger mon dossier PDF</button>
+        <button class="btn btn-outline" id="exportPdf" style="width:100%"><span class="ui-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 15h8M8 11h3"/></svg></span>Télécharger mon dossier PDF</button>
       </div>
     </div>
 
@@ -1026,23 +1096,48 @@ body.dark .filter-reset-link{color:var(--orange)}
 
 // ─── 1. CONFIG ────────────────────────────────────────────────────
 const API = '/api/jobs'; // proxy Vercel vers France Travail / Adzuna
+const ICONS = {
+  code: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m8 9-4 3 4 3"/><path d="m16 9 4 3-4 3"/><path d="m14 5-4 14"/></svg>',
+  chart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m7 16 4-5 4 3 4-7"/></svg>',
+  briefcase: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18"/></svg>',
+  health: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-4.4-9-9c-1.6-3.7.6-7 4-7 2 0 3.4 1.1 5 3 1.6-1.9 3-3 5-3 3.4 0 5.6 3.3 4 7-2 4.6-9 9-9 9z"/><path d="M8 12h2l1-2 2 4 1-2h2"/></svg>',
+  education: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m2 10 10-5 10 5-10 5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg>',
+  restaurant: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 3v8M4 3v5a3 3 0 0 0 6 0V3M7 11v10M17 3v18M17 3c3 2 3 7 0 9"/></svg>',
+  construction: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M6 21V8l6-5 6 5v13M9 21v-6h6v6"/><path d="M9 10h.01M15 10h.01"/></svg>',
+  truck: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h11v10H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg>',
+  document: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>',
+  message: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg>',
+  target: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>',
+  salary: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M16 8.5c-.8-.9-2-1.5-3.5-1.5-2.2 0-4 1.2-4 3s1.8 2.7 4 3 4 .9 4 3-1.8 3-4 3c-1.6 0-3-.6-4-1.7M12 5v14"/></svg>',
+  network: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="3"/><circle cx="5" cy="19" r="3"/><circle cx="19" cy="19" r="3"/><path d="m10 7-3 9M14 7l3 9M8 19h8"/></svg>',
+  wellbeing: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3c-4 0-7 3-7 7 0 2.5 1.2 4.2 3 5.5V19h8v-3.5c1.8-1.3 3-3 3-5.5 0-4-3-7-7-7z"/><path d="M9 22h6M9 10h6"/></svg>',
+  search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>',
+  bookmark: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>',
+  clipboard: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M9 9h6M9 13h6"/></svg>',
+  bell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>',
+  home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 11 9-8 9 8"/><path d="M5 10v10h14V10M9 20v-6h6v6"/></svg>',
+  car: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 17-1-5 2-5h12l2 5-1 5"/><path d="M3 17h18M6 17v3M18 17v3"/><circle cx="7" cy="13" r="1"/><circle cx="17" cy="13" r="1"/></svg>',
+  info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>',
+  location: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0z"/><circle cx="12" cy="10" r="2"/></svg>'
+};
+const icon = (name, cls = 'ui-icon') => `<span class="${cls}" aria-hidden="true">${ICONS[name] || ICONS.briefcase}</span>`;
 const CATEGORIES = [
-  { emoji: '💻', name: 'Tech & IT', q: 'développeur', count: '12 400' },
-  { emoji: '📊', name: 'Marketing', q: 'marketing', count: '5 200' },
-  { emoji: '💼', name: 'Commercial', q: 'commercial', count: '8 100' },
-  { emoji: '🏥', name: 'Santé', q: 'infirmier', count: '6 900' },
-  { emoji: '🎓', name: 'Éducation', q: 'enseignant', count: '3 400' },
-  { emoji: '🍴', name: 'Restauration', q: 'cuisinier', count: '4 800' },
-  { emoji: '🏗️', name: 'BTP', q: 'BTP', count: '5 600' },
-  { emoji: '🚚', name: 'Logistique', q: 'logistique', count: '7 200' },
+  { icon: 'code', name: 'Tech & IT', q: 'développeur', count: '12 400' },
+  { icon: 'chart', name: 'Marketing', q: 'marketing', count: '5 200' },
+  { icon: 'briefcase', name: 'Commercial', q: 'commercial', count: '8 100' },
+  { icon: 'health', name: 'Santé', q: 'infirmier', count: '6 900' },
+  { icon: 'education', name: 'Éducation', q: 'enseignant', count: '3 400' },
+  { icon: 'restaurant', name: 'Restauration', q: 'cuisinier', count: '4 800' },
+  { icon: 'construction', name: 'BTP', q: 'BTP', count: '5 600' },
+  { icon: 'truck', name: 'Logistique', q: 'logistique', count: '7 200' },
 ];
 const CONSEILS = [
-  { emoji: '📝', title: 'Rédiger un CV percutant', body: 'Mettez en avant vos résultats chiffrés. Adaptez votre CV à chaque offre. Utilisez des verbes d\'action.' },
-  { emoji: '💬', title: 'Réussir son entretien', body: 'Préparez 3 questions à poser. Connaissez l\'entreprise. Anticipez les questions classiques.' },
-  { emoji: '🎯', title: 'Bien cibler ses candidatures', body: 'Qualité avant quantité. Personnalisez chaque lettre. Suivez vos candidatures.' },
-  { emoji: '🚀', title: 'Négocier son salaire', body: 'Connaissez le marché. Argumentez avec vos compétences. Restez professionnel.' },
-  { emoji: '📈', title: 'Développer son réseau', body: 'LinkedIn est incontournable. Participez à des événements. Cultivez vos contacts.' },
-  { emoji: '🧠', title: 'Gérer son stress', body: 'Pratiquez la respiration. Préparez-vous bien. Acceptez les refus comme un apprentissage.' },
+  { icon: 'document', title: 'Rédiger un CV percutant', body: 'Mettez en avant vos résultats chiffrés. Adaptez votre CV à chaque offre. Utilisez des verbes d\'action.' },
+  { icon: 'message', title: 'Réussir son entretien', body: 'Préparez 3 questions à poser. Connaissez l\'entreprise. Anticipez les questions classiques.' },
+  { icon: 'target', title: 'Bien cibler ses candidatures', body: 'Qualité avant quantité. Personnalisez chaque lettre. Suivez vos candidatures.' },
+  { icon: 'salary', title: 'Négocier son salaire', body: 'Connaissez le marché. Argumentez avec vos compétences. Restez professionnel.' },
+  { icon: 'network', title: 'Développer son réseau', body: 'LinkedIn est incontournable. Participez à des événements. Cultivez vos contacts.' },
+  { icon: 'wellbeing', title: 'Gérer son stress', body: 'Pratiquez la respiration. Préparez-vous bien. Acceptez les refus comme un apprentissage.' },
 ];
 const LEGAL_CONTENT = {
   about: {
@@ -1065,7 +1160,7 @@ const LEGAL_CONTENT = {
 
 // ─── 2. STATE ─────────────────────────────────────────────────────
 const State = {
-  user:    safeGet('tp_user', null),
+  user:    readSession(),
   profile: safeGet('tp_profile', { prenom:'', nom:'', title:'', city:'', skills:'', contract:'' }),
   saved:   new Set(safeGet('tp_saved', [])),
   applied: new Set(safeGet('tp_applied', [])),
@@ -1083,6 +1178,7 @@ const State = {
   alerts:  safeGet('tp_alerts', []),
   searches:safeGet('tp_searches', []),
   lastSearch: null,
+  loadError: null,
   whatsapp: safeGet('tp_whatsapp', null),
   waThreshold: safeGet('tp_wa_threshold', 60),
   salMin:  0,
@@ -1094,6 +1190,69 @@ const State = {
 };
 function safeGet(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } }
 function safeSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+
+/* ─── SESSION (fix #5) ─────────────────────────────────────────────
+   Le cookie de session est géré par le backend (httpOnly). Le
+   localStorage ne sert QUE de cache d'affichage : il doit donc
+   expirer de lui-même, sinon l'UI affiche un utilisateur "connecté"
+   alors que le cookie serveur est mort depuis longtemps.           */
+const SESSION_TTL = 7 * 24 * 60 * 60 * 1000; // 7 jours
+
+function readSession() {
+  const raw = safeGet('tp_user', null);
+  if (!raw || typeof raw !== 'object' || !raw.email) return null;
+  // Ancien format (sans savedAt) → on le rejette pour forcer une re-validation
+  if (!raw.savedAt || (Date.now() - raw.savedAt) > SESSION_TTL) {
+    try { localStorage.removeItem('tp_user'); } catch {}
+    return null;
+  }
+  return { prenom: raw.prenom || '', email: raw.email, savedAt: raw.savedAt };
+}
+
+function writeSession(user) {
+  State.user = { prenom: user.prenom || '', email: user.email, savedAt: Date.now() };
+  safeSet('tp_user', State.user);
+}
+
+function clearSession() {
+  State.user = null;
+  try { localStorage.removeItem('tp_user'); } catch {}
+}
+
+/* Appelée dès qu'un appel API renvoie 401/403 : la session serveur
+   n'est plus valide, on nettoie l'UI immédiatement au lieu de laisser
+   l'utilisateur cliquer dans le vide. */
+let sessionExpiredNotified = false;
+function handleSessionExpired() {
+  if (!State.user) return;
+  clearSession();
+  refreshAuthUI();
+  if (!sessionExpiredNotified) {
+    sessionExpiredNotified = true;
+    toast('Session expirée, reconnectez-vous.', 'err');
+    setTimeout(() => { sessionExpiredNotified = false; }, 5000);
+  }
+  showPage('login');
+  switchAuthTab('in');
+}
+
+/* Vérifie au démarrage que le cookie serveur est toujours vivant.
+   Silencieux si l'endpoint n'existe pas encore (404/501). */
+async function validateSession() {
+  if (!State.user) return;
+  try {
+    const res = await fetch('/api/auth/me', { credentials: 'include', headers: { 'Accept': 'application/json' } });
+    if (res.status === 401 || res.status === 403) { handleSessionExpired(); return; }
+    if (!res.ok) return; // endpoint absent ou 5xx → on ne déconnecte pas à tort
+    const data = await res.json().catch(() => ({}));
+    if (data?.user?.email) writeSession({ prenom: data.user.prenom || State.user.prenom, email: data.user.email });
+    else handleSessionExpired();
+    refreshAuthUI();
+  } catch {
+    // Hors ligne ou backend injoignable : on garde la session en cache,
+    // le prochain appel authentifié tranchera.
+  }
+}
 function syncState() {
   safeSet('tp_saved', [...State.saved]);
   safeSet('tp_applied', [...State.applied]);
@@ -1273,7 +1432,7 @@ function setupLiveValidation() {
     const ok = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
     email.className = 'form-input ' + (ok ? 'valid' : 'invalid');
     hintE.className = 'field-hint ' + (ok ? 'ok' : 'err');
-    hintE.textContent = ok ? '✓ Email valide' : 'Format attendu : nom@domaine.fr';
+    hintE.textContent = ok ? 'Email valide' : 'Format attendu : nom@domaine.fr';
   });
   on(pass, 'input', () => {
     const v = pass.value;
@@ -1281,53 +1440,161 @@ function setupLiveValidation() {
     const ok = v.length >= 8;
     pass.className = 'form-input ' + (ok ? 'valid' : 'invalid');
     hintP.className = 'field-hint ' + (ok ? 'ok' : 'err');
-    hintP.textContent = ok ? '✓ Mot de passe valide' : `Encore ${8 - v.length} caractère(s) minimum`;
+    hintP.textContent = ok ? 'Mot de passe valide' : `Encore ${8 - v.length} caractère(s) minimum`;
   });
 }
 
-function doSignIn(e) {
+/* ─── COUCHE RÉSEAU CENTRALISÉE (fix #4) ───────────────────────────
+   Tous les appels passent par ici : timeout, détection hors-ligne,
+   messages d'erreur lisibles, et déconnexion auto sur 401/403.
+   ApiError.kind vaut 'offline' | 'timeout' | 'auth' | 'server' | 'client'. */
+const API_TIMEOUT = 12000;
+
+class ApiError extends Error {
+  constructor(message, kind, status) {
+    super(message);
+    this.name = 'ApiError';
+    this.kind = kind;
+    this.status = status || 0;
+  }
+}
+
+async function apiFetch(path, { method = 'GET', body, auth = false, timeout = API_TIMEOUT } = {}) {
+  if (navigator.onLine === false) {
+    throw new ApiError('Vous êtes hors ligne. Vérifiez votre connexion.', 'offline');
+  }
+
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeout);
+
+  let res;
+  try {
+    res = await fetch(path, {
+      method,
+      signal: ctrl.signal,
+      credentials: auth ? 'include' : 'same-origin',
+      headers: body
+        ? { 'Content-Type': 'application/json', 'Accept': 'application/json' }
+        : { 'Accept': 'application/json' },
+      body: body ? JSON.stringify(body) : undefined
+    });
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      throw new ApiError('Le serveur met trop de temps à répondre. Réessayez.', 'timeout');
+    }
+    throw new ApiError('Connexion au serveur impossible. Réessayez dans un instant.', 'offline');
+  } finally {
+    clearTimeout(timer);
+  }
+
+  let data = {};
+  try { data = await res.json(); } catch {}
+
+  if (res.status === 401 || res.status === 403) {
+    handleSessionExpired();
+    throw new ApiError(data.error || 'Session expirée, reconnectez-vous.', 'auth', res.status);
+  }
+  if (res.status >= 500) {
+    throw new ApiError('Le service est temporairement indisponible. Réessayez plus tard.', 'server', res.status);
+  }
+  if (!res.ok) {
+    throw new ApiError(data.error || data.message || 'Requête refusée par le serveur.', 'client', res.status);
+  }
+  return data;
+}
+
+async function authRequest(path, payload) {
+  // Sur login/register, un 401 = "mauvais identifiants", PAS une session
+  // expirée : on court-circuite donc handleSessionExpired().
+  if (navigator.onLine === false) throw new ApiError('Vous êtes hors ligne. Vérifiez votre connexion.', 'offline');
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), API_TIMEOUT);
+  let res;
+  try {
+    res = await fetch(path, {
+      method: 'POST',
+      signal: ctrl.signal,
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch (err) {
+    if (err.name === 'AbortError') throw new ApiError('Le serveur met trop de temps à répondre. Réessayez.', 'timeout');
+    throw new ApiError('Connexion au serveur impossible. Réessayez dans un instant.', 'offline');
+  } finally {
+    clearTimeout(timer);
+  }
+  let data = {};
+  try { data = await res.json(); } catch {}
+  if (res.status >= 500) throw new ApiError('Le service est temporairement indisponible. Réessayez plus tard.', 'server', res.status);
+  if (!res.ok) throw new ApiError(data.error || data.message || 'Identifiants incorrects.', 'client', res.status);
+  return data;
+}
+
+async function doSignIn(e) {
   e.preventDefault();
   clearAuthErr();
   const email = $('#inEmail').value.trim().toLowerCase();
   const pass  = $('#inPass').value;
   if (!email || !pass) return showAuthErr('Email et mot de passe requis.');
-  const accounts = safeGet('tp_accounts', []);
-  const acc = accounts.find(a => a.email === email);
-  if (!acc)                  return showAuthErr('Aucun compte avec cet email.');
-  if (acc.password !== btoa(pass)) return showAuthErr('Mot de passe incorrect.');
-  State.user = { prenom: acc.prenom, email: acc.email };
-  safeSet('tp_user', State.user);
-  refreshAuthUI();
-  showPage('home');
-  toast(`Bienvenue ${acc.prenom} !`);
+  const btn = $('#formIn button[type="submit"]');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Connexion…';
+  try {
+    const data = await authRequest('/api/auth/login', { email, password: pass });
+    if (!data.user || !data.user.email) throw new Error('Réponse serveur invalide.');
+    writeSession({ prenom: data.user.prenom || data.user.name || '', email: data.user.email });
+    refreshAuthUI();
+    showPage('home');
+    toast(`Bienvenue ${State.user.prenom || ''}`.trim());
+  } catch (err) {
+    showAuthErr(err.message || 'Connexion indisponible.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Se connecter';
+  }
 }
 
-function doSignUp(e) {
+async function doSignUp(e) {
   e.preventDefault();
   clearAuthErr();
   const prenom = $('#upPrenom').value.trim();
   const email  = $('#upEmail').value.trim().toLowerCase();
   const pass   = $('#upPass').value;
-  if (!prenom || !email || !pass)  return showAuthErr('Tous les champs sont requis.');
-  if (pass.length < 8)             return showAuthErr('Mot de passe trop court (8 caractères minimum).');
-  if (!email.includes('@'))        return showAuthErr('Email invalide.');
-  const accounts = safeGet('tp_accounts', []);
-  if (accounts.find(a => a.email === email)) return showAuthErr('Cet email est déjà utilisé.');
-  accounts.push({ prenom, email, password: btoa(pass), createdAt: Date.now() });
-  safeSet('tp_accounts', accounts);
-  State.user = { prenom, email };
-  safeSet('tp_user', State.user);
-  refreshAuthUI();
-  showPage('home');
-  toast(`Bienvenue ${prenom} !`);
+  if (!prenom || !email || !pass) return showAuthErr('Tous les champs sont requis.');
+  if (pass.length < 10) return showAuthErr('Utilisez au moins 10 caractères.');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return showAuthErr('Email invalide.');
+  const btn = $('#formUp button[type="submit"]');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Création…';
+  try {
+    const data = await authRequest('/api/auth/register', { prenom, email, password: pass });
+    if (!data.user || !data.user.email) throw new Error('Réponse serveur invalide.');
+    writeSession({ prenom: data.user.prenom || prenom, email: data.user.email });
+    refreshAuthUI();
+    showPage('home');
+    toast(`Bienvenue ${State.user.prenom}`);
+  } catch (err) {
+    showAuthErr(err.message || 'Inscription indisponible.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Créer mon compte';
+  }
 }
 
-function signOut() {
-  State.user = null;
-  try { localStorage.removeItem('tp_user'); } catch {}
+async function signOut() {
+  let serverOk = true;
+  try {
+    await apiFetch('/api/auth/logout', { method: 'POST', auth: true, timeout: 6000 });
+  } catch (err) {
+    // On déconnecte quand même côté client, mais on le dit à l'utilisateur :
+    // le cookie serveur peut survivre s'il n'a pas été révoqué.
+    serverOk = err.kind === 'auth';
+  }
+  clearSession();
   refreshAuthUI();
   showPage('home');
-  toast('Déconnecté.');
+  toast(serverOk ? 'Déconnecté.' : 'Déconnecté localement — le serveur n\'a pas répondu.', serverOk ? 'ok' : 'err');
 }
 
 
@@ -1374,7 +1641,7 @@ function matchLabel(score) { return score >= 70 ? 'Très compatible' : score >= 
 function matchBadge(score) {
   if (score === null) return '';
   const cls = score >= 70 ? 'match-high' : score >= 40 ? 'match-mid' : 'match-low';
-  return `<span class="match-badge ${cls}">★ ${matchLabel(score)} (${score}%)</span>`;
+  return `<span class="match-badge ${cls}">${icon('target')} ${matchLabel(score)} (${score}%)</span>`;
 }
 
 // ─── 6. JOBS ──────────────────────────────────────────────────────
@@ -1397,21 +1664,32 @@ async function loadJobs(params = {}) {
   qs.set('source', 'all');
 
   let jobs = [];
+  let netError = null;
   try {
-    const res = await fetch(`${API}?${qs}`);
-    if (!res.ok) throw new Error();
-    const data = await res.json();
+    const data = await apiFetch(`${API}?${qs}`);
     jobs = (data.resultats || []).map(parseAggregatedJob).filter(Boolean);
-  } catch {
+  } catch (err) {
+    netError = err;
     jobs = [];
   }
 
-  State.jobs = jobs.length ? jobs : DEMO_JOBS;
-  // En mode démo (fallback), filtrer aussi localement par localisation pour rendre le filtre démontrable
-  if (!jobs.length && params.city) {
-    State.jobs = DEMO_JOBS.filter(j => matchesLocation(j, params.city));
-    if (!State.jobs.length) State.jobs = DEMO_JOBS;
+  State.jobs = jobs;
+  State.loadError = netError ? netError.message : null;
+  State.lastSearch = params;
+  const banner = $('#envBanner');
+  // Distinction essentielle : "0 résultat" n'est PAS la même chose
+  // qu'"appel API échoué". Le message doit le refléter.
+  if (netError) {
+    banner?.classList.add('show');
+    toast(netError.message, 'err');
+  } else if (!jobs.length) {
+    banner?.classList.remove('show');
+    toast('Aucune offre ne correspond à cette recherche.', 'err');
+  } else {
+    banner?.classList.remove('show');
   }
+  const liveCount = $('#liveJobCount');
+  if (liveCount) liveCount.textContent = jobs.length ? String(jobs.length) : '—';
   if (params.kw || params.city) {
     $('#jobsHeader').textContent = `Résultats : ${[params.kw, params.city].filter(Boolean).join(' à ')}`;
   }
@@ -1633,7 +1911,17 @@ function renderJobs() {
   if (count) count.textContent = all.length ? `${all.length} offre${all.length > 1 ? 's' : ''}` : '';
 
   if (!all.length) {
-    list.innerHTML = '<div class="empty"><div class="empty-icon">🔍</div><div>Aucune offre trouvée.</div></div>';
+    // État vide contextuel : erreur réseau ≠ zéro résultat.
+    if (State.loadError) {
+      list.innerHTML = `<div class="empty">
+        <div class="empty-icon">${ICONS.search}</div>
+        <div>${esc(State.loadError)}</div>
+        <button class="btn btn-primary" id="jobsRetry" style="margin-top:14px">Réessayer</button>
+      </div>`;
+      on($('#jobsRetry'), 'click', () => loadJobs(State.lastSearch || {}));
+    } else {
+      list.innerHTML = `<div class="empty"><div class="empty-icon">${ICONS.search}</div><div>Aucune offre trouvée.</div></div>`;
+    }
     $('#pagination').innerHTML = '';
     return;
   }
@@ -1714,7 +2002,7 @@ function jobCard(j) {
       ${j.contract ? `<span class="tag tag-orange">${esc(j.contract)}</span>` : ''}
       ${j.source ? `<span class="tag ${sourceClass(j.source)}">${esc(j.source)}</span>` : ''}
       ${j.experience ? `<span class="tag">${esc(j.experience)}</span>` : ''}
-      ${j.teletravail && j.teletravail !== 'Non' ? `<span class="badge-pill badge-remote">🏠 Télétravail</span>` : ''}
+      ${j.teletravail && j.teletravail !== 'Non' ? `<span class="badge-pill badge-remote">${icon('home')} Télétravail</span>` : ''}
       ${matchBadge(matchScore(j))}
     </div>
     <div class="job-actions">
@@ -1726,7 +2014,7 @@ function jobCard(j) {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
         </button>` : ''}
       </div>
-      <span class="job-time">${State.applied.has(j.id) ? '✓ Déjà postulé' : (when || 'Cliquer pour voir')}</span>
+      <span class="job-time">${State.applied.has(j.id) ? 'Déjà postulé' : (when || 'Cliquer pour voir')}</span>
     </div>
   </article>`;
 }
@@ -1737,7 +2025,7 @@ function toggleSave(id) {
     toast('Retiré des favoris');
   } else {
     State.saved.add(id);
-    toast('Ajouté aux favoris ♥');
+    toast('Ajouté aux favoris');
   }
   syncState();
   renderJobs();
@@ -1774,9 +2062,9 @@ function openDetail(id) {
       ${j.salary ? `<span class="tag">${esc(j.salary)}</span>` : ''}
       ${j.source ? `<span class="tag ${sourceClass(j.source)}">${esc(j.source)}</span>` : ''}
       ${j.tempsPlein ? `<span class="badge-pill">${esc(j.tempsPlein)}</span>` : ''}
-      ${j.teletravail ? `<span class="badge-pill ${j.teletravail !== 'Non' ? 'badge-remote' : ''}">🏠 ${esc(j.teletravail === 'Non' ? 'Sur site' : 'Télétravail : ' + j.teletravail)}</span>` : ''}
-      ${j.experience ? `<span class="badge-pill badge-exp">🎯 ${esc(j.experience)}</span>` : ''}
-      ${j.permis ? `<span class="badge-pill badge-permis">🚗 ${esc(j.permis)}</span>` : ''}
+      ${j.teletravail ? `<span class="badge-pill ${j.teletravail !== 'Non' ? 'badge-remote' : ''}">${icon('home')} ${esc(j.teletravail === 'Non' ? 'Sur site' : 'Télétravail : ' + j.teletravail)}</span>` : ''}
+      ${j.experience ? `<span class="badge-pill badge-exp">${icon('target')} ${esc(j.experience)}</span>` : ''}
+      ${j.permis ? `<span class="badge-pill badge-permis">${icon('car')} ${esc(j.permis)}</span>` : ''}
     </div>
 
     <div class="detail-grid">
@@ -1802,10 +2090,10 @@ function openDetail(id) {
       <button class="btn btn-outline" id="detailApply">Postuler</button>
       <button class="btn quick-apply-btn" id="detailQuickApply">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-        ${alreadyApplied ? 'Déjà postulé ✓' : 'Postuler en 1 clic'}
+        ${alreadyApplied ? 'Déjà postulé' : 'Postuler en 1 clic'}
       </button>
     </div>
-    ${!hasCV && !alreadyApplied ? `<div class="cv-missing-note">💡 Ajoutez votre CV pour postuler en 1 clic sur toutes les offres.</div>` : ''}`;
+    ${!hasCV && !alreadyApplied ? `<div class="cv-missing-note">${icon('info')}<span>Ajoutez votre CV pour postuler en 1 clic sur toutes les offres.</span></div>` : ''}`;
 
   $('#detail').classList.add('open');
   document.body.classList.add('no-scroll');
@@ -1858,7 +2146,7 @@ function doApply() {
   closeModal('applyModal');
   closeDetail();
   renderJobs();
-  toast('Candidature envoyée ✓');
+  toast('Candidature envoyée');
 }
 
 // ─── POSTULER EN 1 CLIC ──────────────────────────────────────────────
@@ -1877,7 +2165,7 @@ function quickApply(id) {
   historyAdd(job);
   closeDetail();
   renderJobs();
-  toast(`Candidature envoyée en 1 clic ✓ (CV : ${State.cv.name})`);
+  toast(`Candidature envoyée en 1 clic (CV : ${State.cv.name})`);
 }
 
 // ─── 8. LETTRE ────────────────────────────────────────────────────
@@ -1890,17 +2178,20 @@ async function generateLettre() {
   btn.innerHTML = '<span class="spinner"></span> Génération…';
   btn.disabled = true;
   try {
-    const res = await fetch('/api/lettre', {
+    const data = await apiFetch('/api/lettre', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ poste, entreprise: ent, atouts })
+      body: { poste, entreprise: ent, atouts }
     });
-    if (!res.ok) throw new Error();
-    const data = await res.json();
+    if (!data.lettre) throw new ApiError('Réponse IA vide.', 'server');
     showLettreResult(data.lettre);
-  } catch {
-    // Fallback : génération locale simple
+  } catch (err) {
+    // Fallback local : on garde le service utilisable, mais on dit
+    // précisément POURQUOI l'IA n'a pas répondu.
     showLettreResult(localLettre(poste, ent, atouts));
+    const why = err.kind === 'offline' ? 'vous êtes hors ligne'
+              : err.kind === 'timeout' ? 'le service IA n\'a pas répondu à temps'
+              : 'le service IA est indisponible';
+    toast(`Modèle local utilisé : ${why}.`, 'err');
   }
   btn.innerHTML = 'Générer ma lettre';
   btn.disabled = false;
@@ -1927,7 +2218,7 @@ function showLettreResult(text) {
 
 function copyLettre() {
   navigator.clipboard.writeText($('#lettreResult').textContent).then(
-    () => toast('Lettre copiée ✓'),
+    () => toast('Lettre copiée'),
     () => toast('Erreur de copie')
   );
 }
@@ -1947,7 +2238,7 @@ function renderConseils() {
   conseilsRendered = true;
   $('#conseilsGrid').innerHTML = CONSEILS.map((c, i) => `
     <article class="conseil" data-i="${i}" tabindex="0">
-      <div class="conseil-emoji">${c.emoji}</div>
+      <div class="conseil-icon">${ICONS[c.icon]}</div>
       <div class="conseil-title">${esc(c.title)}</div>
       <div class="conseil-sub">${esc(c.body.slice(0, 80))}…</div>
     </article>`).join('');
@@ -1964,7 +2255,7 @@ function renderCategories() {
   catsRendered = true;
   $('#categoriesGrid').innerHTML = CATEGORIES.map(c => `
     <button class="cat-card" data-q="${esc(c.q)}">
-      <div class="cat-emoji">${c.emoji}</div>
+      <div class="cat-icon">${ICONS[c.icon]}</div>
       <div class="cat-name">${esc(c.name)}</div>
       <div class="cat-count">${c.count} offres</div>
     </button>`).join('');
@@ -1994,7 +2285,7 @@ function renderProfile() {
   const savedJobs = State.jobs.filter(j => State.saved.has(j.id));
   const sl = $('#savedList');
   if (savedJobs.length === 0) {
-    sl.innerHTML = '<div class="empty"><div class="empty-icon">🔖</div><div>Aucun favori pour le moment.</div></div>';
+    sl.innerHTML = `<div class="empty"><div class="empty-icon">${ICONS.bookmark}</div><div>Aucun favori pour le moment.</div></div>`;
   } else {
     sl.innerHTML = savedJobs.map(jobCard).join('');
     $$('#savedList .job').forEach(el => on(el, 'click', e => {
@@ -2068,7 +2359,7 @@ function saveProfileForm(e) {
   }
   closeProfileEdit();
   renderProfile();
-  toast('Profil mis à jour ✓');
+  toast('Profil mis à jour');
 }
 
 // ─── 12. MODALS ───────────────────────────────────────────────────
@@ -2251,7 +2542,7 @@ function kanbanCard(k, col) {
     <div class="kcard-actions">
       ${idx > 0 ? `<button class="kcard-btn" data-id="${esc(k.id)}" data-dir="prev">←</button>` : ''}
       ${idx < KCOLS.length - 1 ? `<button class="kcard-btn" data-id="${esc(k.id)}" data-dir="next">→</button>` : ''}
-      <button class="kcard-btn" data-id="${esc(k.id)}" data-dir="del">✕</button>
+      <button class="kcard-btn" data-id="${esc(k.id)}" data-dir="del" aria-label="Supprimer"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     </div>
   </div>`;
 }
@@ -2272,7 +2563,7 @@ function renderHistory() {
   const wrap = $('#histList');
   if (!wrap) return;
   if (!State.history.length) {
-    wrap.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div>Aucune candidature pour le moment.</div></div>';
+    wrap.innerHTML = `<div class="empty"><div class="empty-icon">${ICONS.clipboard}</div><div>Aucune candidature pour le moment.</div></div>`;
     return;
   }
   const STATUS = {
@@ -2320,7 +2611,7 @@ function handleCVFile(file) {
     }
     renderCV();
     renderProfileInfo();
-    toast('CV importé ✓' + (skills.length ? ` — ${skills.length} compétences détectées` : ''));
+    toast('CV importé' + (skills.length ? ` — ${skills.length} compétences détectées` : ''));
   };
   if (file.type === 'text/plain') reader.readAsText(file);
   else reader.readAsArrayBuffer(file);
@@ -2366,7 +2657,7 @@ function renderAlerts() {
   const wrap = $('#alertList');
   if (!wrap) return;
   if (!State.alerts.length) {
-    wrap.innerHTML = '<div class="empty"><div class="empty-icon">🔔</div><div>Aucune alerte. Créez-en une ci-dessus.</div></div>';
+    wrap.innerHTML = `<div class="empty"><div class="empty-icon">${ICONS.bell}</div><div>Aucune alerte. Créez-en une ci-dessus.</div></div>`;
     return;
   }
   wrap.innerHTML = State.alerts.map((a, i) => `
@@ -2394,7 +2685,7 @@ function createAlert(e) {
   safeSet('tp_alerts', State.alerts);
   $('#alertForm').reset();
   renderAlerts();
-  toast('Alerte créée ✓ Vous recevrez les offres par email.');
+  toast('Alerte créée. Vous recevrez les offres par email.');
 }
 
 // ═══ FEATURE 7 : RECHERCHE SAUVEGARDÉE ═══
@@ -2407,7 +2698,7 @@ function saveCurrentSearch() {
   State.searches = State.searches.slice(0, 8);
   safeSet('tp_searches', State.searches);
   renderSavedSearches();
-  toast('Recherche sauvegardée ✓');
+  toast('Recherche sauvegardée');
 }
 
 function renderSavedSearches() {
@@ -2415,7 +2706,7 @@ function renderSavedSearches() {
   if (!wrap) return;
   if (!State.searches.length) { wrap.innerHTML = ''; return; }
   wrap.innerHTML = '<div style="margin:8px 0">' + State.searches.map((s, i) =>
-    `<span class="ssearch" data-i="${i}">${esc(s.label)} <span class="ssearch-del" data-del="${i}">✕</span></span>`).join('') + '</div>';
+    `<span class="ssearch" data-i="${i}">${esc(s.label)} <span class="ssearch-del" data-del="${i}" aria-label="Supprimer">×</span></span>`).join('') + '</div>';
   $$('#savedSearches .ssearch').forEach(el => on(el, 'click', e => {
     if (e.target.dataset.del !== undefined) {
       State.searches.splice(+e.target.dataset.del, 1);
@@ -2504,7 +2795,7 @@ function applyFiltersFromDrawer() {
   closeFilterDrawer();
   renderJobs();
   renderActiveFilterChips();
-  toast('Filtres appliqués ✓');
+  toast('Filtres appliqués');
 }
 
 function resetFilters() {
@@ -2534,7 +2825,7 @@ const FILTER_LABELS = {
   niveauEtudes: v => v.toUpperCase(),
   datePosted: v => ({ '24h': 'Dernières 24h', '7j': '7 derniers jours', '30j': '30 derniers jours' }[v] || v),
   tempsPlein: v => v,
-  location: v => '📍 ' + v,
+  location: v => v,
 };
 
 function renderActiveFilterChips() {
@@ -2659,37 +2950,39 @@ async function activateWhatsApp() {
   if (!State.user) { toast('Connectez-vous pour activer WhatsApp'); showPage('login'); return; }
   const code = $('#waCode').value;
   const num = $('#waNum').value.trim().replace(/[\s.]/g, '');
-  if (num.length < 6) { toast('Numéro invalide'); return; }
+  if (!/^\d{6,14}$/.test(num)) { toast('Numéro invalide', 'err'); return; }
   const phone = code + num.replace(/^0/, '');
   const threshold = +($('#waThresholdPre')?.value || 60);
   const btn = $('#waActivate');
+  btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>';
   try {
-    // Endpoint backend : enregistre le numéro + tous les critères de matching
-    const res = await fetch('/api/whatsapp/subscribe', {
+    const data = await apiFetch('/api/whatsapp/subscribe', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+      auth: true,
+      body: {
         phone,
-        email: State.user.email,
         skills: State.profile.skills || '',
         title: State.profile.title || '',
         city: State.profile.city || '',
         contract: State.profile.contract || '',
         filters: State.filters,
         threshold
-      })
+      }
     });
-    if (!res.ok) throw new Error();
-  } catch {
-    // Mode démo : on enregistre quand même localement
+    if (data.subscribed !== true) throw new ApiError(data.error || 'Activation impossible.', 'server');
+    State.whatsapp = phone;
+    State.waThreshold = threshold;
+    safeSet('tp_whatsapp', phone);
+    safeSet('tp_wa_threshold', threshold);
+    renderWhatsApp();
+    toast('Notifications WhatsApp activées.');
+  } catch (err) {
+    toast(err.message || 'Service WhatsApp indisponible.', 'err');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Activer';
   }
-  State.whatsapp = phone;
-  State.waThreshold = threshold;
-  safeSet('tp_whatsapp', phone);
-  safeSet('tp_wa_threshold', threshold);
-  renderWhatsApp();
-  toast('✓ Notifications WhatsApp activées sur ' + phone);
 }
 
 // Vérifie localement les offres qui matchent et simule une notif
@@ -2703,7 +2996,7 @@ function checkWhatsAppMatches() {
   if (matches.length) {
     matches.forEach(j => seen.push(j.id));
     safeSet('tp_wa_seen', seen.slice(-100));
-    setTimeout(() => toast(`📲 ${matches.length} offre(s) compatible(s) envoyée(s) sur WhatsApp`), 1500);
+    setTimeout(() => toast(`${matches.length} offre(s) compatible(s) envoyée(s) sur WhatsApp`), 1500);
   }
 }
 
@@ -2793,10 +3086,18 @@ function startHeroWords() {
 
 // ─── 15. INIT ─────────────────────────────────────────────────────
 function init() {
+  try { localStorage.removeItem('tp_accounts'); } catch {}
+
   applyDark();
   refreshAuthUI();
   renderCategories();
-  startHeroWords();
+
+  // fix #5 : on confirme auprès du serveur que la session est vivante
+  validateSession();
+
+  // fix #4 : feedback réseau global
+  window.addEventListener('offline', () => toast('Connexion perdue. Certaines fonctions sont indisponibles.', 'err'));
+  window.addEventListener('online',  () => toast('Connexion rétablie.', 'ok'));
 
   // Navbar
   on($('#logo'),       'click', () => showPage('home'));
