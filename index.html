@@ -3176,7 +3176,113 @@ function exportPDF() {
     .stat b{font-size:1.4rem;color:#FF5C00}
     .foot{margin-top:40px;padding-top:16px;border-top:1px solid #E2E8F0;color:#94A3B8;font-size:.8rem;text-align:center}
     @media print{body{margin:0}}
-  </style></head><body>
+  
+/* ═══ PREMIUM VISUAL PASS v2 ═══ */
+:root{
+  --orange:#FF5A00;--orange-d:#D94D00;--orange-2:#FF7A2F;--orange-soft:#FFF1E8;
+  --slate:#111827;--slate-2:#475569;--mid:#64748B;--gray:#94A3B8;
+  --line:#E7EAF0;--line-2:#F5F6F8;--bg:#F6F7F9;--white:#fff;
+  --radius:16px;--radius-lg:24px;
+  --shadow:0 1px 2px rgba(15,23,42,.03),0 10px 30px rgba(15,23,42,.06);
+  --shadow-lg:0 20px 55px rgba(15,23,42,.10);
+}
+body{background:var(--bg);letter-spacing:-.01em}
+.nav{
+  height:68px;padding:12px 24px;max-width:none;background:rgba(255,255,255,.82);
+  border-bottom:1px solid rgba(15,23,42,.06);box-shadow:0 1px 12px rgba(15,23,42,.025)
+}
+.logo{font-size:1.08rem;letter-spacing:-.03em}
+.logo-icon{width:32px;height:32px;border-radius:10px;box-shadow:0 5px 14px rgba(255,90,0,.22)}
+.nav-burger{width:40px;height:40px;background:#fff;border:1px solid var(--line);box-shadow:none}
+.hero{
+  min-height:650px;padding:82px 20px 0;
+  background:
+    radial-gradient(700px 340px at 50% 0%,rgba(255,255,255,.98),transparent 70%),
+    radial-gradient(620px 360px at 88% 72%,rgba(255,90,0,.22),transparent 68%),
+    linear-gradient(180deg,#FAFBFC 0%,#F1F3F6 54%,#15181E 100%);
+}
+.hero-grid{max-width:760px}
+.hero-logo-big{gap:12px;margin-bottom:28px}
+.hero-logo-icon{width:72px;height:72px;border-radius:20px;box-shadow:0 16px 38px rgba(255,90,0,.24)}
+.hero-logo-icon svg{width:38px;height:38px}
+.hero-wordmark{font-size:1.75rem;letter-spacing:-.055em}
+.hero-eyebrow{
+  margin-bottom:12px;padding:6px 11px;background:rgba(255,255,255,.78);
+  border-color:rgba(255,90,0,.16);font-size:.68rem;letter-spacing:.08em
+}
+.hero-title{
+  max-width:720px;font-size:clamp(2.15rem,5vw,3.65rem);line-height:1.02;
+  letter-spacing:-.065em;margin-bottom:18px
+}
+.hero-sub{max-width:600px;color:#64748B;font-size:1rem;line-height:1.65}
+.search{
+  max-width:680px;padding:8px;margin-top:8px;border:1px solid rgba(15,23,42,.08);
+  border-radius:20px;box-shadow:0 22px 55px rgba(15,23,42,.16)
+}
+.search-field{padding:13px 14px}
+.search-btn{margin-top:5px;padding:15px 20px;border-radius:13px;background:var(--orange);box-shadow:0 8px 20px rgba(255,90,0,.24)}
+.hero-stats{max-width:680px;margin-top:30px;padding:18px 8px;border-radius:16px}
+.section{padding:48px 20px}
+.section-title{font-size:1.55rem;letter-spacing:-.035em}
+.section-sub{font-size:.9rem}
+.cards{gap:16px}
+.cat-card{border-radius:16px;padding:20px;background:#fff;box-shadow:0 1px 2px rgba(15,23,42,.02);border-color:#E9ECF1}
+.cat-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg)}
+.cat-icon{width:42px;height:42px;border-radius:12px}
+.jobs-page{max-width:1100px;margin:auto;padding:30px 20px 60px}
+.jobs-bar{margin-bottom:20px}
+.chip{padding:7px 14px;border-color:#E2E6EC;background:#fff}
+.chip.active{background:#111827;border-color:#111827}
+.jobs-list{gap:12px}
+.job{
+  border-radius:18px;padding:22px;border-color:#E6E9EE;
+  box-shadow:0 1px 2px rgba(15,23,42,.025)
+}
+.job:hover{transform:translateY(-2px);box-shadow:0 16px 38px rgba(15,23,42,.08)}
+.co-avatar{width:52px;height:52px;border-radius:14px}
+.job-title{font-size:1.02rem;letter-spacing:-.02em}
+.job-co{font-size:.82rem}
+.job-loc{font-size:.8rem}
+.job-sal{font-size:1rem}
+.tag{padding:5px 10px;border-radius:8px;font-size:.7rem}
+.job-actions{margin-top:14px;padding-top:12px}
+.detail-body{max-width:820px;padding:36px 24px 48px}
+.detail-title{font-size:clamp(1.6rem,4vw,2.2rem);letter-spacing:-.04em}
+.detail-head{padding:14px 24px}
+.btn{border-radius:10px}
+.btn-primary{background:var(--orange)}
+.auth-wrap{padding:48px 20px}
+.auth-card{border-radius:22px;border-color:#E6E9EE;box-shadow:var(--shadow-lg)}
+.site-footer{margin-top:64px}
+.footer-inner{padding-top:38px}
+.modal{border-radius:20px;box-shadow:0 28px 80px rgba(15,23,42,.18)}
+@media(max-width:768px){
+  .nav{height:62px;padding:10px 16px}
+  .hero{min-height:610px;padding:54px 16px 0}
+  .hero-logo-icon{width:62px;height:62px;border-radius:18px}
+  .hero-logo-icon svg{width:32px;height:32px}
+  .hero-logo-big{margin-bottom:22px}
+  .hero-title{font-size:2.08rem;letter-spacing:-.055em}
+  .hero-sub{font-size:.9rem;max-width:360px}
+  .search{border-radius:18px;padding:7px}
+  .search-field{padding:12px}
+  .search-btn{padding:14px}
+  .hero-stats{margin-top:22px;padding:15px 5px}
+  .stat-num{font-size:1.25rem}
+  .stat-lbl{font-size:.6rem}
+  .section{padding:36px 16px}
+  .jobs-page{padding:22px 16px 48px}
+  .job{padding:18px;border-radius:16px}
+  .job-title{font-size:.98rem}
+  .co-avatar{width:46px;height:46px;border-radius:12px}
+  .detail-body{padding:24px 18px 36px}
+  .footer-inner{padding:30px 18px 20px}
+}
+@media(min-width:1024px){
+  .nav{padding-left:max(24px,calc((100vw - 1100px)/2));padding-right:max(24px,calc((100vw - 1100px)/2))}
+}
+
+</style></head><body>
   <div class="head">
     <h1>${esc((p.prenom || u.prenom) + ' ' + (p.nom || ''))}</h1>
     ${p.title ? `<div class="title">${esc(p.title)}</div>` : ''}
