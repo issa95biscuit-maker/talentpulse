@@ -1458,7 +1458,7 @@ function showPage(name) {
   const el = $(`#page-${name}`);
   if (el) el.classList.add('active');
   closeDrawer();
-  closeDetail();
+  closeDetail({ syncRoute: false });
   window.scrollTo(0, 0);
   if (name === 'jobs' && State.jobs.length === 0) loadJobs();
   if (name === 'jobs') { renderSavedSearches(); renderActiveFilterChips(); }
@@ -2208,11 +2208,11 @@ function openDetail(id, { push = true } = {}) {
   else on(qaBtn, 'click', () => quickApply(id));
 }
 
-function closeDetail() {
+function closeDetail({ syncRoute = true } = {}) {
   $('#detail').classList.remove('open');
   document.body.classList.remove('no-scroll');
   State.currentJobId = null;
-  if (window.location.pathname.startsWith('/offre/')) {
+  if (syncRoute && window.location.pathname.startsWith('/offre/')) {
     const fallback = State.lastSearch && (State.lastSearch.kw || State.lastSearch.city) ? searchPath(State.lastSearch) : '/offres/emploi';
     window.history.replaceState({ talentpulse: true }, '', fallback);
     updatePageMeta('Offres d’emploi — TalentPulse', 'Recherchez des offres d’emploi avec TalentPulse.', fallback);
