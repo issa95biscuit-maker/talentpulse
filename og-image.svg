@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#111827"/><stop offset="1" stop-color="#020617"/></linearGradient></defs>
+<rect width="1200" height="630" fill="url(#g)"/><circle cx="980" cy="80" r="260" fill="#FF6A00" opacity=".12"/><circle cx="180" cy="560" r="220" fill="#FF6A00" opacity=".08"/>
+<g font-family="Arial,Helvetica,sans-serif"><text x="90" y="150" fill="#fff" font-size="56" font-weight="800">Talent<tspan fill="#FF6A00">Pulse</tspan></text><text x="90" y="260" fill="#fff" font-size="58" font-weight="800">Trouvez les offres</text><text x="90" y="330" fill="#fff" font-size="58" font-weight="800">qui correspondent</text><text x="90" y="400" fill="#FF8A3D" font-size="58" font-weight="800">réellement à votre profil.</text><text x="90" y="485" fill="#CBD5E1" font-size="28">Recherche d'emploi · Matching intelligent · Candidatures</text></g>
+</svg>
