@@ -11,6 +11,9 @@
 <meta property="og:title" content="TalentPulse — Offres d'emploi">
 <meta property="og:description" content="Recherchez des offres d'emploi issues de sources connectées.">
 <meta property="og:type" content="website">
+<meta property="og:url" content="https://talentpulse-topaz.vercel.app/">
+<meta property="og:image" content="https://talentpulse-topaz.vercel.app/og-image.svg">
+<link rel="canonical" href="https://talentpulse-topaz.vercel.app/">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23FF5C00'/%3E%3Cpath d='M57 12 23 55h27l-7 33 34-47H52z' fill='white'/%3E%3C/svg%3E">
 <style>
 /* ═══ 1. RESET & TOKENS ═══ */
@@ -145,9 +148,11 @@ body.dark .co-avatar{color:#fff}
 .hero-logo-icon svg{width:48px;height:48px;color:#fff}
 .hero-wordmark{font-size:2.2rem;font-weight:800;letter-spacing:-.5px;color:var(--slate)}
 .hero-wordmark span{color:var(--orange)}
-.hero-eyebrow{display:none}
-.hero-title{display:none}
-.hero-sub{display:none}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:7px;margin-bottom:14px;padding:7px 12px;border:1px solid rgba(255,106,0,.2);border-radius:999px;background:rgba(255,255,255,.7);color:var(--orange-d);font-size:.74rem;font-weight:800;text-transform:uppercase;letter-spacing:.7px}
+.hero-title{display:block;font-size:clamp(2rem,6vw,3.5rem);line-height:1.05;letter-spacing:-1.8px;font-weight:850;color:#fff;max-width:780px;margin:0 auto 14px;text-wrap:balance}
+.hero-sub{display:block;color:rgba(255,255,255,.72);font-size:clamp(.95rem,2vw,1.08rem);line-height:1.6;max-width:680px;margin:0 auto 26px}
+.hero-logo-big{margin-bottom:22px}
+@media(max-width:768px){.hero-title{font-size:2rem}.hero-sub{font-size:.92rem}}
 .search{max-width:520px;margin:0 auto;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border:none;border-radius:24px;box-shadow:0 24px 64px rgba(12,14,21,.22);padding:12px;display:flex;flex-direction:column;gap:0}
 .search-field{display:flex;align-items:center;gap:10px;padding:14px 16px;border-radius:12px;transition:.15s;border-bottom:1px solid var(--line-2)}
 .search-field:last-of-type{border-bottom:none}
@@ -176,6 +181,10 @@ body.dark .co-avatar{color:#fff}
   .hero-stats{max-width:720px}
 }
 
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+.skip-link{position:fixed;left:12px;top:12px;z-index:1000;padding:10px 14px;border-radius:8px;background:var(--slate);color:#fff;transform:translateY(-150%);transition:transform .2s}
+.skip-link:focus{transform:none}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 /* ═══ 8. SECTIONS ═══ */
 .section{padding:36px 20px}
 .section-title{font-size:1.4rem;font-weight:800;margin-bottom:6px}
@@ -605,6 +614,7 @@ button:disabled{opacity:.55;cursor:not-allowed;transform:none!important}
 </style>
 </head>
 <body>
+<a class="skip-link" href="#mainContent">Aller au contenu principal</a>
 <a href="#mainContent" class="skip-link">Aller au contenu principal</a>
 <div class="env-banner" id="envBanner" role="status">Mode aperçu — connectez les API serveur avant toute mise en production.</div>
 
@@ -692,15 +702,20 @@ button:disabled{opacity:.55;cursor:not-allowed;transform:none!important}
         <div class="hero-logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
         <div class="hero-wordmark">Talent<span>Pulse</span></div>
       </div>
+      <div class="hero-eyebrow">Recherche intelligente d'emploi</div>
+      <h1 class="hero-title">Trouvez les offres qui correspondent réellement à votre profil.</h1>
+      <p class="hero-sub">TalentPulse analyse votre recherche et compare les offres disponibles pour vous faire gagner du temps.</p>
       <form class="search" id="searchForm">
         <div class="search-field">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          <input type="text" id="searchKw" placeholder="Poste, métier, mot-clé…" autocomplete="off">
+          <label class="sr-only" for="searchKw">Poste, métier ou mot-clé</label>
+          <input type="text" id="searchKw" placeholder="Poste, métier, mot-clé…" autocomplete="off" aria-label="Poste, métier ou mot-clé">
           <div class="ac-list" id="acKw"></div>
         </div>
         <div class="search-field">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          <input type="text" id="searchCity" placeholder="Ville, département…" autocomplete="off">
+          <label class="sr-only" for="searchCity">Ville ou département</label>
+          <input type="text" id="searchCity" placeholder="Ville, département…" autocomplete="off" aria-label="Ville ou département">
           <div class="ac-list" id="acCity"></div>
         </div>
         <button class="search-btn" type="submit">
