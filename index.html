@@ -122,6 +122,7 @@ body.dark .co-avatar{color:#fff}
 /* ═══ 6. PAGES ═══ */
 .page{display:none;min-height:calc(100vh - 60px)}
 .page.active{display:block}
+.page.active:last-of-type{min-height:calc(100vh - 60px)}
 .container{max-width:1100px;margin:0 auto;padding:0 20px}
 
 /* ═══ 7. HERO — SPLASH STYLE ═══ */
@@ -185,6 +186,20 @@ body.dark .co-avatar{color:#fff}
 .skip-link{position:fixed;left:12px;top:12px;z-index:1000;padding:10px 14px;border-radius:8px;background:var(--slate);color:#fff;transform:translateY(-150%);transition:transform .2s}
 .skip-link:focus{transform:none}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+/* ═══ GLOBAL FOOTER ═══ */
+.site-footer{margin-top:48px;background:#0F172A;color:#CBD5E1;border-top:1px solid rgba(255,255,255,.08)}
+.footer-inner{max-width:1100px;margin:0 auto;padding:32px 20px 22px}
+.footer-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:28px}
+.footer-brand{font-size:1.05rem;font-weight:800;color:#fff;margin-bottom:8px}
+.footer-brand span{color:var(--orange)}
+.footer-copy{max-width:360px;font-size:.82rem;line-height:1.6;color:#94A3B8}
+.footer-title{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:#fff;margin-bottom:10px}
+.footer-links{display:flex;flex-direction:column;gap:7px}
+.footer-link{font-size:.82rem;color:#94A3B8;cursor:pointer;text-align:left}
+.footer-link:hover,.footer-link:focus-visible{color:#fff}
+.footer-bottom{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:28px;padding-top:16px;border-top:1px solid rgba(255,255,255,.08);font-size:.72rem;color:#64748B}
+@media(max-width:700px){.footer-grid{grid-template-columns:1fr 1fr}.footer-grid .footer-about{grid-column:1/-1}.footer-bottom{display:block}.footer-bottom span{display:block;margin-top:4px}}
+
 /* ═══ 8. SECTIONS ═══ */
 .section{padding:36px 20px}
 .section-title{font-size:1.4rem;font-weight:800;margin-bottom:6px}
@@ -681,6 +696,10 @@ button:disabled{opacity:.55;cursor:not-allowed;transform:none!important}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         Confidentialité
       </a>
+      <a class="drawer-item" data-legal="legal" tabindex="0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+        Mentions légales
+      </a>
       <a class="drawer-item" data-legal="contact" tabindex="0">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         Contact
@@ -1051,12 +1070,42 @@ button:disabled{opacity:.55;cursor:not-allowed;transform:none!important}
       <form class="auth-form" id="formUp">
         <div class="form-group"><label class="form-label">Prénom</label><input class="form-input" id="upPrenom" required></div>
         <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="upEmail" required><div class="field-hint" id="hintEmail"></div></div>
-        <div class="form-group"><label class="form-label">Mot de passe (8 caractères min)</label><input class="form-input" type="password" id="upPass" required minlength="8"><div class="field-hint" id="hintPass"></div></div>
+        <div class="form-group"><label class="form-label">Mot de passe (10 caractères min)</label><input class="form-input" type="password" id="upPass" required minlength="8"><div class="field-hint" id="hintPass"></div></div>
         <button class="btn btn-primary auth-submit" type="submit">Créer mon compte</button>
       </form>
     </div>
   </div>
 </main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div class="footer-about">
+        <div class="footer-brand">Talent<span>Pulse</span></div>
+        <p class="footer-copy">Recherche d’emploi centralisée, avec des offres issues de sources partenaires. TalentPulse n’est pas l’employeur et ne garantit ni la disponibilité des annonces ni l’issue des candidatures.</p>
+      </div>
+      <div>
+        <div class="footer-title">TalentPulse</div>
+        <div class="footer-links">
+          <button class="footer-link" data-legal="about">À propos</button>
+          <button class="footer-link" data-legal="contact">Contact</button>
+        </div>
+      </div>
+      <div>
+        <div class="footer-title">Informations</div>
+        <div class="footer-links">
+          <button class="footer-link" data-legal="legal">Mentions légales</button>
+          <button class="footer-link" data-legal="cgu">CGU</button>
+          <button class="footer-link" data-legal="privacy">Confidentialité</button>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 TalentPulse</span>
+      <span>Les annonces restent soumises aux conditions de leurs sources d’origine.</span>
+    </div>
+  </div>
+</footer>
 
 <!-- ═══ LEGAL MODAL ═══ -->
 <div class="modal-overlay" id="legalModal">
@@ -1156,22 +1205,25 @@ const CONSEILS = [
 const LEGAL_CONTENT = {
   about: {
     title: 'À propos de TalentPulse',
-    body: '<p>TalentPulse est un agrégateur d\'offres d\'emploi qui réunit en un seul endroit les annonces de France Travail, Adzuna et plusieurs plateformes d\'alternance.</p><p>Notre mission : vous faire gagner du temps dans votre recherche en centralisant les offres et en proposant des outils IA (lettre de motivation, matching CV, suivi de candidatures).</p><p>Service 100% gratuit pour les candidats.</p>'
+    body: '<p>TalentPulse centralise des offres d’emploi provenant de sources partenaires afin de simplifier la recherche et la comparaison des annonces.</p><p>Le service propose notamment la recherche par métier et localisation, le suivi d’offres et des outils d’aide à la candidature.</p><p>TalentPulse n’est pas l’employeur des offres affichées et les informations peuvent évoluer ou disparaître selon les sources d’origine.</p>'
+  },
+  legal: {
+    title: 'Mentions légales',
+    body: '<h4>Éditeur du site</h4><p>Les informations d’identification de l’éditeur, l’adresse du siège et les coordonnées légales doivent être renseignées avant une mise en production publique.</p><h4>Hébergement</h4><p>Le site est déployé sur une infrastructure Vercel. Les informations juridiques complètes de l’éditeur et de l’hébergeur doivent être publiées conformément aux obligations applicables.</p><h4>Contact</h4><p>Pour toute demande liée au service : contact@talentpulse.fr.</p>'
   },
   cgu: {
-    title: 'Conditions Générales d\'Utilisation',
-    body: '<h4>1. Objet</h4><p>Les présentes CGU régissent l\'utilisation du service TalentPulse.</p><h4>2. Service</h4><p>TalentPulse agrège des offres d\'emploi publiques provenant de sources tierces. Nous ne sommes pas l\'éditeur des offres affichées.</p><h4>3. Inscription</h4><p>L\'inscription est gratuite et facultative. L\'utilisateur s\'engage à fournir des informations exactes.</p><h4>4. Responsabilité</h4><p>TalentPulse ne saurait être tenu responsable du contenu des offres tierces ni du résultat des candidatures.</p>'
+    title: 'Conditions Générales d’Utilisation',
+    body: '<h4>1. Objet</h4><p>Les présentes conditions encadrent l’utilisation du service TalentPulse.</p><h4>2. Offres tierces</h4><p>TalentPulse agrège et présente des annonces provenant de sources partenaires. Les informations, disponibilités et modalités de candidature restent sous la responsabilité de leurs sources d’origine.</p><h4>3. Compte</h4><p>Certaines fonctionnalités peuvent nécessiter un compte. Les informations fournies doivent être exactes et ne doivent pas être utilisées pour usurper l’identité d’un tiers.</p><h4>4. Candidatures</h4><p>TalentPulse facilite la recherche et le suivi. Une candidature n’est considérée comme transmise à un recruteur que lorsqu’un parcours de candidature externe ou une fonctionnalité serveur dédiée le confirme explicitement.</p>'
   },
   privacy: {
     title: 'Politique de confidentialité',
-    body: '<h4>Données collectées</h4><p>Nous collectons uniquement les données fournies lors de l\'inscription (prénom, email, mot de passe haché) et stockées localement dans votre navigateur (favoris, candidatures).</p><h4>Cookies</h4><p>Nous n\'utilisons pas de cookies de tracking. Seul le localStorage est utilisé pour la persistance de votre session.</p><h4>Vos droits</h4><p>Conformément au RGPD, vous pouvez à tout moment supprimer votre compte et toutes vos données depuis votre profil.</p>'
+    body: '<h4>Données et stockage</h4><p>Le fonctionnement actuel conserve plusieurs préférences et données de recherche dans le stockage local du navigateur, notamment les favoris, l’historique de recherche et certains éléments du profil.</p><h4>Authentification</h4><p>Lorsque les fonctionnalités de compte sont activées, les échanges d’authentification passent par les endpoints serveur prévus à cet effet. Les données effectivement traitées doivent être documentées avec leur finalité et leur durée de conservation avant le lancement public.</p><h4>Cookies et traceurs</h4><p>TalentPulse n’affiche pas de fonctionnalité de suivi publicitaire dans l’interface actuelle. La configuration de production doit toutefois être vérifiée avant publication de la présente politique.</p><h4>Vos droits</h4><p>Pour toute demande relative à vos données personnelles, contactez-nous à contact@talentpulse.fr. Les modalités complètes d’exercice des droits doivent être précisées dans la version finale de la politique.</p>'
   },
   contact: {
     title: 'Contact',
-    body: '<p>Une question, une suggestion, un bug ?</p><p><strong>Email :</strong> contact@talentpulse.fr</p><p><strong>Réponse :</strong> sous 48h ouvrées.</p><p>Pour les recruteurs souhaitant publier des offres, écrivez-nous à <strong>recruteurs@talentpulse.fr</strong>.</p>'
+    body: '<p>Une question, une suggestion ou un problème technique ?</p><p><strong>Email :</strong> contact@talentpulse.fr</p><p>Les demandes liées aux offres doivent également être adressées à la source ou à l’employeur indiqué dans l’annonce.</p>'
   }
 };
-
 // ─── 2. STATE ─────────────────────────────────────────────────────
 const State = {
   user:    readSession(),
@@ -3227,7 +3279,9 @@ function init() {
     showPage('profile');
     setTimeout(() => switchPTab('favoris'), 0);
   });
-  $$('.drawer-item[data-legal]').forEach(el => on(el, 'click', () => { closeDrawer(); openLegal(el.dataset.legal); }));
+  $('.drawer-item[data-legal]').forEach(el => on(el, 'click', () => { closeDrawer(); openLegal(el.dataset.legal); }));
+  $('.footer-link[data-legal]').forEach(el => on(el, 'click', () => openLegal(el.dataset.legal)));
+
   $$('.drawer-item').forEach(el => on(el, 'keydown', e => {
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); }
   }));
