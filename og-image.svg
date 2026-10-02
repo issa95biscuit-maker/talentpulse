@@ -1,5 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
 <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#111827"/><stop offset="1" stop-color="#020617"/></linearGradient></defs>
-<rect width="1200" height="630" fill="url(#g)"/><circle cx="980" cy="80" r="260" fill="#FF6A00" opacity=".12"/><circle cx="180" cy="560" r="220" fill="#FF6A00" opacity=".08"/>
-<g font-family="Arial,Helvetica,sans-serif"><text x="90" y="150" fill="#fff" font-size="56" font-weight="800">Talent<tspan fill="#FF6A00">Pulse</tspan></text><text x="90" y="260" fill="#fff" font-size="58" font-weight="800">Trouvez les offres</text><text x="90" y="330" fill="#fff" font-size="58" font-weight="800">qui correspondent</text><text x="90" y="400" fill="#FF8A3D" font-size="58" font-weight="800">réellement à votre profil.</text><text x="90" y="485" fill="#CBD5E1" font-size="28">Recherche d'emploi · Matching intelligent · Candidatures</text></g>
+<rect width="1200" height="630" fill="url(#g)"/>
+<circle cx="1010" cy="90" r="260" fill="#FF6A00" opacity=".14"/><circle cx="160" cy="580" r="220" fill="#FF6A00" opacity=".08"/>
+<g transform="translate(90 92)"><rect width="64" height="64" rx="14" fill="#FF6A00"/><path d="M36 8 14 36h17l-4 20 23-30H33l3-18z" fill="#fff"/></g>
+<g font-family="Arial,Helvetica,sans-serif">
+<text x="172" y="139" fill="#fff" font-size="46" font-weight="800">Talent<tspan fill="#FF8A3D">Pulse</tspan></text>
+<text x="90" y="268" fill="#fff" font-size="58" font-weight="800">Toutes les offres France Travail,</text>
+<text x="90" y="342" fill="#fff" font-size="58" font-weight="800">Adzuna et alternance,</text>
+<text x="90" y="416" fill="#FF8A3D" font-size="58" font-weight="800">en une seule recherche.</text>
+<text x="90" y="510" fill="#CBD5E1" font-size="32">Gratuit · Filtres ville, contrat, salaire · Sans inscription</text>
+</g>
 </svg>
