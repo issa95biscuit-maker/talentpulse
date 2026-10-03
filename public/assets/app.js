@@ -35,51 +35,51 @@ async function loadFeatures() {
   } catch { /* hors ligne / endpoint absent : mode local */ }
 }
 const ICONS = {
-  code: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m8 9-4 3 4 3"/><path d="m16 9 4 3-4 3"/><path d="m14 5-4 14"/></svg>',
-  chart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m7 16 4-5 4 3 4-7"/></svg>',
-  briefcase: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18"/></svg>',
-  health: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-4.4-9-9c-1.6-3.7.6-7 4-7 2 0 3.4 1.1 5 3 1.6-1.9 3-3 5-3 3.4 0 5.6 3.3 4 7-2 4.6-9 9-9 9z"/><path d="M8 12h2l1-2 2 4 1-2h2"/></svg>',
-  education: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m2 10 10-5 10 5-10 5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg>',
-  restaurant: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 3v8M4 3v5a3 3 0 0 0 6 0V3M7 11v10M17 3v18M17 3c3 2 3 7 0 9"/></svg>',
-  construction: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M6 21V8l6-5 6 5v13M9 21v-6h6v6"/><path d="M9 10h.01M15 10h.01"/></svg>',
-  truck: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h11v10H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg>',
-  document: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>',
-  message: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg>',
-  target: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>',
-  salary: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M16 8.5c-.8-.9-2-1.5-3.5-1.5-2.2 0-4 1.2-4 3s1.8 2.7 4 3 4 .9 4 3-1.8 3-4 3c-1.6 0-3-.6-4-1.7M12 5v14"/></svg>',
-  network: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="3"/><circle cx="5" cy="19" r="3"/><circle cx="19" cy="19" r="3"/><path d="m10 7-3 9M14 7l3 9M8 19h8"/></svg>',
-  wellbeing: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3c-4 0-7 3-7 7 0 2.5 1.2 4.2 3 5.5V19h8v-3.5c1.8-1.3 3-3 3-5.5 0-4-3-7-7-7z"/><path d="M9 22h6M9 10h6"/></svg>',
-  search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>',
-  bookmark: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>',
-  clipboard: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M9 9h6M9 13h6"/></svg>',
-  bell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>',
-  home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 11 9-8 9 8"/><path d="M5 10v10h14V10M9 20v-6h6v6"/></svg>',
-  car: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 17-1-5 2-5h12l2 5-1 5"/><path d="M3 17h18M6 17v3M18 17v3"/><circle cx="7" cy="13" r="1"/><circle cx="17" cy="13" r="1"/></svg>',
-  info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>',
-  location: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0z"/><circle cx="12" cy="10" r="2"/></svg>',
-  clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
-  external: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3h7v7M10 14 21 3M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>',
-  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"><path d="M20 6 9 17l-5-5"/></svg>',
-  plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>',
-  x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>',
-  left: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>',
-  right: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>',
-  share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7M16 6l-4-4-4 4M12 2v13"/></svg>',
-  alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>',
-  refresh: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>',
-  cloud: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19H7a5 5 0 1 1 1-9.9A6 6 0 0 1 19.5 11 4 4 0 0 1 17.5 19z"/></svg>',
-  device: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg>',
-  sparkles: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 10 9 4 11l6 2 2 6 2-6 6-2-6-2z"/><path d="M19 3v4M17 5h4"/></svg>',
-  eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
-  eyeOff: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.6 5.1A10 10 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3 3.9M6.6 6.6A17 17 0 0 0 2 12s3.5 7 10 7a9.7 9.7 0 0 0 5.4-1.6M3 3l18 18M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>',
-  building: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01"/></svg>',
-  file: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>',
-  user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>',
-  calendar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
-  mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
-  phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15.5v3a2 2 0 0 1-2.2 2A19 19 0 0 1 3.5 5.2 2 2 0 0 1 5.5 3h3a2 2 0 0 1 2 1.7l.4 2.6a2 2 0 0 1-.6 1.8l-1.3 1.3a16 16 0 0 0 6.6 6.6l1.3-1.3a2 2 0 0 1 1.8-.6l2.6.4a2 2 0 0 1 1.7 2z"/></svg>'
+  code: '<svg class="i" aria-hidden="true"><use href="#i-code-xml"/></svg>',
+  chart: '<svg class="i" aria-hidden="true"><use href="#i-chart-line"/></svg>',
+  briefcase: '<svg class="i" aria-hidden="true"><use href="#i-briefcase-business"/></svg>',
+  health: '<svg class="i" aria-hidden="true"><use href="#i-heart-pulse"/></svg>',
+  education: '<svg class="i" aria-hidden="true"><use href="#i-graduation-cap"/></svg>',
+  restaurant: '<svg class="i" aria-hidden="true"><use href="#i-utensils"/></svg>',
+  construction: '<svg class="i" aria-hidden="true"><use href="#i-hard-hat"/></svg>',
+  truck: '<svg class="i" aria-hidden="true"><use href="#i-truck"/></svg>',
+  document: '<svg class="i" aria-hidden="true"><use href="#i-file-text"/></svg>',
+  message: '<svg class="i" aria-hidden="true"><use href="#i-message-square"/></svg>',
+  target: '<svg class="i" aria-hidden="true"><use href="#i-target"/></svg>',
+  salary: '<svg class="i" aria-hidden="true"><use href="#i-euro"/></svg>',
+  network: '<svg class="i" aria-hidden="true"><use href="#i-users"/></svg>',
+  wellbeing: '<svg class="i" aria-hidden="true"><use href="#i-brain"/></svg>',
+  search: '<svg class="i" aria-hidden="true"><use href="#i-search"/></svg>',
+  bookmark: '<svg class="i" aria-hidden="true"><use href="#i-bookmark"/></svg>',
+  clipboard: '<svg class="i" aria-hidden="true"><use href="#i-clipboard-list"/></svg>',
+  bell: '<svg class="i" aria-hidden="true"><use href="#i-bell"/></svg>',
+  home: '<svg class="i" aria-hidden="true"><use href="#i-house"/></svg>',
+  car: '<svg class="i" aria-hidden="true"><use href="#i-car"/></svg>',
+  info: '<svg class="i" aria-hidden="true"><use href="#i-info"/></svg>',
+  location: '<svg class="i" aria-hidden="true"><use href="#i-map-pin"/></svg>',
+  clock: '<svg class="i" aria-hidden="true"><use href="#i-clock"/></svg>',
+  external: '<svg class="i" aria-hidden="true"><use href="#i-external-link"/></svg>',
+  check: '<svg class="i" aria-hidden="true"><use href="#i-check"/></svg>',
+  plus: '<svg class="i" aria-hidden="true"><use href="#i-plus"/></svg>',
+  x: '<svg class="i" aria-hidden="true"><use href="#i-x"/></svg>',
+  left: '<svg class="i" aria-hidden="true"><use href="#i-chevron-left"/></svg>',
+  right: '<svg class="i" aria-hidden="true"><use href="#i-chevron-right"/></svg>',
+  share: '<svg class="i" aria-hidden="true"><use href="#i-share"/></svg>',
+  alert: '<svg class="i" aria-hidden="true"><use href="#i-triangle-alert"/></svg>',
+  refresh: '<svg class="i" aria-hidden="true"><use href="#i-refresh-cw"/></svg>',
+  cloud: '<svg class="i" aria-hidden="true"><use href="#i-cloud"/></svg>',
+  device: '<svg class="i" aria-hidden="true"><use href="#i-smartphone"/></svg>',
+  sparkles: '<svg class="i" aria-hidden="true"><use href="#i-sparkles"/></svg>',
+  eye: '<svg class="i" aria-hidden="true"><use href="#i-eye"/></svg>',
+  eyeOff: '<svg class="i" aria-hidden="true"><use href="#i-eye-off"/></svg>',
+  building: '<svg class="i" aria-hidden="true"><use href="#i-building-2"/></svg>',
+  file: '<svg class="i" aria-hidden="true"><use href="#i-file"/></svg>',
+  user: '<svg class="i" aria-hidden="true"><use href="#i-user"/></svg>',
+  calendar: '<svg class="i" aria-hidden="true"><use href="#i-calendar"/></svg>',
+  mail: '<svg class="i" aria-hidden="true"><use href="#i-mail"/></svg>',
+  phone: '<svg class="i" aria-hidden="true"><use href="#i-phone"/></svg>'
 };
-const SVG_BOOKMARK = filled => `<svg viewBox="0 0 24 24" fill="${filled ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
+const SVG_BOOKMARK = filled => `<svg class="i${filled ? ' i-fill' : ''}" aria-hidden="true"><use href="#i-bookmark"/></svg>`;
 const icon = (name, cls = 'ui-icon') => `<span class="${cls}" aria-hidden="true">${ICONS[name] || ICONS.briefcase}</span>`;
 const CATEGORIES = [
   { icon: 'code', name: 'Tech & IT', q: 'développeur', sub: 'Développeur, data, support' },
@@ -118,7 +118,13 @@ const LEGAL_PAGES = {
 <h2>Sources des offres</h2>
 <p>Les offres d’emploi affichées proviennent de l’API Offres d’emploi de France Travail et de l’API Adzuna. Elles restent la propriété et la responsabilité de leurs émetteurs. TalentPulse n’est pas l’employeur et ne transmet aucune candidature : vous postulez sur le site d’origine de chaque annonce.</p>
 <h2>Propriété intellectuelle</h2>
-<p>La marque, le logo et l’interface TalentPulse sont la propriété de l’éditeur. Toute reproduction sans autorisation est interdite.</p>`
+<p>La marque, le logo et l’interface TalentPulse sont la propriété de l’éditeur. Toute reproduction sans autorisation est interdite. France Travail et Adzuna sont des marques de leurs titulaires respectifs ; elles sont citées uniquement pour indiquer la source des annonces.</p>
+<h2>Crédits</h2>
+<ul>
+<li>Photographies : Alex Kotliarskyi, Negley Stockman et Centre for Ageing Better, via <a href="https://unsplash.com/license" rel="noopener" target="_blank" style="text-decoration:underline">Unsplash</a> (licence Unsplash).</li>
+<li>Icônes : <a href="https://lucide.dev" rel="noopener" target="_blank" style="text-decoration:underline">Lucide</a> (licence ISC).</li>
+<li>Données géographiques : <a href="https://geo.api.gouv.fr" rel="noopener" target="_blank" style="text-decoration:underline">API Découpage administratif</a> (geo.api.gouv.fr, Licence Ouverte Etalab).</li>
+</ul>`
   },
   '/confidentialite': {
     title: 'Politique de confidentialité',
@@ -134,9 +140,9 @@ function privacyPolicy() {
     ['Mon espace sans compte', 'Profil, favoris, suivi, recherches, compétences du CV', 'Stockage local sur votre appareil, sous votre contrôle', 'Jusqu’à ce que vous les effaciez'],
   ];
   if (accounts) {
-    rows.push(['Compte TalentPulse', 'Email, prénom, mot de passe (haché avec Argon2id, jamais stocké en clair), date de création', 'Exécution du contrat (art. 6.1.b RGPD)', 'Jusqu’à la suppression du compte ; compte inactif supprimé après 3 ans']);
+    rows.push(['Compte TalentPulse', 'Adresse e-mail, prénom, mot de passe (haché avec Argon2id, jamais stocké en clair), date de création', 'Exécution du contrat (art. 6.1.b RGPD)', 'Jusqu’à la suppression du compte ; compte inactif supprimé après 3 ans']);
     rows.push(['Synchronisation', 'Favoris, suivi de candidatures, recherches enregistrées, profil professionnel', 'Exécution du contrat', 'Jusqu’à suppression par vous ou du compte']);
-    rows.push(['Sécurité', 'Session (cookie technique httpOnly), empreintes HMAC d’adresse IP et d’email pour limiter les tentatives', 'Intérêt légitime (sécurité du service)', 'Session : 30 jours ; compteurs anti-abus : 48 h']);
+    rows.push(['Sécurité', 'Session (cookie technique httpOnly), empreintes HMAC d’adresse IP et d’e-mail pour limiter les tentatives', 'Intérêt légitime (sécurité du service)', 'Session : 30 jours ; compteurs anti-abus : 48 h']);
   }
   if (F.emailAlerts || F.whatsappAlerts) rows.push(['Alertes', 'Critères de recherche, canal choisi, ' + (F.whatsappAlerts ? 'numéro WhatsApp, ' : '') + 'historique des offres envoyées', 'Consentement (activation de l’alerte, retrait à tout moment)', 'Historique d’envoi : 90 jours']);
   if (F.aiLetter) rows.push(['Lettre de motivation IA', 'Poste, entreprise, atouts et profil saisis dans le formulaire', 'Exécution du service demandé', 'Non conservés par TalentPulse']);
@@ -145,7 +151,8 @@ function privacyPolicy() {
   if (F.emailAlerts) processors.push('<li><strong>Resend</strong> (envoi des emails d’alerte)</li>');
   if (F.whatsappAlerts) processors.push('<li><strong>Twilio</strong> et <strong>Meta (WhatsApp)</strong> (envoi des alertes WhatsApp)</li>');
   if (F.aiLetter) processors.push('<li><strong>Vercel AI Gateway</strong> et le fournisseur du modèle de langage (génération de la lettre ; les données ne servent pas à entraîner les modèles selon leurs conditions)</li>');
-  processors.push('<li><strong>France Travail</strong>, <strong>Adzuna</strong> et <strong>geo.api.gouv.fr</strong> reçoivent uniquement les critères de recherche, sans donnée personnelle</li>');
+  processors.push('<li><strong>France Travail</strong> et <strong>Adzuna</strong> reçoivent uniquement les critères de recherche (via nos serveurs), sans donnée personnelle</li>');
+  processors.push('<li><strong>geo.api.gouv.fr</strong> (service public de la DINUM) : pour suggérer villes, départements et régions, votre navigateur lui envoie directement les lettres saisies dans le champ « Lieu » ; comme pour tout site web, il voit votre adresse IP. Aucune autre donnée n’est transmise.</li>');
   return `<h1 id="legalPageTitle">Politique de confidentialité</h1>
 <p class="legal-meta">Dernière mise à jour : 3 octobre 2026</p>
 <h2>En résumé</h2>
@@ -153,8 +160,8 @@ function privacyPolicy() {
 <h2>Responsable du traitement</h2>
 <p>${TODO('nom ou raison sociale de l’éditeur, adresse')} — contact : ${TODO('adresse email de contact vérifiée')}.</p>
 <h2>Données traitées</h2>
-<table><thead><tr><th scope="col">Finalité</th><th scope="col">Données</th><th scope="col">Base légale</th><th scope="col">Durée</th></tr></thead>
-<tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table>
+<div class="table-wrap" tabindex="0" role="region" aria-label="Tableau des traitements"><table><thead><tr><th scope="col">Finalité</th><th scope="col">Données</th><th scope="col">Base légale</th><th scope="col">Durée</th></tr></thead>
+<tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
 <p>Le fichier de votre CV n’est jamais envoyé : il est analysé dans votre navigateur et seules les compétences détectées sont gardées sur votre appareil.</p>
 <p>Vous pouvez effacer les données de cet appareil à tout moment :</p>
 <p><button type="button" class="btn btn-outline" data-action="clear-data">Effacer les données de cet appareil</button></p>
@@ -424,6 +431,7 @@ const $$ = (s, c = document) => [...c.querySelectorAll(s)];
 const on = (el, evt, fn) => el && el.addEventListener(evt, fn);
 function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
 function sourceClass(s) { return s === 'France Travail' ? 'src-ft' : s === 'Adzuna' ? 'src-adz' : ''; }
+const sourceIcon = s => `<svg class="i" aria-hidden="true"><use href="#i-${s === 'Adzuna' ? 'globe' : 'landmark'}"/></svg>`;
 // Pastilles entreprise : couples fond/texte pastel, contraste ≥ 4.5:1 (WCAG AA)
 const AVATAR_COLORS = [['#FFEDD5','#9A3412'],['#E0F2FE','#075985'],['#EDE9FE','#5B21B6'],['#D1FAE5','#065F46'],['#FEE2E2','#991B1B'],['#FEF3C7','#92400E'],['#FCE7F3','#9D174D'],['#CFFAFE','#155E75']];
 function avatarStyle(name) {
@@ -525,8 +533,12 @@ const STATIC_ROUTES = {
 };
 const PAGE_PATHS = { home: '/', jobs: null, lettre: '/lettre', conseils: '/conseils', profile: '/mon-espace', login: '/connexion' };
 
+/** Mémorise la position de défilement de l'entrée courante (restaurée au retour arrière). */
+function rememberScroll() {
+  try { window.history.replaceState({ ...(window.history.state || {}), y: Math.round(window.scrollY) }, ''); } catch { /* quota Safari */ }
+}
 function navigate(path) {
-  if (window.location.pathname !== path) window.history.pushState({ talentpulse: true }, '', path);
+  if (window.location.pathname !== path) { rememberScroll(); window.history.pushState({ talentpulse: true }, '', path); }
   handleRoute();
 }
 
@@ -534,7 +546,7 @@ function handleRoute() {
   const rawPath = window.location.pathname.replace(/\/+$/, '') || '/';
   const parts = rawPath.split('/').filter(Boolean);
   if (!parts.length) {
-    updatePageMeta("TalentPulse — Toutes les offres d'emploi France Travail et Adzuna", 'Toutes les offres France Travail, Adzuna et alternance en une seule recherche. Gratuit, sans inscription, avec lien direct vers l’annonce d’origine.', '/');
+    updatePageMeta("TalentPulse — Toutes les offres d'emploi France Travail et Adzuna", 'Toutes les offres France Travail (alternance incluse) et Adzuna en une seule recherche. Gratuit, sans inscription, avec lien direct vers l’annonce d’origine.', '/');
     showPage('home');
     return;
   }
@@ -548,12 +560,18 @@ function handleRoute() {
   if (parts[0] === 'offres') {
     const kw = parts[1] && parts[1] !== 'emploi' ? humanizeSlug(parts[1]) : '';
     const city = parts[2] ? humanizeSlug(parts[2]) : '';
+    // Retour depuis une offre : la liste est intacte sous le panneau, on la garde telle quelle (position comprise)
+    if ($('#page-jobs').classList.contains('active') && State.jobs.length && rawPath === searchPath(State.lastSearch || {})) {
+      closeDetail({ syncRoute: false });
+      return;
+    }
+    const savedY = window.history.state && window.history.state.y;
     $('#searchKw').value = kw;
     $('#searchCity').value = city;
     const sb = $('#saveSearchBtn'); if (sb) sb.style.display = (kw || city) ? 'inline-flex' : 'none';
     syncSearchRoute({ kw, city }, true);
     showPage('jobs', { load: false });
-    loadJobs({ kw, city });
+    loadJobs({ kw, city }).then(() => { if (savedY) requestAnimationFrame(() => window.scrollTo(0, savedY)); });
     return;
   }
   if (parts[0] === 'offre' && parts[1]) {
@@ -585,9 +603,13 @@ async function openOfferById(id) {
   }
 }
 
+/** Espaces insécables avant : ; ? ! » et après « (texte uniquement, pas les balises) */
+function frTypo(html) {
+  return String(html).replace(/>([^<>]+)</g, (m, t) => '>' + t.replace(/ ([:;?!»])/g, '\u00a0$1').replace(/« /g, '«\u00a0') + '<');
+}
 function showLegalPage(path) {
   const c = LEGAL_PAGES[path];
-  $('#legalPage').innerHTML = typeof c.body === 'function' ? c.body() : c.body;
+  $('#legalPage').innerHTML = frTypo(typeof c.body === 'function' ? c.body() : c.body);
   updatePageMeta(c.title + ' — TalentPulse', c.description, path);
   showPage('legal');
 }
@@ -597,7 +619,7 @@ function showPage(name, { load = true } = {}) {
   $$('.page').forEach(p => p.classList.remove('active'));
   const el = $(`#page-${name}`);
   if (el) el.classList.add('active');
-  if (name === 'home') loadLiveCount();
+  if (name === 'home') { loadLiveCount(); initTicker(); }
   closeDrawer();
   closeDetail({ syncRoute: false, restoreFocus: false });
   window.scrollTo(0, 0);
@@ -1076,6 +1098,16 @@ async function loadJobs(params = {}, { append = false } = {}) {
     State.hasMore = !!data.hasMore && fresh.length > 0;
     State.resolvedLocation = data.location || null;
     State.sourceNotes = data.notes || null;
+    // Lieu reconnu : on affiche son nom officiel (« saint denis 93 » -> « Saint-Denis (93) »)
+    const disp = data.location && !data.location.approx && data.location.type !== 'unknown' ? data.location.display : '';
+    if (!append && disp && params.city && disp !== params.city) {
+      params.city = disp;
+      State.lastSearch.city = disp;
+      const header = $('#jobsHeader');
+      header.textContent = `${params.kw ? 'Offres «\u00a0' + params.kw + '\u00a0»' : 'Offres'} à ${disp}`;
+      for (const id of ['rsCity', 'searchCity', 'filterLocation']) { const el = $('#' + id); if (el && document.activeElement !== el) el.value = disp; }
+      syncSearchRoute({ kw: params.kw || '', city: disp }, true);
+    }
   } else if (!append) {
     State.total = 0; State.hasMore = false;
   }
@@ -1095,7 +1127,10 @@ function renderJobsNotice(params) {
   if (params.city && loc) {
     if (loc.type === 'unknown') notes.push(`Lieu « ${esc(params.city)} » non reconnu : les offres France Travail affichées concernent toute la France. Essayez un nom de ville, un code postal ou un département.`);
     else if (loc.approx) notes.push(`Résultats pour <strong>${esc(loc.label)}</strong> (lieu le plus proche de « ${esc(params.city)} »).`);
-    else if (loc.type === 'commune') notes.push(`Offres à <strong>${esc(loc.label)}</strong> et dans un rayon de 10 km.`);
+    else if (loc.type === 'commune') notes.push(`Offres à <strong>${esc(loc.display || loc.label)}</strong> et dans un rayon de 10\u00a0km.`);
+    else if (loc.type === 'arrondissement') notes.push(`Offres dans le <strong>${esc(loc.label)}</strong> et les arrondissements voisins.`);
+    else if (loc.type === 'departement') notes.push(`Offres dans tout le département <strong>${esc(loc.label)}</strong>${loc.code ? ` (${esc(loc.code)})` : ''}.`);
+    else if (loc.type === 'region') notes.push(`Offres dans toute la région <strong>${esc(loc.label)}</strong>.`);
   }
   if (State.sourceNotes && State.sourceNotes.adzuna && /France Travail/.test(State.sourceNotes.adzuna)) {
     notes.push('Filtres avancés actifs : seules les offres France Travail sont affichées.');
@@ -1147,7 +1182,7 @@ function getFilteredSorted() {
   return jobs;
 }
 
-function fmtCount(n) { return Number(n || 0).toLocaleString('fr-FR'); }
+function fmtCount(n) { return Number(n || 0).toLocaleString('fr-FR').replace(/[\s\u00a0]/g, '\u202f'); }
 
 function hasActiveFilters() {
   return State.filter !== 'all' || Object.values(State.filters).some(Boolean);
@@ -1264,7 +1299,7 @@ function jobCard(j) {
     </div>
     <div class="job-foot">
       <div class="job-foot-left">
-        ${j.source ? `<span class="src ${sourceClass(j.source)}">${esc(j.source)}</span>` : ''}
+        ${j.source ? `<span class="src ${sourceClass(j.source)}">${sourceIcon(j.source)}${esc(j.source)}</span>` : ''}
         ${when ? `<span class="job-time"${fresh ? ' style="color:var(--ok);font-weight:600"' : ''}>${fresh ? 'Nouveau · ' : ''}${esc(when)}</span>` : ''}
       </div>
       ${tracked ? `<span class="tracked-badge">${ICONS.check}Dans mon suivi</span>` : viewed ? '<span>Déjà consultée</span>' : ''}
@@ -1316,6 +1351,7 @@ function openDetail(id, { push = true } = {}) {
   if (push && !routeHandling) {
     const path = '/offre/' + encodeURIComponent(j.id);
     updatePageMeta(j.title + (j.company ? ' — ' + j.company : '') + ' | TalentPulse', j.title + (j.company ? ' chez ' + j.company : '') + (j.city ? ' à ' + j.city : '') + '.', path);
+    rememberScroll();
     window.history.pushState({ talentpulse: true, offerId: j.id }, '', path);
   }
   State.currentJobId = id;
@@ -1350,7 +1386,7 @@ function openDetail(id, { push = true } = {}) {
     <div class="badge-row">
       ${j.contract ? `<span class="tag tag-brand">${esc(j.contract)}</span>` : ''}
       ${j.salary ? `<span class="tag job-sal">${icon('salary')}${esc(j.salary)}</span>` : ''}
-      ${j.source ? `<span class="tag"><span class="src ${sourceClass(j.source)}">Source : ${esc(j.source)}</span></span>` : ''}
+      ${j.source ? `<span class="tag"><span class="src ${sourceClass(j.source)}">${sourceIcon(j.source)}Source : ${esc(j.source)}</span></span>` : ''}
       ${when ? `<span class="tag">${icon('clock')}${esc(when)}</span>` : ''}
       ${j.otherLocations ? `<span class="tag">Aussi publiée dans ${j.otherLocations} autre${j.otherLocations > 1 ? 's' : ''} lieu${j.otherLocations > 1 ? 'x' : ''}</span>` : ''}
       ${matchBadge(matchScore(j))}
@@ -1551,6 +1587,56 @@ function renderCategories() {
   }));
 }
 
+// ─── BANDEAU DÉFILANT ─────────────────────────────────────────────
+// Infos utiles en continu : nombre d'offres en direct, dernières offres publiées, astuces.
+// Pause au survol / au focus / par bouton (WCAG 2.2.2), immobile si « mouvement réduit ».
+const Ticker = { count: null, offers: [], tips: null, started: false };
+function renderTicker() {
+  const track = $('#tickerTrack');
+  if (!track) return;
+  if (!Ticker.tips) Ticker.tips = [...track.children].filter(li => !li.hasAttribute('aria-hidden') && !li.dataset.live).map(li => li.outerHTML);
+  const items = [];
+  if (Ticker.count) items.push(`<li data-live="1"><svg class="i" aria-hidden="true"><use href="#i-trending-up"/></svg><span><span class="tk-num">${fmtCount(Ticker.count)}</span> offres disponibles en ce moment</span></li>`);
+  const tips = Ticker.tips.slice();
+  Ticker.offers.slice(0, 6).forEach((o, i) => {
+    items.push(`<li data-live="1"><svg class="i" aria-hidden="true"><use href="#i-briefcase-business"/></svg><span><b>Nouvelle offre</b> · ${esc(o.title)}${o.city ? ` <span class="tk-mut">· ${esc(o.city)}</span>` : ''}</span></li>`);
+    if (i % 2 === 1 && tips.length) items.push(tips.shift());
+  });
+  items.push(...tips);
+  const html = items.join('');
+  // Deux copies pour une boucle sans à-coup ; la copie est masquée aux lecteurs d'écran
+  track.innerHTML = html + html.replace(/<li( data-live="1")?>/g, '<li aria-hidden="true">');
+  requestAnimationFrame(() => {
+    const w = track.scrollWidth / 2;
+    track.style.setProperty('--tk-dur', Math.max(30, Math.round(w / 45)) + 's'); // ~45 px/s, lisible
+  });
+}
+function initTicker() {
+  const t = $('#ticker');
+  if (!t || Ticker.started) return;
+  Ticker.started = true;
+  renderTicker();
+  // Mouvement réduit : le bandeau devient une bande défilable à la main, donc atteignable au clavier
+  const vp = $('.ticker-viewport', t), rm = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const syncVp = () => { if (rm.matches) { vp.tabIndex = 0; vp.setAttribute('role', 'group'); vp.setAttribute('aria-label', 'Informations (faites défiler horizontalement)'); } else { ['tabindex', 'role', 'aria-label'].forEach(a => vp.removeAttribute(a)); } };
+  if (vp) { syncVp(); rm.addEventListener?.('change', syncVp); }
+  const btn = $('#tickerToggle');
+  on(btn, 'click', () => {
+    const paused = t.classList.toggle('paused');
+    btn.setAttribute('aria-pressed', String(paused));
+    btn.setAttribute('aria-label', paused ? 'Reprendre le défilement du bandeau' : 'Mettre en pause le bandeau défilant');
+  });
+  // Dernières offres : après le chargement, sans retarder l'affichage
+  const later = window.requestIdleCallback || (fn => setTimeout(fn, 1200));
+  later(async () => {
+    try {
+      const data = await apiFetch(`${API}?light=1&tri=date&source=ft`, { timeout: 10000 });
+      Ticker.offers = (data.resultats || []).filter(o => o.title).map(o => ({ title: o.title.length > 70 ? o.title.slice(0, 68) + '…' : o.title, city: o.city || '' }));
+      if (Ticker.offers.length) renderTicker();
+    } catch { /* bandeau limité aux astuces */ }
+  }, { timeout: 4000 });
+}
+
 let liveCountRequested = false;
 async function loadLiveCount() {
   const el = $('#liveJobCount');
@@ -1561,6 +1647,7 @@ async function loadLiveCount() {
     const data = await apiFetch(`${API}?count=1`, { timeout: 10000 });
     if (!data.total) throw new Error('no total');
     el.textContent = fmtCount(data.total);
+    Ticker.count = data.total; renderTicker();
     const lbl = el.parentElement;
     if (lbl && data.totals) lbl.title = Object.entries(data.totals).map(([k, v]) => `${k === 'ft' ? 'France Travail' : 'Adzuna'} : ${fmtCount(v)}`).join(' · ');
   } catch {
@@ -1590,7 +1677,7 @@ function renderAccountBox() {
   if (u) {
     const since = u.createdAt ? new Date(u.createdAt).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) : '';
     box.innerHTML = `<h2>Mon compte</h2>
-      <div class="prof-display-row"><span class="k">Email</span><span class="v">${esc(u.email)}</span></div>
+      <div class="prof-display-row"><span class="k">E-mail</span><span class="v">${esc(u.email)}</span></div>
       ${since ? `<div class="prof-display-row"><span class="k">Membre depuis</span><span class="v">${esc(since)}</span></div>` : ''}
       <div class="account-actions" style="margin-top:var(--sp-4)">
         <button class="btn btn-outline btn-block" id="signOutBtn" type="button">Se déconnecter</button>
@@ -1614,7 +1701,7 @@ function renderProfile() {
   const p = State.profile;
   const first = p.prenom || u?.prenom || '';
   const dispName = first ? first + (p.nom ? ' ' + p.nom : '') : 'Mon espace';
-  $('#profAvatar').textContent = (first[0] || 'T').toUpperCase();
+  $('#profAvatar').innerHTML = first[0] ? esc(first[0].toUpperCase()) : '<svg class="i" aria-hidden="true"><use href="#i-user"/></svg>';
   $('#profName').textContent = dispName;
   $('#profEmail').textContent = [p.title, u?.email].filter(Boolean).join(' · ') || 'Votre tableau de bord de recherche d’emploi';
   $('#statSaved').textContent = State.saved.size;
@@ -1721,7 +1808,7 @@ let lastFocusBeforeModal = null;
 function openLegalModal(title, html) {
   lastFocusBeforeModal = document.activeElement;
   $('#legalTitle').textContent = title;
-  $('#legalBody').innerHTML = html;
+  $('#legalBody').innerHTML = frTypo(html);
   $('#legalModal').classList.add('open');
   setTimeout(() => $('#legalModal .modal-close')?.focus(), 30);
 }
@@ -1756,47 +1843,149 @@ function runSearch(kwArg, cityArg) {
 }
 
 // ─── AUTOCOMPLETE ─────────────────────────────────────────────────
-const AC_METIERS = ['Développeur Web','Développeur Full-Stack','Data Analyst','Chef de projet',
-  'Commercial B2B','Comptable','Infirmier','Aide-soignant','Cuisinier','Serveur',
-  'Designer UX/UI','Community Manager','Chef de produit','Ingénieur','Technicien',
-  'Assistant administratif','Responsable RH','Juriste','Électricien','Plombier',
-  'Conducteur de travaux','Magasinier','Préparateur de commandes','Chauffeur livreur',
-  'Marketing Digital','Growth Hacker','Product Owner','Scrum Master','DevOps','Architecte'];
-const AC_VILLES = ['Paris','Lyon','Marseille','Toulouse','Nice','Nantes','Strasbourg',
-  'Montpellier','Bordeaux','Lille','Rennes','Reims','Saint-Étienne','Le Havre',
-  'Toulon','Grenoble','Dijon','Angers','Nîmes','Clermont-Ferrand','Aix-en-Provence',
-  'Brest','Tours','Limoges','Annecy','Metz','Besançon','Caen','Orléans','Rouen',
-  'Île-de-France','Hauts-de-Seine','Seine-Saint-Denis','Val-de-Marne','Yvelines',
-  'Essonne',"Val-d'Oise",'Seine-et-Marne','Boulogne-Billancourt','Créteil','Cergy'];
+// Lieux : toutes les communes de France (geo.api.gouv.fr, en direct) + départements, régions et
+// arrondissements de Paris/Lyon/Marseille (référentiel local /assets/geo-fr.js, instantané).
+// Métiers : liste locale instantanée + appellations ROME de France Travail (/api/suggest).
+const GEO = window.TP_GEO;
+const expandSaint = t => String(t).replace(/\b(ste|st)\b\.?/gi, m => (/^ste/i.test(m) ? 'Sainte' : 'Saint'));
+const geoMemo = new Map();
+async function geoFetch(path, signal) {
+  if (geoMemo.has(path)) return geoMemo.get(path);
+  const r = await fetch('https://geo.api.gouv.fr' + path, { signal, headers: { Accept: 'application/json' } });
+  if (!r.ok) throw new Error('geo ' + r.status);
+  const data = await r.json();
+  if (geoMemo.size > 200) geoMemo.clear();
+  geoMemo.set(path, data);
+  return data;
+}
+const TYPE_LABEL = { commune: 'Ville', arrondissement: 'Arrondissement', departement: 'Département', region: 'Région', metier: 'Métier' };
+const TYPE_ICON = { commune: 'location', arrondissement: 'location', departement: 'map', region: 'globe', metier: 'briefcase' };
+ICONS.map = '<svg class="i" aria-hidden="true"><use href="#i-map"/></svg>';
+ICONS.globe = '<svg class="i" aria-hidden="true"><use href="#i-globe"/></svg>';
 
-function setupAutocomplete(inputId, listId, data, icon) {
+function placeItem(p) {
+  if (p.type === 'arrondissement') return { type: p.type, label: p.label, value: p.display, sub: `${p.city} · ${p.cp}` };
+  if (p.type === 'departement') return { type: p.type, label: p.label, value: p.label, sub: `${p.code} · ${GEO.regionName(p.region)}` };
+  return { type: 'region', label: p.label, value: p.label, sub: 'Toute la région' };
+}
+const PLM_INSEE = { '75056': 'tous les arrondissements', '69123': 'tous les arrondissements', '13055': 'tous les arrondissements' };
+function communeItem(c) {
+  const dep = GEO.depByCode(c.codeDepartement);
+  const cps = c.codesPostaux || [];
+  const plm = PLM_INSEE[c.code];
+  return {
+    type: 'commune', label: c.nom,
+    // Le département lève les homonymies (Saint-Denis 93 / 974) et voyage dans l'URL : /offres/…/saint-denis-93
+    value: plm ? c.nom : `${c.nom} (${c.codeDepartement})`,
+    sub: [dep ? `${dep.label} (${dep.code})` : c.codeDepartement, plm || (cps.length === 1 ? cps[0] : cps.length ? `${cps[0]}…` : '')].filter(Boolean).join(' · '),
+  };
+}
+async function suggestLieux(q, signal) {
+  const t = q.trim(), n = GEO.norm(t);
+  const local = GEO.suggestPlaces(t, 6).map(placeItem);
+  let communes = [];
+  try {
+    const f = 'fields=nom,code,codesPostaux,codeDepartement,population';
+    if (/^\d{5}$/.test(n)) communes = await geoFetch(`/communes?codePostal=${n}&${f}`, signal);
+    else if (n.length >= 2 && !/^\d+$/.test(n)) communes = await geoFetch(`/communes?nom=${encodeURIComponent(expandSaint(t))}&boost=population&${f}&limit=8`, signal);
+  } catch (e) { if (e.name === 'AbortError') throw e; }
+  const items = (communes || []).map(c => ({ ...communeItem(c), pop: c.population || 0 }));
+  // Classement unique : exact > début du nom > reste ; à égalité, le lieu le plus « grand » d'abord
+  // (Marseille avant la Marne, le Val-d'Oise avant Valence, Seine-Saint-Denis avant Saintry-sur-Seine)
+  const WEIGHT = { region: 1e6, departement: 3e5, arrondissement: 5e5 };
+  const isCp = /^\d{5}$/.test(n);
+  const score = it => {
+    if (isCp) return it.type === 'arrondissement' ? 0 : 1; // 75015 -> Paris 15e avant Paris
+    const k = GEO.norm(it.label);
+    if (k === n || GEO.norm(it.value) === n) return it.type === 'commune' && it.pop < 10000 ? 1 : 0; // Évry (89) ne passe pas devant Évry-Courcouronnes
+    return k.startsWith(n) ? 1 : 2;
+  };
+  const all = [...local, ...items].map((it, i) => ({ it, s: score(it), w: it.pop ?? WEIGHT[it.type] ?? 0, i }))
+    .sort((a, b) => a.s - b.s || b.w - a.w || a.i - b.i).map(x => x.it);
+  const seen = new Set();
+  return all.filter(it => { const k = it.type + '|' + it.value; if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, 8);
+}
+
+// Intitulé -> terme de recherche (« Serveur / Serveuse » -> « Serveur », « Gouvernant(e) » -> « Gouvernant »)
+const searchTerm = label => String(label).replace(/\s*\/\s*[^\s,]+/g, '').replace(/\((e|ne|se|euse|trice|ère)\)/gi, '').replace(/\s*\([^)]*\)\s*/g, ' ').replace(/\s+/g, ' ').trim();
+function rankMetiers(list, q, limit) {
+  const n = GEO.norm(q), words = n.split(' ').filter(Boolean);
+  if (!words.length) return [];
+  return list.map(label => [label, GEO.norm(label)]).filter(([, k]) => words.every(w => k.includes(w)))
+    .map(([label, k]) => [k.startsWith(n) ? 0 : k.split(' ').some(w => w.startsWith(words[0])) ? 1 : 2, k.length, label])
+    .sort((a, b) => a[0] - b[0] || a[1] - b[1]).slice(0, limit).map(x => x[2]);
+}
+const metierItem = label => ({ type: 'metier', label, value: searchTerm(label), sub: '' });
+function suggestMetiersLocal(q) { return rankMetiers(window.TP_METIERS || [], q, 8).map(metierItem); }
+async function suggestMetiersRemote(q, signal) {
+  const data = await fetch(`/api/suggest?type=metier&q=${encodeURIComponent(q)}`, { signal, headers: { Accept: 'application/json' } }).then(r => (r.ok ? r.json() : null)).catch(e => { if (e.name === 'AbortError') throw e; return null; });
+  return data && Array.isArray(data.items) ? data.items.map(i => metierItem(i.label)) : [];
+}
+
+function highlight(label, q) {
+  // Surligne la partie saisie, sans tenir compte des accents ni de la casse
+  const n = GEO.norm(q);
+  if (!n) return esc(label);
+  const plain = label.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[’'`]/g, ' ');
+  const flat = plain.replace(/[^a-z0-9]/g, ' ');
+  if (label.length !== plain.length) return esc(label);
+  let i = flat.indexOf(n), len = n.length;
+  if (i < 0) { i = flat.indexOf(n.split(' ')[0]); len = n.split(' ')[0].length; }
+  if (i < 0) return esc(label);
+  return esc(label.slice(0, i)) + '<mark>' + esc(label.slice(i, i + len)) + '</mark>' + esc(label.slice(i + len));
+}
+
+function setupAutocomplete(inputId, listId, kind) {
   const input = $('#' + inputId);
   const list = $('#' + listId);
   if (!input || !list) return;
-  let active = -1;
+  let active = -1, seq = 0, timer = null, ctrl = null, current = [];
   const close = () => { list.classList.remove('show'); input.setAttribute('aria-expanded', 'false'); input.removeAttribute('aria-activedescendant'); active = -1; };
+  const choose = it => {
+    input.value = it.value;
+    close();
+    input.dispatchEvent(new CustomEvent('tp:pick', { detail: it }));
+  };
 
-  function render(items) {
-    if (!items.length) { close(); return; }
+  function render(items, q) {
+    current = items;
+    if (!items.length || document.activeElement !== input) { close(); return; }
+    // Valeur déjà choisie telle quelle (ex. après un clic) : inutile de masquer le bouton Rechercher.
+    // « ile de france » tapé à la main reste proposé, pour confirmer « Île-de-France · Région ».
+    if (items.length === 1 && items[0].value === q) { close(); return; }
     list.innerHTML = items.map((it, i) =>
-      `<div class="ac-item" role="option" aria-selected="false" id="${listId}-opt-${i}" data-val="${esc(it)}" data-i="${i}">${icon}${esc(it)}</div>`).join('');
+      `<div class="ac-item" role="option" aria-selected="false" id="${listId}-opt-${i}" data-i="${i}">${ICONS[TYPE_ICON[it.type]] || ICONS.search}<span class="ac-main"><span class="ac-label">${highlight(it.label, q)}</span>${it.sub ? `<span class="ac-sub">${esc(it.sub)}</span>` : ''}</span>${kind === 'lieu' ? `<span class="ac-type">${TYPE_LABEL[it.type]}</span>` : ''}</div>`).join('');
     list.classList.add('show');
     input.setAttribute('aria-expanded', 'true');
     active = -1;
     $$('.ac-item', list).forEach(el => on(el, 'mousedown', e => {
       e.preventDefault(); // garde le focus dans le champ
-      input.value = el.dataset.val;
-      close();
+      choose(current[Number(el.dataset.i)]);
     }));
   }
 
   on(input, 'input', () => {
-    const v = input.value.trim().toLowerCase();
-    if (v.length < 1) { close(); return; }
-    const matches = data.filter(d => d.toLowerCase().includes(v)).slice(0, 6);
-    // Saisie déjà complète (ex. « Lyon ») : inutile de masquer le bouton Rechercher avec la liste
-    if (matches.length === 1 && matches[0].toLowerCase() === v) { close(); return; }
-    render(matches);
+    const q = input.value.trim();
+    const my = ++seq;
+    clearTimeout(timer);
+    if (ctrl) ctrl.abort();
+    if (q.length < (kind === 'lieu' ? 1 : 2)) { close(); return; }
+    // 1) Résultats locaux immédiats, 2) résultats distants après une courte pause de frappe
+    const localItems = kind === 'lieu' ? GEO.suggestPlaces(q, 6).map(placeItem) : suggestMetiersLocal(q);
+    if (localItems.length) render(localItems, q); else close(); // pas de liste périmée pendant le chargement
+    timer = setTimeout(async () => {
+      ctrl = new AbortController();
+      try {
+        let items;
+        if (kind === 'lieu') items = await suggestLieux(q, ctrl.signal);
+        else {
+          const remote = await suggestMetiersRemote(q, ctrl.signal);
+          const seen = new Set();
+          items = [...localItems, ...remote].filter(it => { const k = GEO.norm(it.value); if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, 8);
+        }
+        if (my === seq) render(items, q);
+      } catch { /* annulé : une saisie plus récente a pris le relais */ }
+    }, kind === 'lieu' ? 160 : 220);
   });
   on(input, 'keydown', e => {
     if (e.key === 'Escape') { if (list.classList.contains('show')) { e.stopPropagation(); close(); } return; }
@@ -1805,13 +1994,22 @@ function setupAutocomplete(inputId, listId, data, icon) {
     if (!items.length || !list.classList.contains('show')) return;
     if (e.key === 'ArrowDown') { e.preventDefault(); active = (active + 1) % items.length; }
     else if (e.key === 'ArrowUp') { e.preventDefault(); active = (active - 1 + items.length) % items.length; }
-    else if (e.key === 'Enter' && active >= 0) { e.preventDefault(); input.value = items[active].dataset.val; close(); return; }
+    else if (e.key === 'Enter' && active >= 0) { e.preventDefault(); choose(current[active]); return; }
     else if (e.key === 'Enter') { close(); return; }
     else return;
     items.forEach((it, i) => { it.classList.toggle('active', i === active); it.setAttribute('aria-selected', i === active ? 'true' : 'false'); });
+    items[active].scrollIntoView({ block: 'nearest' });
     input.setAttribute('aria-activedescendant', items[active].id);
   });
   on(input, 'blur', () => setTimeout(close, 120));
+  // Mobile : remonte le champ sous l'en-tête pour que le clavier ne masque pas les suggestions
+  on(input, 'focus', () => {
+    if (!window.matchMedia('(max-width: 767px)').matches || input.closest('.filter-drawer, .results-top')) return;
+    setTimeout(() => {
+      const top = input.getBoundingClientRect().top + window.scrollY - ($('.site-header')?.offsetHeight || 64) - 16;
+      if (Math.abs(window.scrollY - top) > 40) window.scrollTo({ top, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    }, 250);
+  });
 }
 // ═══ PROFILE TABS ═══
 function switchPTab(tab) {
@@ -2056,7 +2254,7 @@ function renderCV() {
   const unreadable = cv.readable === false;
   wrap.innerHTML = `
     <div class="cv-file">
-      <div class="cv-file-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+      <div class="cv-file-icon" aria-hidden="true"><svg class="i" width="20" height="20" aria-hidden="true"><use href="#i-file-text"/></svg></div>
       <div class="cv-file-info">
         <div class="cv-file-name">${esc(cv.name)}</div>
         <div class="cv-file-meta">${cv.size} Ko · analysé le ${new Date(cv.date).toLocaleDateString('fr-FR')} · non conservé</div>
@@ -2432,7 +2630,7 @@ function init() {
   updateFavBadge();
   renderCategories();
   renderLettreMode();
-  if ($('#page-home')?.classList.contains('active')) loadLiveCount();
+  if ($('#page-home')?.classList.contains('active')) { loadLiveCount(); initTicker(); }
   loadFeatures().then(() => { onFeaturesReady(); return bootstrapAccount(); }).then(onFeaturesReady);
 
   window.addEventListener('offline', () => toast('Connexion perdue. Certaines fonctions sont indisponibles.', 'err'));
@@ -2463,12 +2661,11 @@ function init() {
 
   // Search
   on($('#searchForm'), 'submit', e => { e.preventDefault(); runSearch(); });
-  const pinIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>';
-  setupAutocomplete('searchKw', 'acKw', AC_METIERS, '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>');
-  setupAutocomplete('searchCity', 'acCity', AC_VILLES, pinIcon);
-  setupAutocomplete('filterLocation', 'acFilterLoc', AC_VILLES, pinIcon);
-  setupAutocomplete('rsKw', 'acRsKw', AC_METIERS, ICONS.search);
-  setupAutocomplete('rsCity', 'acRsCity', AC_VILLES, pinIcon);
+  setupAutocomplete('searchKw', 'acKw', 'metier');
+  setupAutocomplete('searchCity', 'acCity', 'lieu');
+  setupAutocomplete('filterLocation', 'acFilterLoc', 'lieu');
+  setupAutocomplete('rsKw', 'acRsKw', 'metier');
+  setupAutocomplete('rsCity', 'acRsCity', 'lieu');
   on($('#rsForm'), 'submit', e => { e.preventDefault(); runSearch($('#rsKw').value, $('#rsCity').value); });
   // Recherches populaires (accueil, pied de page)
   $$('[data-pop-kw]').forEach(a => on(a, 'click', e => {
