@@ -1,0 +1,21 @@
+{
+  "name": "talentpulse",
+  "private": true,
+  "type": "module",
+  "description": "TalentPulse — agrégateur gratuit d'offres d'emploi (France Travail + Adzuna)",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "test": "node --test test/",
+    "migrate": "node scripts/migrate.mjs",
+    "dev": "node scripts/dev-server.mjs"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
+    "@node-rs/argon2": "^2.0.2",
+    "ai": "^7.0.0",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8"
+  }
+}
