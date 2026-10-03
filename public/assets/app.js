@@ -583,6 +583,7 @@ function handleRoute() {
       return;
     }
     const savedY = window.history.state && window.history.state.y;
+    if (hydrateSsr(rawPath)) return;
     $('#searchKw').value = kw;
     $('#searchCity').value = city;
     const sb = $('#saveSearchBtn'); if (sb) sb.style.display = (kw || city) ? 'inline-flex' : 'none';
@@ -599,6 +600,53 @@ function handleRoute() {
     return;
   }
   showPage('home');
+}
+
+// ── Pages d'atterrissage rendues côté serveur (/offres/:metier/:lieu) ──
+// Le serveur fournit la 1re page France Travail en HTML et en JSON : on la reprend sans nouvelle requête
+// (pas de saut de mise en page), puis on ajoute les offres Adzuna en fin de liste.
+let ssrData;
+function getSsr() {
+  if (ssrData === undefined) {
+    try { ssrData = JSON.parse($('#ssrData')?.textContent || 'null'); } catch { ssrData = null; }
+  }
+  return ssrData;
+}
+function toggleSeoBlocks(show) {
+  ['#seoCrumbs', '#seoIntro', '#seoMore'].forEach(sel => { const el = $(sel); if (el && el.children.length) el.hidden = !show; });
+}
+function hydrateSsr(rawPath) {
+  const ssr = getSsr();
+  if (!ssr || ssr.used || ssr.path !== rawPath) return false;
+  ssr.used = true;
+  State.lastSearch = { kw: ssr.kw, city: ssr.city };
+  for (const id of ['searchKw', 'rsKw']) { const el = $('#' + id); if (el) el.value = ssr.kw; }
+  for (const id of ['searchCity', 'rsCity', 'filterLocation']) { const el = $('#' + id); if (el) el.value = ssr.city; }
+  const sb = $('#saveSearchBtn'); if (sb) sb.style.display = 'inline-flex';
+  State.jobs = (ssr.resultats || []).map(parseAggregatedJob).filter(Boolean);
+  State.total = ssr.total || 0;
+  State.apiPage = 1;
+  State.hasMore = !!ssr.hasMore;
+  State.resolvedLocation = ssr.location;
+  State.loadError = null;
+  showPage('jobs', { load: false });
+  toggleSeoBlocks(true);
+  renderJobsNotice(State.lastSearch);
+  renderJobs();
+  bindNavLinks($('#page-jobs'));
+  const seq = jobsRequestSeq;
+  const qs = buildJobsQuery(State.lastSearch, 1); qs.set('source', 'adzuna');
+  apiFetch(`${API}?${qs}`, { timeout: 15000 }).then(data => {
+    if (seq !== jobsRequestSeq || !data || !Array.isArray(data.resultats)) return; // une autre recherche a pris le relais
+    const known = new Set(State.jobs.map(j => j.id));
+    const extra = data.resultats.map(parseAggregatedJob).filter(j => j && !known.has(j.id));
+    if (!extra.length) return;
+    State.jobs = State.jobs.concat(extra);
+    State.total = (State.total || 0) + (data.total || 0);
+    State.hasMore = State.hasMore || !!data.hasMore;
+    renderJobs();
+  }).catch(() => {});
+  return true;
 }
 
 async function openOfferById(id) {
@@ -1164,7 +1212,10 @@ async function loadJobs(params = {}, { append = false } = {}) {
     $('#jobsMore').innerHTML = '';
     $('#jobsNotice').innerHTML = '';
     const header = $('#jobsHeader');
-    header.textContent = (params.kw || params.city) ? `${params.kw ? 'Offres «\u00a0' + params.kw + '\u00a0»' : 'Offres'}${params.city ? ' à ' + params.city : ''}` : 'Offres d’emploi en France';
+    const ssr = getSsr();
+    const onSsr = !!ssr && searchPath(params) === ssr.path;
+    toggleSeoBlocks(onSsr);
+    header.textContent = onSsr ? ssr.h1 : (params.kw || params.city) ? `${params.kw ? 'Offres «\u00a0' + params.kw + '\u00a0»' : 'Offres'}${params.city ? ' à ' + params.city : ''}` : 'Offres d’emploi en France';
     const rk = $('#rsKw'), rc = $('#rsCity');
     if (rk && document.activeElement !== rk) rk.value = params.kw || '';
     if (rc && document.activeElement !== rc) rc.value = params.city || '';
@@ -1203,7 +1254,7 @@ async function loadJobs(params = {}, { append = false } = {}) {
       params.city = disp;
       State.lastSearch.city = disp;
       const header = $('#jobsHeader');
-      header.textContent = `${params.kw ? 'Offres «\u00a0' + params.kw + '\u00a0»' : 'Offres'} à ${disp}`;
+      if (!(getSsr() && searchPath(params) === getSsr().path)) header.textContent = `${params.kw ? 'Offres «\u00a0' + params.kw + '\u00a0»' : 'Offres'} à ${disp}`;
       for (const id of ['rsCity', 'searchCity', 'filterLocation']) { const el = $('#' + id); if (el && document.activeElement !== el) el.value = disp; }
       syncSearchRoute({ kw: params.kw || '', city: disp }, true);
     }

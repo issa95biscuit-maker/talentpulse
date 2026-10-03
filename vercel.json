@@ -3,8 +3,28 @@
   "outputDirectory": "public",
   "rewrites": [
     {
+      "source": "/sitemap.xml",
+      "destination": "/api/seo?sitemap=index"
+    },
+    {
+      "source": "/sitemap-pages.xml",
+      "destination": "/api/seo?sitemap=pages"
+    },
+    {
+      "source": "/sitemap-offres.xml",
+      "destination": "/api/seo?sitemap=offres"
+    },
+    {
       "source": "/offres",
-      "destination": "/index.html"
+      "destination": "/api/seo?kw=emploi&from=offres"
+    },
+    {
+      "source": "/offres/:kw/:lieu",
+      "destination": "/api/seo?kw=:kw&lieu=:lieu"
+    },
+    {
+      "source": "/offres/:kw",
+      "destination": "/api/seo?kw=:kw"
     },
     {
       "source": "/offres/:path*",
@@ -124,6 +144,10 @@
     },
     "api/lettre.js": {
       "maxDuration": 30
+    },
+    "api/seo.js": {
+      "includeFiles": "public/index.html",
+      "maxDuration": 15
     }
   },
   "crons": [

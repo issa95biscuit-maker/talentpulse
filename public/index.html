@@ -670,6 +670,23 @@ legend.filter-label+*,legend.form-label+*{clear:both}
 .auth-card{padding:var(--sp-8);background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);box-shadow:var(--sh-2)}
 .auth-title{font-size:var(--fs-xl);font-weight:var(--fw-black);margin-bottom:var(--sp-5)}
 .auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;margin-bottom:var(--sp-5);background:var(--surface-2);border-radius:var(--r-md)}
+.crumbs ol{display:flex;flex-wrap:wrap;gap:2px 0;list-style:none;margin:0 0 var(--sp-2);padding:0;font-size:var(--fs-sm);color:var(--text-2)}
+.crumbs li{display:inline-flex;align-items:center}
+.crumbs li+li::before{content:"›";margin:0 6px;color:var(--text-3)}
+.crumbs a{color:var(--text-2);text-decoration:underline;text-underline-offset:2px;display:inline-flex;align-items:center;min-height:24px}
+.crumbs a:hover{color:var(--brand-ink)}
+.seo-intro p{max-width:72ch;margin:var(--sp-2) 0 var(--sp-4);color:var(--text-2);font-size:var(--fs-sm);line-height:1.6}
+.seo-intro strong{color:var(--text)}
+.seo-more{margin-top:var(--sp-8);padding-top:var(--sp-6);border-top:1px solid var(--border);display:grid;gap:var(--sp-4);max-width:100%}
+.seo-more h2{font-size:var(--fs-lg);font-weight:var(--fw-bold);margin-top:var(--sp-2)}
+.seo-more h3{font-size:var(--fs-sm);font-weight:var(--fw-semi);margin-bottom:var(--sp-2)}
+.seo-more>p,.seo-more>ul{max-width:75ch;color:var(--text-2);line-height:1.6}
+.seo-more>ul{padding-left:1.2em;display:grid;gap:6px}
+.seo-more strong{color:var(--text)}
+.seo-note{font-size:var(--fs-xs);color:var(--text-3)!important}
+.seo-links{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:var(--sp-5)}
+.seo-links ul{list-style:none;padding:0;margin:0;display:grid;gap:2px}
+.seo-links a{display:inline-flex;align-items:center;min-height:32px;color:var(--brand-ink);font-size:var(--fs-sm);text-decoration:underline;text-underline-offset:2px}
 .link-btn{display:inline-flex;align-items:center;min-height:44px;padding:0 4px;color:var(--brand-ink);font-size:var(--fs-sm);font-weight:var(--fw-semi);text-decoration:underline;text-underline-offset:3px}
 .auth-forgot{text-align:center;margin-top:var(--sp-2)}
 .auth-sub{font-size:var(--fs-lg);font-weight:var(--fw-bold);margin-bottom:var(--sp-2)}
@@ -1006,6 +1023,7 @@ body:not(.dark) .photo-section::before{background:linear-gradient(180deg,var(--v
   </div>
 
   <div class="jobs-page container">
+    <div id="seoCrumbs" hidden></div>
     <div class="jobs-head">
       <div>
         <h1 id="jobsHeader">Offres d’emploi</h1>
@@ -1016,6 +1034,7 @@ body:not(.dark) .photo-section::before{background:linear-gradient(180deg,var(--v
         Enregistrer cette recherche
       </button>
     </div>
+    <div id="seoIntro" hidden></div>
     <div class="jobs-bar" id="jobsBar" role="group" aria-label="Type de contrat">
       <button class="chip active" type="button" data-filter="all" aria-pressed="true">Tous les contrats</button>
       <button class="chip" type="button" data-filter="CDI" aria-pressed="false">CDI</button>
@@ -1120,6 +1139,7 @@ body:not(.dark) .photo-section::before{background:linear-gradient(180deg,var(--v
         <div class="jobs-more" id="jobsMore"></div>
       </div>
     </div>
+    <div id="seoMore" hidden></div>
   </div>
 </section>
 

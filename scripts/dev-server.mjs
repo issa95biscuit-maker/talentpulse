@@ -27,13 +27,20 @@ const API_ROUTES = [
   [/^\/api\/auth\/([a-z-]+)$/, 'api/auth/[action].js', 'action'],
   [/^\/api\/me\/([a-z-]+)$/, 'api/me/[resource].js', 'resource'],
   [/^\/api\/cron\/alerts$/, 'api/cron/alerts.js'],
-  [/^\/api\/(health|jobs|lettre|suggest|unsubscribe)$/, null],
+  [/^\/api\/(health|jobs|lettre|suggest|unsubscribe|seo)$/, null],
 ];
 
 function patternToRegex(source) {
   // Sous-ensemble de path-to-regexp utilisé par vercel.json : /:path*, :param, (.*)
   const esc = source.replace(/\(\.\*\)/g, '\u0000').replace(/[.+?^${}()|[\]\\]/g, '\\$&');
   return new RegExp('^' + esc.replace(/\/:path\*/g, '(?:/.*)?').replace(/:([a-z]+)\*/gi, '.*').replace(/:([a-z]+)/gi, '[^/]+').replace(/\u0000/g, '.*') + '$');
+}
+
+/** Paramètres nommés d'une source de rewrite (« /offres/:kw/:lieu ») → regex à groupes nommés */
+function rewriteParams(source) {
+  if (!/:[a-z]+(?!\*)\b/i.test(source.replace(/:[a-z]+\*/gi, ''))) return null;
+  const re = new RegExp('^' + source.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/:([a-z]+)/gi, '(?<$1>[^/]+)') + '$');
+  return re;
 }
 
 function decorate(res) {
@@ -45,7 +52,7 @@ function decorate(res) {
 
 export async function startDevServer({ port = Number(process.env.PORT || 3000), demo = process.argv.includes('--demo'), quiet = false } = {}) {
   const vercel = JSON.parse(await readFile(path.join(ROOT, 'vercel.json'), 'utf8'));
-  const rewrites = (vercel.rewrites || []).map(r => ({ re: patternToRegex(r.source), dest: r.destination }));
+  const rewrites = (vercel.rewrites || []).map(r => ({ re: patternToRegex(r.source), dest: r.destination, params: rewriteParams(r.source) }));
   const headerRules = (vercel.headers || []).map(h => ({ re: patternToRegex(h.source), headers: h.headers }));
 
   if (demo) {
@@ -69,6 +76,29 @@ export async function startDevServer({ port = Number(process.env.PORT || 3000), 
     decorate(res);
     const u = new URL(req.url, 'http://localhost');
     try {
+      // Rewrites vers une fonction (/offres/:kw/:lieu → /api/seo?kw=…, /sitemap.xml → /api/seo?sitemap=index)
+      const apiRw = rewrites.find(r => r.dest.startsWith('/api/') && (r.params ? r.params.test(u.pathname) : r.re.test(u.pathname)));
+      if (apiRw) {
+        const groups = apiRw.params ? apiRw.params.exec(u.pathname).groups : {};
+        const dest = new URL(apiRw.dest.replace(/:([a-z]+)/gi, (m, k) => encodeURIComponent(groups[k] ?? '')), 'http://localhost');
+        for (const [k, val] of dest.searchParams) dest.searchParams.set(k, decodeURIComponent(val));
+        for (const [k, val] of u.searchParams) if (!dest.searchParams.has(k)) dest.searchParams.set(k, val);
+        for (const h of headerRules) if (h.re.test(u.pathname)) h.headers.forEach(({ key, value }) => res.setHeader(key, value));
+        const handler = await loadHandler(dest.pathname.slice(1) + '.js');
+        req.query = Object.fromEntries(dest.searchParams);
+        // Compression comme sur Vercel
+        const ae = String(req.headers['accept-encoding'] || '');
+        if (/\b(br|gzip)\b/.test(ae)) {
+          const end = res.end.bind(res);
+          res.end = body => {
+            if (!body || res.statusCode >= 300) return end(body);
+            const br = /\bbr\b/.test(ae);
+            res.setHeader('content-encoding', br ? 'br' : 'gzip'); res.setHeader('vary', 'Accept-Encoding');
+            return end(br ? zlib.brotliCompressSync(Buffer.from(body)) : zlib.gzipSync(Buffer.from(body)));
+          };
+        }
+        return await handler(req, res);
+      }
       if (u.pathname.startsWith('/api/')) {
         if (u.pathname === '/api/jobs' && process.env.DEV_JOBS_UPSTREAM && !process.env.FT_CLIENT_ID) {
           const r = await fetch(process.env.DEV_JOBS_UPSTREAM.replace(/\/$/, '') + '/api/jobs' + u.search);
