@@ -29,7 +29,7 @@ test('photos : AVIF + WebP, légères, chargement différé hors hero, crédits 
   for (const base of ['hero', 'equipe', 'logistique']) for (const ext of ['avif', 'webp']) for (const w of [800, 1600]) assert.ok(files.includes(`${base}-${w}.${ext}`), `${base}-${w}.${ext}`);
   const credits = readFileSync(new URL('CREDITS.md', dir), 'utf8');
   assert.ok(/Unsplash/.test(credits) && /Alex Kotliarskyi/.test(credits));
-  const imgs = [...html.matchAll(/<img [^>]*src="\/img\/[^"]+"[^>]*>/g)].map(m => m[0]);
+  const imgs = [...html.matchAll(/<img [^>]*src="\/img\/[^"]+"[^>]*>/g)].map(m => m[0]).filter(t => !/adzuna-logo/.test(t));
   assert.ok(imgs.length >= 3);
   for (const tag of imgs) {
     assert.ok(/alt=""/.test(tag) && /width="\d+"/.test(tag) && /height="\d+"/.test(tag), 'décorative, dimensions fixes : ' + tag.slice(0, 80));
@@ -49,4 +49,12 @@ test('nombres : milliers séparés par une espace fine insécable (U+202F)', () 
   const fmtCount = new Function(src + '; return fmtCount;')();
   assert.equal(fmtCount(1234567), '1\u202f234\u202f567');
   assert.equal(fmtCount(950), '950');
+});
+
+test('attribution Adzuna : « Jobs by » + logo officiel ≥ 116×23 px, liens vers adzuna.fr', () => {
+  const tpl = app.match(/const adzunaAttribution = \(\) => `([^`]+)`/)[1];
+  assert.ok(/<a href="https:\/\/www\.adzuna\.fr"[^>]*>Jobs<\/a> by <a href="https:\/\/www\.adzuna\.fr"[^>]*><img src="\/img\/adzuna-logo\.png" alt="Adzuna" width="87" height="23"/.test(tpl));
+  assert.ok(/source === 'Adzuna' \? adzunaAttribution\(\)/.test(app), 'sur chaque carte Adzuna');
+  assert.ok(statSync(new URL('../public/img/adzuna-logo.png', import.meta.url)).size < 10 * 1024);
+  assert.ok(/licence de réutilisation des offres d’emploi de France Travail/.test(app), 'licence FT citée sur les offres');
 });
