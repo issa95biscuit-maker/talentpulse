@@ -117,6 +117,9 @@ const LEGAL_PAGES = {
 <p>Vercel Inc., 440 N Barranca Ave #4133, Covina, CA 91723, États-Unis — <a href="https://vercel.com" rel="noopener" target="_blank" style="text-decoration:underline">vercel.com</a>.</p>
 <h2>Sources des offres</h2>
 <p>Les offres d’emploi affichées proviennent de l’API Offres d’emploi de France Travail et de l’API Adzuna. Elles restent la propriété et la responsabilité de leurs émetteurs. TalentPulse n’est pas l’employeur et ne transmet aucune candidature : vous postulez sur le site d’origine de chaque annonce.</p>
+<h2>Réutilisation des offres et traitements appliqués</h2>
+<p>Les offres France Travail proviennent de l’API Offres d’emploi et sont réutilisées conformément à la <a href="https://francetravail.io/produits-partages/catalogue/offres-emploi" rel="noopener" target="_blank" style="text-decoration:underline">licence de réutilisation des offres d’emploi de France Travail</a>. Elles sont interrogées en temps réel à chaque recherche ; la date de publication et de dernière mise à jour figure sur chaque offre. Les offres Adzuna sont affichées avec la mention « Jobs by Adzuna » exigée par les <a href="https://developer.adzuna.com/docs/terms_of_service" rel="noopener" target="_blank" style="text-decoration:underline">conditions de l’API Adzuna</a>.</p>
+<p>Traitements appliqués, sans modifier le fond des annonces : intitulés et noms d’entreprise écrits en MAJUSCULES remis en casse normale, mention « (H/F) » dédoublonnée, libellés de lieu harmonisés (« Lyon 05 » → « Lyon 5e »), libellés d’expérience reformulés (« 2 An(s) » → « 2 ans d’expérience »), salaires convertis dans un format lisible, et suppression des doublons (même intitulé, même entreprise, même ville) entre les deux sources.</p>
 <h2>Propriété intellectuelle</h2>
 <p>La marque, le logo et l’interface TalentPulse sont la propriété de l’éditeur. Toute reproduction sans autorisation est interdite. France Travail et Adzuna sont des marques de leurs titulaires respectifs ; elles sont citées uniquement pour indiquer la source des annonces.</p>
 <h2>Crédits</h2>
@@ -431,6 +434,15 @@ const $$ = (s, c = document) => [...c.querySelectorAll(s)];
 const on = (el, evt, fn) => el && el.addEventListener(evt, fn);
 function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
 function sourceClass(s) { return s === 'France Travail' ? 'src-ft' : s === 'Adzuna' ? 'src-adz' : ''; }
+const FT_LICENCE_URL = 'https://francetravail.io/produits-partages/catalogue/offres-emploi';
+const fmtDate = d => (d && !isNaN(new Date(d)) ? new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '');
+/** Mention exigée par les conditions de l'API Adzuna : « Jobs by Adzuna », « Jobs » et le logo liés à adzuna.fr */
+const adzunaAttribution = () => `<span class="adz-attr"><a href="https://www.adzuna.fr" target="_blank" rel="noopener">Jobs</a> by <a href="https://www.adzuna.fr" target="_blank" rel="noopener" class="adz-logo"><img src="/img/adzuna-logo.png" alt="Adzuna" width="87" height="23" loading="lazy" decoding="async"></a></span>`;
+/** Avatar : logo fourni par France Travail s'il existe, sinon initiale */
+function avatarHtml(j, name) {
+  if (j.logo) return `<div class="co-avatar co-logo" aria-hidden="true"><img src="${esc(j.logo)}" alt="" width="40" height="40" loading="lazy" decoding="async" referrerpolicy="no-referrer"></div>`;
+  return `<div class="co-avatar" style="${avatarStyle(name)}" aria-hidden="true">${esc(name[0].toUpperCase())}</div>`;
+}
 const sourceIcon = s => `<svg class="i" aria-hidden="true"><use href="#i-${s === 'Adzuna' ? 'globe' : 'landmark'}"/></svg>`;
 // Pastilles entreprise : couples fond/texte pastel, contraste ≥ 4.5:1 (WCAG AA)
 const AVATAR_COLORS = [['#FFEDD5','#9A3412'],['#E0F2FE','#075985'],['#EDE9FE','#5B21B6'],['#D1FAE5','#065F46'],['#FEE2E2','#991B1B'],['#FEF3C7','#92400E'],['#FCE7F3','#9D174D'],['#CFFAFE','#155E75']];
@@ -1165,6 +1177,8 @@ function parseAggregatedJob(j) {
     tempsPlein: j.tempsPlein || '',
     url: j.url || '',
     posted: j.posted || '',
+    updated: j.updated || '',
+    logo: /^https:\/\/entreprise\.francetravail\.fr\//.test(j.logo || '') ? j.logo : '',
     source: j.source || '',
     sourceSite: j.sourceSite || j.source || '',
     otherLocations: j.otherLocations || 0,
@@ -1281,7 +1295,7 @@ function jobCard(j) {
   const name = j.company || j.title || '?';
   const fresh = when === "Aujourd'hui" || when === 'Il y a 1 jour';
   return `<article class="job${viewed ? ' viewed' : ''}" data-id="${esc(j.id)}">
-    <div class="co-avatar" style="${avatarStyle(name)}" aria-hidden="true">${esc(name[0].toUpperCase())}</div>
+    ${avatarHtml(j, name)}
     <div class="job-main">
       <h2 class="job-title"><a class="job-link" href="/offre/${encodeURIComponent(j.id)}" data-id="${esc(j.id)}">${esc(j.title)}</a></h2>
       <div class="job-co"><span>${companyLabel(j)}</span>${loc ? `<span class="sep" aria-hidden="true">•</span><span class="job-loc">${ICONS.location}${esc(loc)}</span>` : ''}</div>
@@ -1299,10 +1313,10 @@ function jobCard(j) {
     </div>
     <div class="job-foot">
       <div class="job-foot-left">
-        ${j.source ? `<span class="src ${sourceClass(j.source)}">${sourceIcon(j.source)}${esc(j.source)}</span>` : ''}
+        ${j.source === 'Adzuna' ? adzunaAttribution() : j.source ? `<span class="src ${sourceClass(j.source)}">${sourceIcon(j.source)}${esc(j.source)}</span>` : ''}
         ${when ? `<span class="job-time"${fresh ? ' style="color:var(--ok);font-weight:600"' : ''}>${fresh ? 'Nouveau · ' : ''}${esc(when)}</span>` : ''}
       </div>
-      ${tracked ? `<span class="tracked-badge">${ICONS.check}Dans mon suivi</span>` : viewed ? '<span>Déjà consultée</span>' : ''}
+      ${tracked ? `<span class="tracked-badge">${ICONS.check}Suivie</span>` : viewed ? '<span>Déjà consultée</span>' : ''}
     </div>
   </article>`;
 }
@@ -1343,7 +1357,7 @@ function detailSection(title, content) {
 }
 const FACT_ICONS = { 'Lieu': 'location', 'Type de contrat': 'file', 'Salaire': 'salary', 'Temps de travail': 'clock', 'Horaires': 'clock', 'Expérience demandée': 'briefcase', 'Permis': 'car', 'Langues': 'message', 'Formation': 'education', 'Publiée': 'calendar' };
 
-function trackBtnLabel(t) { return t ? `${icon('check')} Dans mon suivi` : `${icon('plus')} Ajouter à mon suivi`; }
+function trackBtnLabel(t) { return t ? `${icon('check')} Dans le suivi` : `${icon('plus')} Ajouter au suivi`; }
 
 function openDetail(id, { push = true } = {}) {
   const j = findJob(id);
@@ -1372,12 +1386,13 @@ function openDetail(id, { push = true } = {}) {
     ['Permis', j.permis],
     ['Langues', j.langues],
     ['Formation', j.niveauEtudes],
-    ['Publiée', j.posted && !isNaN(new Date(j.posted)) ? new Date(j.posted).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : ''],
+    ['Publiée', fmtDate(j.posted)],
+    ['Mise à jour', j.updated && fmtDate(j.updated) !== fmtDate(j.posted) ? fmtDate(j.updated) : ''],
   ].filter(([, v]) => v && String(v).trim());
 
   $('#detailBody').innerHTML = `
     <div class="detail-hero">
-      <div class="co-avatar" style="${avatarStyle(name)}" aria-hidden="true">${esc(name[0].toUpperCase())}</div>
+      ${avatarHtml(j, name)}
       <div style="min-width:0">
         <h2 class="detail-title" id="detailTitle">${esc(j.title)}</h2>
         <div class="detail-co">${companyLabel(j)}${j.city ? ' · ' + esc(j.city) : ''}</div>
@@ -1386,7 +1401,7 @@ function openDetail(id, { push = true } = {}) {
     <div class="badge-row">
       ${j.contract ? `<span class="tag tag-brand">${esc(j.contract)}</span>` : ''}
       ${j.salary ? `<span class="tag job-sal">${icon('salary')}${esc(j.salary)}</span>` : ''}
-      ${j.source ? `<span class="tag"><span class="src ${sourceClass(j.source)}">${sourceIcon(j.source)}Source : ${esc(j.source)}</span></span>` : ''}
+      ${j.source && j.source !== 'Adzuna' ? `<span class="tag"><span class="src ${sourceClass(j.source)}">${sourceIcon(j.source)}Source : ${esc(j.source)}</span></span>` : ''}
       ${when ? `<span class="tag">${icon('clock')}${esc(when)}</span>` : ''}
       ${j.otherLocations ? `<span class="tag">Aussi publiée dans ${j.otherLocations} autre${j.otherLocations > 1 ? 's' : ''} lieu${j.otherLocations > 1 ? 'x' : ''}</span>` : ''}
       ${matchBadge(matchScore(j))}
@@ -1397,7 +1412,8 @@ function openDetail(id, { push = true } = {}) {
     ${detailSection('Compétences demandées', j.competencesReq)}
     ${detailSection('Qualités professionnelles', j.qualites)}
     ${detailSection('Avantages et compléments de salaire', j.avantages)}
-    <p class="detail-note">${icon('info')}<span>TalentPulse n’envoie pas votre candidature : vous postulez directement sur ${esc(site)}. « Mon suivi » est un aide-mémoire ${State.user ? 'synchronisé avec votre compte' : 'enregistré sur cet appareil'}.</span></p>`;
+    ${j.source === 'Adzuna' ? `<p class="detail-attr">${adzunaAttribution()}</p>` : j.source === 'France Travail' ? `<p class="detail-attr">Source : France Travail${j.updated ? `, offre mise à jour le ${esc(fmtDate(j.updated))}` : ''}. Réutilisation soumise à la <a href="${FT_LICENCE_URL}" target="_blank" rel="noopener">licence de réutilisation des offres d’emploi de France Travail</a>.</p>` : ''}
+    <p class="detail-note">${icon('info')}<span>TalentPulse n’envoie pas votre candidature : vous postulez directement sur ${esc(site)}. L’onglet « Suivi » de Mon espace est un aide-mémoire ${State.user ? 'synchronisé avec votre compte' : 'enregistré sur cet appareil'}.</span></p>`;
 
   $('#detailCta').innerHTML = `
     ${j.url ? `<a class="btn btn-primary btn-lg btn-view" id="detailView" href="${esc(j.url)}" target="_blank" rel="noopener noreferrer">Voir l’offre sur ${esc(site)} ${ICONS.external}<span class="sr-only">(nouvel onglet)</span></a>` : ''}

@@ -154,6 +154,15 @@ legend{padding:0}
 .tag-ok{background:var(--ok-bg);color:var(--ok)}
 .src{display:inline-flex;align-items:center;gap:6px;font-size:var(--fs-xs);font-weight:var(--fw-semi);color:var(--text-3)}
 .src svg{width:13px;height:13px}
+.adz-attr{position:relative;z-index:2;display:inline-flex;align-items:center;gap:4px;min-height:24px;padding:0 6px 0 8px;border-radius:6px;background:#fff;color:#334155;font-size:var(--fs-xs);font-weight:var(--fw-semi);white-space:nowrap;border:1px solid var(--border)}
+.adz-attr a{display:inline-flex;align-items:center;min-height:44px;margin-block:-10px;color:#1E293B;text-decoration:underline;text-underline-offset:2px}
+.adz-attr a.adz-logo{text-decoration:none}
+.adz-attr img{display:block;width:87px;height:23px}
+.detail-attr{margin-top:var(--sp-5);font-size:var(--fs-xs);color:var(--text-3);line-height:1.6}
+.detail-attr a{color:var(--text-2);text-decoration:underline}
+.co-logo{background:#fff;border:1px solid var(--border);padding:4px;overflow:hidden}
+.co-logo img{width:100%;height:100%;object-fit:contain;display:block}
+
 .src-ft{color:var(--ft)}.src-adz{color:var(--adz)}
 .soon-badge{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:var(--r-full);background:var(--warn-bg);color:var(--warn);font-size:.7rem;font-weight:var(--fw-bold);letter-spacing:.02em;white-space:nowrap}
 .chip{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:6px 14px;border-radius:var(--r-full);border:1px solid var(--border-strong);background:var(--surface);color:var(--text-2);font-size:var(--fs-sm);font-weight:var(--fw-medium);transition:all var(--dur-1);white-space:nowrap}
@@ -711,6 +720,7 @@ legend.filter-label+*,legend.form-label+*{clear:both}
 @media(min-width:1024px){.footer-link{min-height:36px}}
 .footer-link:hover{color:#fff;text-decoration:underline}
 .footer-bottom{display:flex;flex-wrap:wrap;justify-content:space-between;gap:var(--sp-3);margin-top:var(--sp-10);padding-top:var(--sp-6);border-top:1px solid #1E293B;font-size:var(--fs-xs);color:#A3B1C6}
+.footer-inline{color:#E2E8F0;text-decoration:underline;text-underline-offset:2px}
 .site-footer :focus-visible{outline-color:#FF9A57}
 
 /* 15. EXPORT PDF / divers */
@@ -796,7 +806,7 @@ body:not(.dark) .photo-section::before{background:linear-gradient(180deg,var(--v
     <a class="nav-link" href="/offres/emploi" data-nav="jobs">Offres d’emploi</a>
     <a class="nav-link" href="/lettre" data-nav="lettre">Lettre de motivation</a>
     <a class="nav-link" href="/conseils" data-nav="conseils">Conseils</a>
-    <a class="nav-link" href="/mon-espace" data-nav="profile" data-ptab="pipeline">Mon suivi</a>
+    <a class="nav-link" href="/mon-espace" data-nav="profile">Mon espace</a>
   </div>
   <div class="nav-right">
     <button class="icon-btn" id="darkToggle" type="button" aria-label="Activer le mode sombre" aria-pressed="false">
@@ -909,7 +919,7 @@ body:not(.dark) .photo-section::before{background:linear-gradient(180deg,var(--v
       <span class="sources-label">Sources des offres</span>
       <ul class="sources-list" role="list">
         <li class="source-logo"><span class="source-mark ft" aria-hidden="true"><svg class="i"><use href="#i-landmark"/></svg></span><span class="source-txt"><b>France Travail</b><small>Service public de l’emploi, alternance incluse</small></span></li>
-        <li class="source-logo"><span class="source-mark adz" aria-hidden="true"><svg class="i"><use href="#i-globe"/></svg></span><span class="source-txt"><b>Adzuna</b><small>Annonces d’entreprises et de sites carrières</small></span></li>
+        <li class="source-logo"><span class="source-mark adz" aria-hidden="true"><svg class="i"><use href="#i-globe"/></svg></span><span class="source-txt"><b>Adzuna</b><small>Annonces d’entreprises et de sites carrières</small></span><span class="adz-attr"><a href="https://www.adzuna.fr" target="_blank" rel="noopener">Jobs</a> by <a href="https://www.adzuna.fr" target="_blank" rel="noopener" class="adz-logo"><img src="/img/adzuna-logo.png" alt="Adzuna" width="87" height="23" loading="lazy" decoding="async"></a></span></li>
       </ul>
     </div>
   </div>
@@ -946,7 +956,7 @@ body:not(.dark) .photo-section::before{background:linear-gradient(180deg,var(--v
           <li><svg class="i i-bold" aria-hidden="true"><use href="#i-check"/></svg>Score de compatibilité entre votre profil et chaque offre</li>
           <li><svg class="i i-bold" aria-hidden="true"><use href="#i-check"/></svg><span id="bandSyncLine">Données enregistrées sur votre appareil, effaçables en un clic</span></li>
         </ul>
-        <a class="btn btn-primary btn-lg" href="/mon-espace" data-nav="profile" data-ptab="pipeline">Ouvrir mon suivi</a>
+        <a class="btn btn-primary btn-lg" href="/mon-espace" data-nav="profile" data-ptab="pipeline">Ouvrir mon espace</a>
       </div>
       <div class="band-visual" aria-hidden="true">
         <div class="mini-col">
@@ -1378,7 +1388,7 @@ body:not(.dark) .photo-section::before{background:linear-gradient(180deg,var(--v
     </div>
     <div class="footer-bottom">
       <span>© 2026 TalentPulse</span>
-      <span>Les annonces restent soumises aux conditions de leurs sources d’origine (France Travail, Adzuna).</span>
+      <span>Offres France Travail réutilisées selon la <a href="https://francetravail.io/produits-partages/catalogue/offres-emploi" target="_blank" rel="noopener" class="footer-inline">licence de réutilisation des offres d’emploi</a>, mises à jour en continu. Offres Adzuna : <a href="https://www.adzuna.fr" target="_blank" rel="noopener" class="footer-inline">Jobs by Adzuna</a>.</span>
     </div>
   </div>
 </footer>
