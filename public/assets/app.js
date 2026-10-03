@@ -22,8 +22,10 @@ const SITE = 'https://talentpulse-topaz.vercel.app';
 // Drapeaux de fonctionnalités : tout est désactivé par défaut, puis lu sur /api/health.
 // Chaque fonctionnalité s'active côté serveur uniquement si ses variables d'environnement existent :
 // sans clés, le site fonctionne exactement comme avant (tout en local).
-const FEATURES = { auth: false, sync: false, savedSearches: false, aiLetter: false, emailAlerts: false, whatsappAlerts: false };
-async function loadFeatures() {
+const FEATURES = { auth: false, sync: false, savedSearches: false, aiLetter: false, emailAlerts: false, whatsappAlerts: false, accountEmails: false };
+let featuresPromise = null;
+function loadFeatures() { return (featuresPromise ||= fetchFeatures()); }
+async function fetchFeatures() {
   try {
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), 5000);
@@ -151,7 +153,7 @@ function privacyPolicy() {
   if (F.aiLetter) rows.push(['Lettre de motivation IA', 'Poste, entreprise, atouts et profil saisis dans le formulaire', 'Exécution du service demandé', 'Non conservés par TalentPulse']);
   const processors = ['<li><strong>Vercel Inc.</strong> (hébergement, États-Unis, clauses contractuelles types / Data Privacy Framework)</li>'];
   if (accounts) processors.push('<li><strong>Neon</strong> (base de données PostgreSQL, hébergée dans l’Union européenne)</li>');
-  if (F.emailAlerts) processors.push('<li><strong>Resend</strong> (envoi des emails d’alerte)</li>');
+  if (F.emailAlerts || F.accountEmails) processors.push(`<li><strong>Resend</strong> (envoi des e-mails ${F.accountEmails ? 'de confirmation d’adresse et de réinitialisation du mot de passe' : ''}${F.accountEmails && F.emailAlerts ? ' et ' : ''}${F.emailAlerts ? 'd’alerte' : ''})</li>`);
   if (F.whatsappAlerts) processors.push('<li><strong>Twilio</strong> et <strong>Meta (WhatsApp)</strong> (envoi des alertes WhatsApp)</li>');
   if (F.aiLetter) processors.push('<li><strong>Vercel AI Gateway</strong> et le fournisseur du modèle de langage (génération de la lettre ; les données ne servent pas à entraîner les modèles selon leurs conditions)</li>');
   processors.push('<li><strong>France Travail</strong> et <strong>Adzuna</strong> reçoivent uniquement les critères de recherche (via nos serveurs), sans donnée personnelle</li>');
@@ -253,7 +255,7 @@ function readSession() {
 }
 
 function writeSession(user) {
-  State.user = { prenom: user.prenom || '', email: user.email, createdAt: user.createdAt || State.user?.createdAt || null, savedAt: Date.now() };
+  State.user = { prenom: user.prenom || '', email: user.email, createdAt: user.createdAt || State.user?.createdAt || null, emailVerified: user.emailVerified ?? State.user?.emailVerified ?? true, savedAt: Date.now() };
   safeSet('tp_user', State.user);
 }
 
@@ -541,6 +543,8 @@ const STATIC_ROUTES = {
   '/lettre':     { page: 'lettre',   title: 'Lettre de motivation — TalentPulse', desc: 'Générez une trame de lettre de motivation à personnaliser.' },
   '/conseils':   { page: 'conseils', title: 'Conseils carrière — TalentPulse', desc: 'Conseils pour réussir votre recherche d’emploi.' },
   '/mon-espace': { page: 'profile',  title: 'Mon espace — TalentPulse', desc: 'Vos favoris, votre suivi de candidatures et votre CV, sur cet appareil.' },
+  '/nouveau-mot-de-passe': { page: 'account-link', title: 'Nouveau mot de passe — TalentPulse', desc: 'Choisissez un nouveau mot de passe pour votre compte TalentPulse.' },
+  '/verifier-email': { page: 'account-link', title: 'Confirmation de l’adresse e-mail — TalentPulse', desc: 'Confirmez votre adresse e-mail TalentPulse.' },
   '/connexion':  { page: 'login',    title: 'Connexion — TalentPulse', desc: 'Les comptes TalentPulse arrivent bientôt.' },
 };
 const PAGE_PATHS = { home: '/', jobs: null, lettre: '/lettre', conseils: '/conseils', profile: '/mon-espace', login: '/connexion' };
@@ -566,6 +570,7 @@ function handleRoute() {
   if (STATIC_ROUTES[rawPath]) {
     const r = STATIC_ROUTES[rawPath];
     updatePageMeta(r.title, r.desc, rawPath);
+    if (r.page === 'account-link') { showAccountLink(rawPath === '/verifier-email' ? 'verify' : 'reset'); return; }
     showPage(r.page);
     return;
   }
@@ -699,6 +704,7 @@ function refreshAuthUI() {
 function refreshAuthForms() {
   const enabled = FEATURES.auth;
   $('#authSoon')?.classList.toggle('hide', enabled);
+  $('#forgotWrap')?.classList.toggle('hide', !(enabled && FEATURES.accountEmails));
   ['#fsIn', '#fsUp'].forEach(sel => { const fs = $(sel); if (fs) fs.disabled = !enabled; });
 }
 
@@ -711,6 +717,7 @@ function clearAuthErr() { $('#authErr').classList.remove('show'); }
 
 function switchAuthTab(tab) {
   clearAuthErr();
+  $('.auth-tabs')?.classList.remove('hide');
   $$('.auth-tab').forEach(t => { const on = t.dataset.tab === tab; t.classList.toggle('active', on); t.setAttribute('aria-selected', on ? 'true' : 'false'); });
   $$('.auth-form').forEach(f => f.classList.remove('active'));
   $(tab === 'in' ? '#panelIn' : '#panelUp').classList.add('active');
@@ -919,6 +926,86 @@ async function doSignUp(e) {
     btn.disabled = false;
     btn.textContent = 'Créer mon compte';
   }
+}
+
+// ── Mot de passe oublié, nouveau mot de passe, vérification d'adresse ──
+function showForgot(show) {
+  clearAuthErr();
+  $('.auth-tabs').classList.toggle('hide', show);
+  $$('.auth-form').forEach(f => f.classList.remove('active'));
+  $(show ? '#panelForgot' : '#panelIn').classList.add('active');
+  $('#authTitle').textContent = show ? 'Mot de passe oublié' : 'Connexion';
+  $('#forgotOk').classList.remove('show');
+  if (show) { $('#forgotEmail').value = $('#inEmail').value; setTimeout(() => $('#forgotEmail').focus(), 30); }
+  else setTimeout(() => $('#forgotBtn').focus(), 30);
+}
+async function doForgot(e) {
+  e.preventDefault();
+  clearAuthErr();
+  const email = $('#forgotEmail').value.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return showAuthErr('Adresse e-mail invalide.');
+  const btn = $('#formForgot button[type="submit"]');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner" aria-hidden="true"></span> Envoi…';
+  try {
+    const data = await authRequest('/api/auth/forgot', { email });
+    const ok = $('#forgotOk'); ok.textContent = data.message || 'Si un compte existe, un e-mail vient d’être envoyé.'; ok.classList.add('show');
+  } catch (err) { showAuthErr(err.message || 'Envoi impossible pour le moment.'); }
+  finally { btn.disabled = false; btn.textContent = 'Recevoir le lien'; }
+}
+/** Le jeton arrive dans le fragment (#t=…) : jamais envoyé au serveur, retiré aussitôt de la barre d'adresse. */
+function takeLinkToken() {
+  const m = /[#&]t=([^&]+)/.exec(window.location.hash || '');
+  const t = m ? decodeURIComponent(m[1]) : (State.linkToken || '');
+  if (m) { State.linkToken = t; window.history.replaceState(window.history.state, '', window.location.pathname); }
+  return t;
+}
+function linkMsg(kind, msg) {
+  const ok = $('#linkOk'), err = $('#linkErr');
+  ok.classList.remove('show'); err.classList.remove('show');
+  if (!msg) return;
+  const el = kind === 'ok' ? ok : err; el.textContent = msg; el.classList.add('show');
+}
+async function showAccountLink(kind) {
+  showPage('account-link');
+  const token = takeLinkToken();
+  const form = $('#formReset');
+  $('#linkTitle').textContent = kind === 'reset' ? 'Nouveau mot de passe' : 'Confirmation de l’adresse e-mail';
+  form.classList.add('hide');
+  linkMsg();
+  await loadFeatures();
+  form.classList.toggle('hide', kind !== 'reset' || !token || !FEATURES.accountEmails);
+  if (!FEATURES.accountEmails) return linkMsg('err', 'Cette fonctionnalité n’est pas encore disponible.');
+  if (!token) return linkMsg('err', 'Lien incomplet : ouvrez directement le lien reçu par e-mail, ou demandez-en un nouveau depuis la page de connexion.');
+  if (kind === 'reset') { setTimeout(() => $('#resetPass').focus(), 50); return; }
+  linkMsg('ok', 'Vérification en cours…');
+  try {
+    const data = await authRequest('/api/auth/verify', { token });
+    State.linkToken = '';
+    if (State.user && data.user) writeSession(data.user);
+    renderAccountBox();
+    linkMsg('ok', 'Merci, votre adresse e-mail est confirmée.');
+  } catch (err) { linkMsg('err', err.message || 'Ce lien est invalide ou a expiré.'); }
+}
+async function doReset(e) {
+  e.preventDefault();
+  const p1 = $('#resetPass').value, p2 = $('#resetPass2').value;
+  if (p1.length < PASSWORD_MIN) return linkMsg('err', `Utilisez au moins ${PASSWORD_MIN} caractères.`);
+  if (p1 !== p2) return linkMsg('err', 'Les deux mots de passe ne correspondent pas.');
+  const btn = $('#formReset button[type="submit"]');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner" aria-hidden="true"></span> Enregistrement…';
+  try {
+    const data = await authRequest('/api/auth/reset', { token: State.linkToken, password: p1 });
+    State.linkToken = ''; $('#resetPass').value = ''; $('#resetPass2').value = '';
+    await afterAuth(data.user, false);
+    toast('Mot de passe modifié. Vos autres sessions ont été fermées.', 'ok');
+  } catch (err) { linkMsg('err', err.message || 'Impossible de modifier le mot de passe.'); }
+  finally { btn.disabled = false; btn.textContent = 'Enregistrer le mot de passe'; }
+}
+async function resendVerification(btn) {
+  btn.disabled = true;
+  try { await authRequest('/api/auth/resend-verification', {}); toast('E-mail de confirmation renvoyé. Pensez à vérifier vos courriers indésirables.', 'ok'); }
+  catch (err) { toast(err.message || 'Envoi impossible pour le moment.', 'err'); }
+  finally { btn.disabled = false; }
 }
 
 async function signOut() {
@@ -1686,20 +1773,30 @@ function renderSyncPill() {
   }
 }
 
+function renderVerifyBanner() {
+  const slot = $('#verifySlot');
+  if (!slot) return;
+  const u = State.user;
+  const show = !!(u && FEATURES.accountEmails && u.emailVerified === false);
+  slot.innerHTML = show ? `<div class="verify-banner" role="status">${ICONS.alert}<span><strong>Adresse e-mail à confirmer.</strong> Ouvrez le lien reçu par e-mail pour activer les alertes par e-mail et pouvoir récupérer votre compte.</span><button class="btn btn-outline btn-sm" type="button" id="resendVerifyBtn">Renvoyer l’e-mail</button></div>` : '';
+  on($('#resendVerifyBtn'), 'click', e => resendVerification(e.currentTarget));
+}
 function renderAccountBox() {
+  renderVerifyBanner();
   const box = $('#accountBox');
   if (!box) return;
   const u = State.user;
   if (u) {
     const since = u.createdAt ? new Date(u.createdAt).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) : '';
     box.innerHTML = `<h2>Mon compte</h2>
-      <div class="prof-display-row"><span class="k">E-mail</span><span class="v">${esc(u.email)}</span></div>
+      <div class="prof-display-row"><span class="k">E-mail</span><span class="v">${esc(u.email)}${FEATURES.accountEmails && u.emailVerified ? ' <span class="tag tag-ok">Confirmée</span>' : ''}</span></div>
       ${since ? `<div class="prof-display-row"><span class="k">Membre depuis</span><span class="v">${esc(since)}</span></div>` : ''}
       <div class="account-actions" style="margin-top:var(--sp-4)">
         <button class="btn btn-outline btn-block" id="signOutBtn" type="button">Se déconnecter</button>
         <button class="btn btn-danger btn-block" id="deleteAccountBtn" type="button">Supprimer mon compte</button>
       </div>`;
     on($('#signOutBtn'), 'click', signOut);
+
     on($('#deleteAccountBtn'), 'click', openDeleteAccount);
   } else if (FEATURES.auth) {
     box.innerHTML = `<h2>Synchroniser mon espace</h2>
@@ -2711,6 +2808,10 @@ function init() {
   // Auth forms
   $$('.auth-tab').forEach(t => on(t, 'click', () => switchAuthTab(t.dataset.tab)));
   on($('#formIn'), 'submit', doSignIn);
+  on($('#formForgot'), 'submit', doForgot);
+  on($('#formReset'), 'submit', doReset);
+  on($('#forgotBtn'), 'click', () => showForgot(true));
+  on($('#forgotBack'), 'click', () => showForgot(false));
   on($('#formUp'), 'submit', doSignUp);
   setupLiveValidation();
   on($('#clearDataBtn'), 'click', clearLocalData);

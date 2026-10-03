@@ -31,6 +31,14 @@
       "destination": "/index.html"
     },
     {
+      "source": "/nouveau-mot-de-passe",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/verifier-email",
+      "destination": "/index.html"
+    },
+    {
       "source": "/mentions-legales",
       "destination": "/index.html"
     },
@@ -80,6 +88,32 @@
         {
           "key": "Cache-Control",
           "value": "public, max-age=3600, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
+      "source": "/nouveau-mot-de-passe",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/verifier-email",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
         }
       ]
     }
