@@ -177,7 +177,7 @@ function privacyPolicy() {
 <h2>Vos droits</h2>
 <p>Vous disposez d’un droit d’accès, de rectification, d’effacement, de limitation, d’opposition et de portabilité.${accounts ? ' Depuis « Mon espace », vous pouvez <strong>exporter</strong> toutes vos données (JSON) et <strong>supprimer votre compte</strong> : la suppression est immédiate et définitive.' : ''} Pour toute demande : ${TODO('adresse email de contact vérifiée')}. Vous pouvez également introduire une réclamation auprès de la CNIL (cnil.fr).</p>
 <h2>Sécurité</h2>
-<p>Connexions chiffrées (HTTPS)${accounts ? ', mots de passe hachés avec Argon2id, sessions stockées sous forme d’empreinte, limitation des tentatives de connexion, protection contre les requêtes intersites (CSRF)' : ''}.</p>`;
+<p>Connexions chiffrées (HTTPS)${accounts ? ', mots de passe hachés avec Argon2id, sessions stockées sous forme d’empreinte, limitation des tentatives de connexion, protection contre les requêtes intersites (CSRF)' : ''}${accounts && F.accountEmails ? '. Les liens envoyés par e-mail sont à usage unique et stockés sous forme d’empreinte : 1\u00a0heure pour réinitialiser le mot de passe (qui ferme toutes les sessions ouvertes), 48\u00a0heures pour confirmer l’adresse ; les liens expirés sont supprimés automatiquement' : ''}.</p>`;
 }
 const LEGAL_CONTENT = {
   about: {

@@ -2,6 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import handler from '../api/seo.js';
+import { _clearCache } from '../lib/seo.js';
 import { JOBS, PLACES, isCurated, curatedPaths, slugify, nearbyPlaces, relatedJobs } from '../lib/seo-data.js';
 import '../public/assets/geo-fr.js';
 
@@ -30,6 +31,7 @@ function call(query, url = '/api/seo') {
     handler({ method: 'GET', query, url }, res);
   });
 }
+test.beforeEach(() => _clearCache());
 const meta = (html, re) => (html.match(re) || [])[1];
 
 test('page curée : title/meta/canonical uniques, H1, 1re page en HTML, fil d’Ariane JSON-LD, cache CDN, pas de JobPosting', async () => {
