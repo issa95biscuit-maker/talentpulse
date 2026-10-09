@@ -1,23 +1,101 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "outputDirectory": "public",
   "rewrites": [
-    { "source": "/offres", "destination": "/index.html" },
-    { "source": "/offres/:path*", "destination": "/index.html" },
-    { "source": "/offre/:path*", "destination": "/index.html" },
-    { "source": "/lettre", "destination": "/index.html" },
-    { "source": "/conseils", "destination": "/index.html" },
-    { "source": "/mon-espace", "destination": "/index.html" },
-    { "source": "/connexion", "destination": "/index.html" },
-    { "source": "/mentions-legales", "destination": "/index.html" },
-    { "source": "/confidentialite", "destination": "/index.html" }
+    {
+      "source": "/offres",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/offres/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/offre/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/lettre",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/conseils",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/mon-espace",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/connexion",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/mentions-legales",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/confidentialite",
+      "destination": "/index.html"
+    }
   ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "X-Frame-Options", "value": "SAMEORIGIN" }
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=(), payment=()"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'sha256-vJIZ/705q+I8pp/wtxK2pxG+oVxIDX2GiTMNCIODtRs=' https://cdn.jsdelivr.net https://vercel.live; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://cdn.jsdelivr.net https://vercel.live; worker-src 'self' blob: https://cdn.jsdelivr.net; frame-src https://vercel.live; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'"
+        }
       ]
+    },
+    {
+      "source": "/fonts/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, stale-while-revalidate=86400"
+        }
+      ]
+    }
+  ],
+  "functions": {
+    "api/cron/alerts.js": {
+      "maxDuration": 60
+    },
+    "api/lettre.js": {
+      "maxDuration": 30
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/alerts",
+      "schedule": "0 6 * * *"
     }
   ]
 }
