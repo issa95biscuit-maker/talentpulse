@@ -88,3 +88,18 @@ create table if not exists rate_limits (
 create index if not exists rate_limits_window_idx on rate_limits (window_start);
 
 insert into schema_migrations (version) values ('2026-10-03-init') on conflict do nothing;
+
+-- Sprint 4 : vérification de l'adresse e-mail et réinitialisation du mot de passe.
+alter table users add column if not exists email_verified_at timestamptz;
+-- Jetons à usage unique : seule l'empreinte SHA-256 est stockée ; le lien envoyé porte le jeton signé HMAC (AUTH_SECRET).
+create table if not exists auth_tokens (
+  id         text primary key,
+  user_id    uuid not null references users(id) on delete cascade,
+  purpose    text not null check (purpose in ('reset', 'verify')),
+  created_at timestamptz not null default now(),
+  expires_at timestamptz not null,
+  used_at    timestamptz
+);
+create index if not exists auth_tokens_user_idx on auth_tokens (user_id, purpose);
+create index if not exists auth_tokens_expires_idx on auth_tokens (expires_at);
+insert into schema_migrations (version) values ('2026-10-03-auth-tokens') on conflict do nothing;

@@ -154,6 +154,16 @@ legend{padding:0}
 .tag-ok{background:var(--ok-bg);color:var(--ok)}
 .src{display:inline-flex;align-items:center;gap:6px;font-size:var(--fs-xs);font-weight:var(--fw-semi);color:var(--text-3)}
 .src svg{width:13px;height:13px}
+.adz-attr{position:relative;z-index:2;display:inline-flex;align-items:center;gap:4px;min-height:24px;padding:0 6px 0 8px;border-radius:6px;background:#fff;color:#334155;font-size:var(--fs-xs);font-weight:var(--fw-semi);white-space:nowrap;border:1px solid var(--border)}
+.adz-attr a{display:inline-flex;align-items:center;min-height:44px;margin-block:-10px;color:#1E293B;text-decoration:underline;text-underline-offset:2px}
+.adz-attr a:first-child{padding-inline:8px;margin-inline:-8px}
+.adz-attr a.adz-logo{text-decoration:none}
+.adz-attr img{display:block;width:87px;height:23px}
+.detail-attr{margin-top:var(--sp-5);font-size:var(--fs-xs);color:var(--text-3);line-height:1.6}
+.detail-attr a{color:var(--text-2);text-decoration:underline}
+.co-logo{background:#fff;border:1px solid var(--border);padding:4px;overflow:hidden}
+.co-logo img{width:100%;height:100%;object-fit:contain;display:block}
+
 .src-ft{color:var(--ft)}.src-adz{color:var(--adz)}
 .soon-badge{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:var(--r-full);background:var(--warn-bg);color:var(--warn);font-size:.7rem;font-weight:var(--fw-bold);letter-spacing:.02em;white-space:nowrap}
 .chip{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:6px 14px;border-radius:var(--r-full);border:1px solid var(--border-strong);background:var(--surface);color:var(--text-2);font-size:var(--fs-sm);font-weight:var(--fw-medium);transition:all var(--dur-1);white-space:nowrap}
@@ -661,6 +671,35 @@ legend.filter-label+*,legend.form-label+*{clear:both}
 .auth-card{padding:var(--sp-8);background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);box-shadow:var(--sh-2)}
 .auth-title{font-size:var(--fs-xl);font-weight:var(--fw-black);margin-bottom:var(--sp-5)}
 .auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;margin-bottom:var(--sp-5);background:var(--surface-2);border-radius:var(--r-md)}
+.crumbs ol{display:flex;flex-wrap:wrap;gap:0;list-style:none;margin:calc(-1 * var(--sp-2)) 0 0;padding:0;font-size:var(--fs-sm);color:var(--text-2)}
+.crumbs li{display:inline-flex;align-items:center}
+.crumbs li+li::before{content:"›";margin:0 6px;color:var(--text-3)}
+.crumbs a{color:var(--text-2);text-decoration:underline;text-underline-offset:2px;display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px}
+.crumbs a:hover{color:var(--brand-ink)}
+.seo-intro p{max-width:72ch;margin:var(--sp-2) 0 var(--sp-4);color:var(--text-2);font-size:var(--fs-sm);line-height:1.6}
+.seo-intro strong{color:var(--text)}
+.seo-more{margin-top:var(--sp-8);padding-top:var(--sp-6);border-top:1px solid var(--border);display:grid;gap:var(--sp-4);max-width:100%}
+.seo-more h2{font-size:var(--fs-lg);font-weight:var(--fw-bold);margin-top:var(--sp-2)}
+.seo-more h3{font-size:var(--fs-sm);font-weight:var(--fw-semi);margin-bottom:var(--sp-2)}
+.seo-more>p,.seo-more>ul{max-width:75ch;color:var(--text-2);line-height:1.6}
+.seo-more>ul{padding-left:1.2em;display:grid;gap:6px}
+.seo-more strong{color:var(--text)}
+.seo-note{font-size:var(--fs-xs);color:var(--text-3)!important}
+.seo-links{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:var(--sp-5)}
+.seo-links ul{list-style:none;padding:0;margin:0;display:grid;gap:0}
+.seo-links a{display:inline-flex;align-items:center;min-height:44px;color:var(--brand-ink);font-size:var(--fs-sm);text-decoration:underline;text-underline-offset:2px}
+.link-btn{display:inline-flex;align-items:center;min-height:44px;padding:0 4px;color:var(--brand-ink);font-size:var(--fs-sm);font-weight:var(--fw-semi);text-decoration:underline;text-underline-offset:3px}
+.auth-forgot{text-align:center;margin-top:var(--sp-2)}
+.auth-sub{font-size:var(--fs-lg);font-weight:var(--fw-bold);margin-bottom:var(--sp-2)}
+.auth-help{font-size:var(--fs-sm);color:var(--text-2);margin-bottom:var(--sp-4)}
+.auth-ok{display:none;padding:var(--sp-3) var(--sp-4);border-radius:var(--r-sm);background:var(--ok-bg);color:var(--ok);font-size:var(--fs-sm);margin-bottom:var(--sp-4)}
+.auth-ok.show{display:block}
+.auth-single{grid-template-columns:minmax(0,480px)!important;justify-content:center}
+.verify-banner{margin-top:var(--sp-5);padding:var(--sp-3) var(--sp-4);border-radius:var(--r-md);background:var(--warn-bg);color:var(--text);font-size:var(--fs-sm);border:1px solid var(--border)}
+.verify-banner .i{color:var(--warn);flex:none;align-self:flex-start;margin-top:3px}
+.verify-banner span{flex:1 1 220px}
+.verify-banner{display:flex;flex-wrap:wrap;align-items:center;gap:var(--sp-3);margin-bottom:var(--sp-5)}
+.verify-banner .btn{margin-left:auto}
 .auth-tab{height:44px;border-radius:var(--r-sm);font-size:var(--fs-sm);font-weight:var(--fw-semi);color:var(--text-3)}
 .auth-tab.active{background:var(--surface);color:var(--text);box-shadow:var(--sh-1)}
 .auth-form{display:none}
@@ -711,6 +750,7 @@ legend.filter-label+*,legend.form-label+*{clear:both}
 @media(min-width:1024px){.footer-link{min-height:36px}}
 .footer-link:hover{color:#fff;text-decoration:underline}
 .footer-bottom{display:flex;flex-wrap:wrap;justify-content:space-between;gap:var(--sp-3);margin-top:var(--sp-10);padding-top:var(--sp-6);border-top:1px solid #1E293B;font-size:var(--fs-xs);color:#A3B1C6}
+.footer-inline{color:#E2E8F0;text-decoration:underline;text-underline-offset:2px}
 .site-footer :focus-visible{outline-color:#FF9A57}
 
 /* 15. EXPORT PDF / divers */
@@ -796,7 +836,7 @@ body:not(.dark) .photo-section::before{background:linear-gradient(180deg,var(--v
     <a class="nav-link" href="/offres/emploi" data-nav="jobs">Offres d’emploi</a>
     <a class="nav-link" href="/lettre" data-nav="lettre">Lettre de motivation</a>
     <a class="nav-link" href="/conseils" data-nav="conseils">Conseils</a>
-    <a class="nav-link" href="/mon-espace" data-nav="profile" data-ptab="pipeline">Mon suivi</a>
+    <a class="nav-link" href="/mon-espace" data-nav="profile">Mon espace</a>
   </div>
   <div class="nav-right">
     <button class="icon-btn" id="darkToggle" type="button" aria-label="Activer le mode sombre" aria-pressed="false">
@@ -909,7 +949,7 @@ body:not(.dark) .photo-section::before{background:linear-gradient(180deg,var(--v
       <span class="sources-label">Sources des offres</span>
       <ul class="sources-list" role="list">
         <li class="source-logo"><span class="source-mark ft" aria-hidden="true"><svg class="i"><use href="#i-landmark"/></svg></span><span class="source-txt"><b>France Travail</b><small>Service public de l’emploi, alternance incluse</small></span></li>
-        <li class="source-logo"><span class="source-mark adz" aria-hidden="true"><svg class="i"><use href="#i-globe"/></svg></span><span class="source-txt"><b>Adzuna</b><small>Annonces d’entreprises et de sites carrières</small></span></li>
+        <li class="source-logo"><span class="source-mark adz" aria-hidden="true"><svg class="i"><use href="#i-globe"/></svg></span><span class="source-txt"><b>Adzuna</b><small>Annonces d’entreprises et de sites carrières</small></span><span class="adz-attr"><a href="https://www.adzuna.fr" target="_blank" rel="noopener">Jobs</a> by <a href="https://www.adzuna.fr" target="_blank" rel="noopener" class="adz-logo"><img src="/img/adzuna-logo.png" alt="Adzuna" width="87" height="23" loading="lazy" decoding="async"></a></span></li>
       </ul>
     </div>
   </div>
@@ -946,7 +986,7 @@ body:not(.dark) .photo-section::before{background:linear-gradient(180deg,var(--v
           <li><svg class="i i-bold" aria-hidden="true"><use href="#i-check"/></svg>Score de compatibilité entre votre profil et chaque offre</li>
           <li><svg class="i i-bold" aria-hidden="true"><use href="#i-check"/></svg><span id="bandSyncLine">Données enregistrées sur votre appareil, effaçables en un clic</span></li>
         </ul>
-        <a class="btn btn-primary btn-lg" href="/mon-espace" data-nav="profile" data-ptab="pipeline">Ouvrir mon suivi</a>
+        <a class="btn btn-primary btn-lg" href="/mon-espace" data-nav="profile" data-ptab="pipeline">Ouvrir mon espace</a>
       </div>
       <div class="band-visual" aria-hidden="true">
         <div class="mini-col">
@@ -984,6 +1024,7 @@ body:not(.dark) .photo-section::before{background:linear-gradient(180deg,var(--v
   </div>
 
   <div class="jobs-page container">
+    <div id="seoCrumbs" hidden></div>
     <div class="jobs-head">
       <div>
         <h1 id="jobsHeader">Offres d’emploi</h1>
@@ -994,6 +1035,7 @@ body:not(.dark) .photo-section::before{background:linear-gradient(180deg,var(--v
         Enregistrer cette recherche
       </button>
     </div>
+    <div id="seoIntro" hidden></div>
     <div class="jobs-bar" id="jobsBar" role="group" aria-label="Type de contrat">
       <button class="chip active" type="button" data-filter="all" aria-pressed="true">Tous les contrats</button>
       <button class="chip" type="button" data-filter="CDI" aria-pressed="false">CDI</button>
@@ -1098,6 +1140,7 @@ body:not(.dark) .photo-section::before{background:linear-gradient(180deg,var(--v
         <div class="jobs-more" id="jobsMore"></div>
       </div>
     </div>
+    <div id="seoMore" hidden></div>
   </div>
 </section>
 
@@ -1170,6 +1213,7 @@ body:not(.dark) .photo-section::before{background:linear-gradient(180deg,var(--v
     </div>
   </div>
   <div class="profile-body container">
+    <div id="verifySlot"></div>
     <div class="ptabs" id="ptabs" role="tablist" aria-label="Mon espace">
       <button class="ptab active" type="button" role="tab" id="tab-infos" aria-controls="pane-infos" aria-selected="true" data-ptab="infos">Profil</button>
       <button class="ptab" type="button" role="tab" id="tab-favoris" aria-controls="pane-favoris" aria-selected="false" data-ptab="favoris">Favoris</button>
@@ -1276,6 +1320,22 @@ body:not(.dark) .photo-section::before{background:linear-gradient(180deg,var(--v
 </section>
 
 <!-- ═══ CONNEXION ═══ -->
+<section class="page" id="page-account-link" aria-labelledby="linkTitle">
+  <div class="auth-wrap auth-single">
+    <div class="auth-card">
+      <h1 class="auth-title" id="linkTitle">Nouveau mot de passe</h1>
+      <div class="auth-err" id="linkErr" role="alert"></div>
+      <div class="auth-ok" id="linkOk" role="status"></div>
+      <form id="formReset" novalidate class="hide">
+        <div class="form-group"><label class="form-label" for="resetPass">Nouveau mot de passe (10 caractères minimum)</label><div class="pw-wrap"><input class="form-input" type="password" id="resetPass" autocomplete="new-password" required minlength="10"><button class="pw-toggle" type="button" data-pw="resetPass" aria-label="Afficher le mot de passe" aria-pressed="false"><svg class="i" aria-hidden="true"><use href="#i-eye"/></svg></button></div></div>
+        <div class="form-group"><label class="form-label" for="resetPass2">Confirmez le mot de passe</label><input class="form-input" type="password" id="resetPass2" autocomplete="new-password" required minlength="10"></div>
+        <p class="auth-help">Toutes vos sessions ouvertes seront fermées, puis vous serez connecté sur cet appareil.</p>
+        <button class="btn btn-primary btn-lg auth-submit" type="submit">Enregistrer le mot de passe</button>
+      </form>
+      <p class="auth-foot" id="linkFoot"><a href="/connexion" data-nav="login">Aller à la connexion</a></p>
+    </div>
+  </div>
+</section>
 <section class="page" id="page-login" aria-labelledby="authTitle">
   <div class="auth-wrap">
     <div class="auth-aside">
@@ -1302,7 +1362,15 @@ body:not(.dark) .photo-section::before{background:linear-gradient(180deg,var(--v
           <div class="form-group"><label class="form-label" for="inEmail">Adresse e-mail</label><input class="form-input" type="email" id="inEmail" autocomplete="email" inputmode="email" required></div>
           <div class="form-group"><label class="form-label" for="inPass">Mot de passe</label><div class="pw-wrap"><input class="form-input" type="password" id="inPass" autocomplete="current-password" required><button class="pw-toggle" type="button" data-pw="inPass" aria-label="Afficher le mot de passe" aria-pressed="false"></button></div></div>
           <button class="btn btn-primary btn-lg auth-submit" type="submit">Se connecter</button>
+          <p class="auth-forgot hide" id="forgotWrap"><button type="button" class="link-btn" id="forgotBtn">Mot de passe oublié&nbsp;?</button></p>
         </fieldset>
+      </form></div>
+      <div class="auth-form" id="panelForgot"><form id="formForgot" novalidate>
+        <p class="auth-help">Indiquez l’adresse de votre compte : nous vous enverrons un lien pour choisir un nouveau mot de passe (valable 1&nbsp;heure).</p>
+        <div class="auth-ok" id="forgotOk" role="status"></div>
+        <div class="form-group"><label class="form-label" for="forgotEmail">Adresse e-mail</label><input class="form-input" type="email" id="forgotEmail" autocomplete="email" inputmode="email" required></div>
+        <button class="btn btn-primary btn-lg auth-submit" type="submit">Recevoir le lien</button>
+        <p class="auth-forgot"><button type="button" class="link-btn" id="forgotBack">Retour à la connexion</button></p>
       </form></div>
       <div class="auth-form" id="panelUp" role="tabpanel" aria-labelledby="authTabUp"><form id="formUp" novalidate>
         <fieldset id="fsUp">
@@ -1378,7 +1446,7 @@ body:not(.dark) .photo-section::before{background:linear-gradient(180deg,var(--v
     </div>
     <div class="footer-bottom">
       <span>© 2026 TalentPulse</span>
-      <span>Les annonces restent soumises aux conditions de leurs sources d’origine (France Travail, Adzuna).</span>
+      <span>Offres France Travail réutilisées selon la <a href="https://francetravail.io/produits-partages/catalogue/offres-emploi" target="_blank" rel="noopener" class="footer-inline">licence de réutilisation des offres d’emploi</a>, mises à jour en continu. Offres Adzuna : <a href="https://www.adzuna.fr" target="_blank" rel="noopener" class="footer-inline">Jobs by Adzuna</a>.</span>
     </div>
   </div>
 </footer>

@@ -65,7 +65,9 @@ test('cron : protégé par CRON_SECRET', async () => {
 
 test('cron : envoie les nouvelles offres par email et WhatsApp, sans doublon le lendemain, désabonnement', async () => {
   setEnv({ ...ENV_BASE, CRON_SECRET: 's'.repeat(24), RESEND_API_KEY: 're_test', ALERTS_FROM_EMAIL: 'TalentPulse <alertes@talentpulse.test>', TWILIO_ACCOUNT_SID: 'AC123', TWILIO_AUTH_TOKEN: 'tok', TWILIO_WHATSAPP_FROM: '+14155238886' });
+  global.fetch = async () => new Response('{"id":"em_v"}', { status: 200 }); // e-mail de vérification
   const cookie = (await call(auth, { method: 'POST', query: { action: 'register' }, body: { email: 'lea@example.fr', password: 'un-mot-de-passe-long', consent: true } })).cookie.pair;
+  await pg.query('update users set email_verified_at = now()'); // alertes e-mail : adresse vérifiée exigée
   const a = await call(me, { cookies: cookie, method: 'POST', query: { resource: 'alerts' }, body: { query: { kw: 'serveur', city: 'Lyon' }, channels: ['email', 'whatsapp'], whatsappTo: '+33612345678' } });
   await call(me, { cookies: cookie, method: 'POST', query: { resource: 'alerts' }, body: { query: { kw: 'sans canal' } } });
   const sent = [];
@@ -107,10 +109,12 @@ test('cron : envoie les nouvelles offres par email et WhatsApp, sans doublon le 
 
 test('cron : une erreur d’envoi n’interrompt pas les autres alertes', async () => {
   setEnv({ ...ENV_BASE, CRON_SECRET: 's'.repeat(24), RESEND_API_KEY: 're_test', ALERTS_FROM_EMAIL: 'a@b.fr' });
+  global.fetch = async () => new Response('{"id":"em_v"}', { status: 200 });
   for (const email of ['a@example.fr', 'b@example.fr']) {
     const c = (await call(auth, { method: 'POST', query: { action: 'register' }, body: { email, password: 'un-mot-de-passe-long', consent: true } })).cookie.pair;
     await call(me, { cookies: c, method: 'POST', query: { resource: 'alerts' }, body: { query: { kw: 'x' }, channels: ['email'] } });
   }
+  await pg.query('update users set email_verified_at = now()');
   let n = 0;
   global.fetch = async () => (++n === 1 ? new Response('quota', { status: 429 }) : new Response('{}', { status: 200 }));
   const s = await runAlerts({ search: async () => ({ body: { resultats: [{ id: 'ft_1', title: 'T', url: 'https://x.fr' }] } }) });
