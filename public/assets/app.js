@@ -45,6 +45,9 @@ const ICONS = {
   restaurant: '<svg class="i" aria-hidden="true"><use href="#i-utensils"/></svg>',
   construction: '<svg class="i" aria-hidden="true"><use href="#i-hard-hat"/></svg>',
   truck: '<svg class="i" aria-hidden="true"><use href="#i-truck"/></svg>',
+  megaphone: '<svg class="i" aria-hidden="true"><use href="#i-megaphone"/></svg>',
+  handshake: '<svg class="i" aria-hidden="true"><use href="#i-handshake"/></svg>',
+  arrowUpRight: '<svg class="i" aria-hidden="true"><use href="#i-arrow-up-right"/></svg>',
   document: '<svg class="i" aria-hidden="true"><use href="#i-file-text"/></svg>',
   message: '<svg class="i" aria-hidden="true"><use href="#i-message-square"/></svg>',
   target: '<svg class="i" aria-hidden="true"><use href="#i-target"/></svg>',
@@ -84,14 +87,14 @@ const ICONS = {
 const SVG_BOOKMARK = filled => `<svg class="i${filled ? ' i-fill' : ''}" aria-hidden="true"><use href="#i-bookmark"/></svg>`;
 const icon = (name, cls = 'ui-icon') => `<span class="${cls}" aria-hidden="true">${ICONS[name] || ICONS.briefcase}</span>`;
 const CATEGORIES = [
-  { icon: 'code', name: 'Tech & IT', q: 'développeur', sub: 'Développeur, data, support' },
-  { icon: 'chart', name: 'Marketing', q: 'marketing', sub: 'Digital, communication' },
-  { icon: 'briefcase', name: 'Commercial', q: 'commercial', sub: 'Vente, relation client' },
-  { icon: 'health', name: 'Santé', q: 'infirmier', sub: 'Infirmier, aide-soignant' },
-  { icon: 'education', name: 'Éducation', q: 'enseignant', sub: 'Enseignement, animation' },
-  { icon: 'restaurant', name: 'Restauration', q: 'serveur', sub: 'Salle, cuisine, hôtellerie' },
-  { icon: 'construction', name: 'BTP', q: 'BTP', sub: 'Chantier, artisanat' },
-  { icon: 'truck', name: 'Logistique', q: 'logistique', sub: 'Entrepôt, transport' },
+  { icon: 'code', img: 'tech', name: 'Tech & IT', q: 'développeur', sub: 'Développeur, data, support' },
+  { icon: 'megaphone', img: 'marketing', name: 'Marketing', q: 'marketing', sub: 'Digital, communication' },
+  { icon: 'handshake', img: 'commercial', name: 'Commercial', q: 'commercial', sub: 'Vente, relation client' },
+  { icon: 'health', img: 'sante', name: 'Santé', q: 'infirmier', sub: 'Infirmier, aide-soignant' },
+  { icon: 'education', img: 'education', name: 'Éducation', q: 'enseignant', sub: 'Enseignement, animation' },
+  { icon: 'restaurant', img: 'restauration', name: 'Restauration', q: 'serveur', sub: 'Salle, cuisine, hôtellerie' },
+  { icon: 'construction', img: 'btp', name: 'BTP', q: 'BTP', sub: 'Chantier, artisanat' },
+  { icon: 'truck', img: 'logistique', name: 'Logistique', q: 'logistique', sub: 'Entrepôt, transport' },
 ];
 const CONSEILS = [
   { icon: 'document', title: 'Rédiger un CV percutant', body: 'Mettez en avant vos résultats chiffrés. Adaptez votre CV à chaque offre. Utilisez des verbes d\'action.' },
@@ -1725,14 +1728,18 @@ function renderConseils() {
 
 // ─── 10. CATEGORIES (home) ────────────────────────────────────────
 let catsRendered = false;
+// Photo métier (StockSnap, CC0 : voir /img/CREDITS.md) : AVIF puis WebP, 360/640 px, chargement différé
+const catPhoto = n => `<picture class="cat-photo" aria-hidden="true"><source type="image/avif" srcset="/img/metier-${n}-360.avif 360w, /img/metier-${n}-640.avif 640w" sizes="(min-width: 1200px) 270px, (min-width: 768px) 23vw, 46vw"><source type="image/webp" srcset="/img/metier-${n}-360.webp 360w, /img/metier-${n}-640.webp 640w" sizes="(min-width: 1200px) 270px, (min-width: 768px) 23vw, 46vw"><img src="/img/metier-${n}-360.webp" alt="" width="640" height="800" loading="lazy" decoding="async"></picture>`;
 function renderCategories() {
   if (catsRendered) return;
   catsRendered = true;
   $('#categoriesGrid').innerHTML = CATEGORIES.map(c => `
     <a class="cat-card" href="${searchPath({ kw: c.q })}" data-q="${esc(c.q)}">
-      <div class="cat-icon" aria-hidden="true">${ICONS[c.icon]}</div>
-      <div class="cat-name">${esc(c.name)}</div>
-      <div class="cat-count">${esc(c.sub)}</div>
+      ${catPhoto(c.img)}
+      <span class="cat-go" aria-hidden="true">${ICONS.arrowUpRight}</span>
+      <span class="cat-icon" aria-hidden="true">${ICONS[c.icon]}</span>
+      <span class="cat-name">${esc(c.name)}</span>
+      <span class="cat-count">${esc(c.sub)}</span>
     </a>`).join('');
   $$('#categoriesGrid .cat-card').forEach(el => on(el, 'click', e => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
