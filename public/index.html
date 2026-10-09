@@ -833,10 +833,11 @@ body:not(.dark) .photo-section::before{background:linear-gradient(180deg,var(--v
 /* Hero : Paris à l'heure bleue, voile dégradé, vignettage, lent travelling avant */
 .hero.cine{background:#05070D;padding:clamp(64px,11vh,128px) 0 clamp(56px,9vh,104px)}
 .hero.cine::before{background:
-  linear-gradient(180deg,rgba(5,7,13,.72) 0%,rgba(5,7,13,.5) 34%,rgba(5,7,13,.62) 62%,rgba(5,7,13,.9) 88%,#05070D 100%),
+  linear-gradient(180deg,rgba(5,7,13,.7) 0%,rgba(5,7,13,.42) 32%,rgba(5,7,13,.5) 60%,rgba(5,7,13,.86) 88%,#05070D 100%),
   radial-gradient(1100px 420px at 50% 112%,rgba(255,106,0,.16),transparent 62%)!important}
 .hero.cine::after{opacity:1;background:radial-gradient(ellipse 120% 90% at 50% 40%,transparent 55%,rgba(0,0,0,.55) 100%);-webkit-mask-image:none;mask-image:none}
-.hero.cine .hero-photo img{object-position:50% 62%;filter:saturate(.9) contrast(1.04);opacity:.72;transform-origin:50% 70%;animation:tp-dolly 26s cubic-bezier(.22,.61,.36,1) both}
+.hero.cine .hero-photo img{object-position:50% 62%;filter:saturate(.95) contrast(1.06);opacity:.85;transform-origin:50% 70%;animation:tp-dolly 26s cubic-bezier(.22,.61,.36,1) both}
+@media(max-width:767px){.hero.cine .hero-photo img{object-position:46% 78%}}
 @keyframes tp-dolly{from{transform:scale(1.09)}to{transform:scale(1)}}
 .hero.cine .hero-badge{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.14);color:var(--text-2);box-shadow:none;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .hero.cine .hero-title{color:#fff;font-size:clamp(2.25rem,1.3rem + 3.8vw,4.25rem);font-weight:700;letter-spacing:-.045em;line-height:1.04;max-width:16ch;text-shadow:0 2px 30px rgba(0,0,0,.35)}
