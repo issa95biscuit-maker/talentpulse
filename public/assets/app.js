@@ -1430,6 +1430,12 @@ function bindJobCards(root, { onSave } = {}) {
     if (onSave) onSave();
   }));
   $$('.share-btn', root).forEach(el => on(el, 'click', e => { e.stopPropagation(); shareJob(el.dataset.share); }));
+  $$('.job-apply', root).forEach(el => on(el, 'click', e => {
+    e.stopPropagation();
+    const job = findJob(el.dataset.apply);
+    if (job) rememberJob(job);
+    openApply(el.dataset.apply);
+  }));
 }
 
 function renderLoadMore(shown) {
@@ -1481,7 +1487,10 @@ function jobCard(j) {
         ${j.source === 'Adzuna' ? adzunaAttribution() : j.source ? `<span class="src ${sourceClass(j.source)}">${sourceIcon(j.source)}${esc(j.source)}</span>` : ''}
         ${when ? `<span class="job-time${fresh ? ' fresh' : ''}">${fresh ? '<span class="fresh-dot" aria-hidden="true"></span>Nouveau · ' : ''}${esc(when)}</span>` : ''}
       </div>
-      ${State.applications[j.id] ? `<span class="tracked-badge">${ICONS.check}${State.applications[j.id].status === 'sent' ? 'Candidature envoyée' : 'Candidature prête'}</span>` : tracked ? `<span class="tracked-badge">${ICONS.check}Suivie</span>` : viewed ? '<span>Déjà consultée</span>' : ''}
+      <div class="job-foot-right">
+        ${State.applications[j.id] ? `<span class="tracked-badge">${ICONS.check}${State.applications[j.id].status === 'sent' ? 'Envoyée' : 'Prête'}</span>` : tracked ? `<span class="tracked-badge">${ICONS.check}Suivie</span>` : viewed ? '<span class="job-viewed">Consultée</span>' : ''}
+        <button class="btn btn-primary btn-sm job-apply" type="button" data-apply="${esc(j.id)}" aria-haspopup="dialog" aria-label="${State.applications[j.id] ? 'Voir ma candidature' : 'Postuler'} : ${esc(j.title)}">${State.applications[j.id] ? 'Ma candidature' : `${icon('send')}Postuler`}</button>
+      </div>
     </div>
   </article>`;
 }
