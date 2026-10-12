@@ -68,3 +68,14 @@ test('recherche : ville -> INSEE, Adzuna localisé, dédoublonnage, salaires, pa
   r = await call({ debug: '1' });
   ok(JSON.stringify(r.body).indexOf('x') === -1 || r.body.env.FT_CLIENT_ID === true, 'debug sans fuite de valeur');
 });
+
+test('Adzuna : arrondissement seul reconstruit avec la ville', async () => {
+  const { _test } = await import('../lib/jobs.js');
+  const base = { id: 1, title: 'Serveur', redirect_url: 'https://www.adzuna.fr/x' };
+  const c = loc => _test.mapAdzuna({ ...base, location: loc }).city;
+  assert.equal(c({ display_name: '1er-Arrondissement, Lyon, Rhône' }), 'Lyon 1er');
+  assert.equal(c({ display_name: '15e Arrondissement, Paris' }), 'Paris 15e');
+  assert.equal(c({ display_name: '1er-Arrondissement', area: ['France', 'Auvergne-Rhône-Alpes', 'Rhône', 'Lyon', '1er-Arrondissement'] }), 'Lyon 1er');
+  assert.equal(c({ display_name: 'Villeurbanne, Rhône' }), 'Villeurbanne');
+  assert.equal(c({}), 'France');
+});

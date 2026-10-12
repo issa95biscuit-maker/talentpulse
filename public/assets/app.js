@@ -22,6 +22,8 @@ const SITE = 'https://talentpulse-topaz.vercel.app';
 // Drapeaux de fonctionnalités : tout est désactivé par défaut, puis lu sur /api/health.
 // Chaque fonctionnalité s'active côté serveur uniquement si ses variables d'environnement existent :
 // sans clés, le site fonctionne exactement comme avant (tout en local).
+// Informations légales de l'éditeur (variables LEGAL_* / CONTACT_EMAIL côté Vercel, lues sur /api/health)
+const LEGAL = {};
 const FEATURES = { auth: false, sync: false, savedSearches: false, aiLetter: false, emailAlerts: false, whatsappAlerts: false, accountEmails: false };
 let featuresPromise = null;
 function loadFeatures() { return (featuresPromise ||= fetchFeatures()); }
@@ -34,6 +36,7 @@ async function fetchFeatures() {
     if (!res.ok) return;
     const data = await res.json();
     if (data && data.features) Object.keys(FEATURES).forEach(k => { FEATURES[k] = data.features[k] === true; });
+    if (data && data.legal && typeof data.legal === 'object') Object.entries(data.legal).forEach(([k, v]) => { if (typeof v === 'string' && v.trim()) LEGAL[k] = v.trim(); });
   } catch { /* hors ligne / endpoint absent : mode local */ }
 }
 const ICONS = {
@@ -105,18 +108,22 @@ const CONSEILS = [
   { icon: 'wellbeing', title: 'Gérer son stress', body: 'Pratiquez la respiration. Préparez-vous bien. Acceptez les refus comme un apprentissage.' },
 ];
 const TODO = t => `<span class="todo">[À COMPLÉTER : ${t}]</span>`;
+// Valeur légale renseignée (échappée) ou marqueur visible tant que l'éditeur ne l'a pas fournie
+const LV = (k, t) => (LEGAL[k] ? esc(LEGAL[k]) : TODO(t));
+const contactMail = () => (LEGAL.contactEmail ? `<a href="mailto:${esc(LEGAL.contactEmail)}" style="text-decoration:underline">${esc(LEGAL.contactEmail)}</a>` : TODO('adresse email de contact vérifiée'));
+const isParticulier = () => /particulier|non professionnel/i.test(LEGAL.status || '');
 const LEGAL_PAGES = {
   '/mentions-legales': {
     title: 'Mentions légales',
     description: 'Mentions légales du site TalentPulse : éditeur, hébergeur et contact.',
-    body: `<h1 id="legalPageTitle">Mentions légales</h1>
+    body: () => `<h1 id="legalPageTitle">Mentions légales</h1>
 <h2>Éditeur du site</h2>
-<p>Le site TalentPulse (talentpulse-topaz.vercel.app) est édité par ${TODO('nom et prénom de l’éditeur ou raison sociale')}, ${TODO('statut : particulier, micro-entreprise, SAS…')}.</p>
+<p>Le site TalentPulse (talentpulse-topaz.vercel.app) est édité par ${LV('editor', 'nom et prénom de l’éditeur ou raison sociale')}, ${LV('status', 'statut : particulier, micro-entreprise, SAS…')}.</p>
 <ul>
-<li>Adresse : ${TODO('adresse postale')}</li>
-<li>SIREN / RCS : ${TODO('numéro, si société ou entrepreneur')}</li>
-<li>Email : ${TODO('adresse email de contact vérifiée')}</li>
-<li>Directeur de la publication : ${TODO('nom du directeur de la publication')}</li>
+${isParticulier() && !LEGAL.address ? '<li>Adresse : conservée par l’hébergeur, conformément à l’article 6-III-2 de la loi n° 2004-575 du 21 juin 2004 (LCEN) pour les éditeurs non professionnels</li>' : `<li>Adresse : ${LV('address', 'adresse postale')}</li>`}
+${isParticulier() && !LEGAL.siren ? '' : `<li>SIREN / RCS : ${LV('siren', 'numéro, si société ou entrepreneur')}</li>`}
+<li>Email : ${contactMail()}</li>
+<li>Directeur de la publication : ${LV('director', 'nom du directeur de la publication')}</li>
 </ul>
 <h2>Hébergeur</h2>
 <p>Vercel Inc., 440 N Barranca Ave #4133, Covina, CA 91723, États-Unis — <a href="https://vercel.com" rel="noopener" target="_blank" style="text-decoration:underline">vercel.com</a>.</p>
@@ -127,9 +134,9 @@ const LEGAL_PAGES = {
 <p>Traitements appliqués, sans modifier le fond des annonces : intitulés et noms d’entreprise écrits en MAJUSCULES remis en casse normale, mention « (H/F) » dédoublonnée, libellés de lieu harmonisés (« Lyon 05 » → « Lyon 5e »), libellés d’expérience reformulés (« 2 An(s) » → « 2 ans d’expérience »), salaires convertis dans un format lisible, et suppression des doublons (même intitulé, même entreprise, même ville) entre les deux sources.</p>
 <h2>Propriété intellectuelle</h2>
 <p>La marque, le logo et l’interface TalentPulse sont la propriété de l’éditeur. Toute reproduction sans autorisation est interdite. France Travail et Adzuna sont des marques de leurs titulaires respectifs ; elles sont citées uniquement pour indiquer la source des annonces.</p>
-<h2>Crédits</h2>
+<h2 id="credits">Crédits</h2>
 <ul>
-<li>Photographies : Alex Kotliarskyi, Negley Stockman et Centre for Ageing Better, via <a href="https://unsplash.com/license" rel="noopener" target="_blank" style="text-decoration:underline">Unsplash</a> (licence Unsplash).</li>
+<li>Photographies d’ambiance : Negley Stockman et Centre for Ageing Better via <a href="https://unsplash.com/license" rel="noopener" target="_blank" style="text-decoration:underline">Unsplash</a> (licence Unsplash) ; Joe deSousa, Christina Morillo, Startup Stock Photos, Burst, Direct Media, Janko Ferlic, Michael Browning, Leeroy et Seb Creativo via <a href="https://stocksnap.io/license" rel="noopener" target="_blank" style="text-decoration:underline">StockSnap</a> (CC0).</li>
 <li>Icônes : <a href="https://lucide.dev" rel="noopener" target="_blank" style="text-decoration:underline">Lucide</a> (licence ISC).</li>
 <li>Données géographiques : <a href="https://geo.api.gouv.fr" rel="noopener" target="_blank" style="text-decoration:underline">API Découpage administratif</a> (geo.api.gouv.fr, Licence Ouverte Etalab).</li>
 </ul>`
@@ -166,7 +173,7 @@ function privacyPolicy() {
 <h2>En résumé</h2>
 <p>TalentPulse fonctionne <strong>sans compte</strong> : vos données restent alors dans votre navigateur.${accounts ? ' Si vous créez un compte (facultatif), nous conservons le strict nécessaire pour synchroniser votre espace entre vos appareils.' : ''} Nous ne déposons <strong>aucun cookie publicitaire ni de mesure d’audience</strong>${accounts ? ' ; le seul cookie est un cookie de session technique, strictement nécessaire, déposé lorsque vous vous connectez' : ''}.</p>
 <h2>Responsable du traitement</h2>
-<p>${TODO('nom ou raison sociale de l’éditeur, adresse')} — contact : ${TODO('adresse email de contact vérifiée')}.</p>
+<p>${LV('editor', 'nom ou raison sociale de l’éditeur')} — contact : ${contactMail()}.</p>
 <h2>Données traitées</h2>
 <div class="table-wrap" tabindex="0" role="region" aria-label="Tableau des traitements"><table><thead><tr><th scope="col">Finalité</th><th scope="col">Données</th><th scope="col">Base légale</th><th scope="col">Durée</th></tr></thead>
 <tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
@@ -178,7 +185,7 @@ function privacyPolicy() {
 <h2>Liens vers les sites d’origine</h2>
 <p>Lorsque vous cliquez sur « Voir l’offre », vous quittez TalentPulse pour le site de la source (France Travail, Adzuna ou un partenaire). Leur propre politique de confidentialité s’applique alors.</p>
 <h2>Vos droits</h2>
-<p>Vous disposez d’un droit d’accès, de rectification, d’effacement, de limitation, d’opposition et de portabilité.${accounts ? ' Depuis « Mon espace », vous pouvez <strong>exporter</strong> toutes vos données (JSON) et <strong>supprimer votre compte</strong> : la suppression est immédiate et définitive.' : ''} Pour toute demande : ${TODO('adresse email de contact vérifiée')}. Vous pouvez également introduire une réclamation auprès de la CNIL (cnil.fr).</p>
+<p>Vous disposez d’un droit d’accès, de rectification, d’effacement, de limitation, d’opposition et de portabilité.${accounts ? ' Depuis « Mon espace », vous pouvez <strong>exporter</strong> toutes vos données (JSON) et <strong>supprimer votre compte</strong> : la suppression est immédiate et définitive.' : ''} Pour toute demande : ${contactMail()}. Vous pouvez également introduire une réclamation auprès de la CNIL (cnil.fr).</p>
 <h2>Sécurité</h2>
 <p>Connexions chiffrées (HTTPS)${accounts ? ', mots de passe hachés avec Argon2id, sessions stockées sous forme d’empreinte, limitation des tentatives de connexion, protection contre les requêtes intersites (CSRF)' : ''}${accounts && F.accountEmails ? '. Les liens envoyés par e-mail sont à usage unique et stockés sous forme d’empreinte : 1\u00a0heure pour réinitialiser le mot de passe (qui ferme toutes les sessions ouvertes), 48\u00a0heures pour confirmer l’adresse ; les liens expirés sont supprimés automatiquement' : ''}.</p>`;
 }
@@ -193,7 +200,7 @@ const LEGAL_CONTENT = {
   },
   contact: {
     title: 'Contact',
-    body: `<p>Une question, une suggestion ou un problème technique ?</p><p><strong>Email :</strong> ${TODO('adresse email de contact vérifiée')}</p><p>Pour une question sur une offre, contactez directement l’employeur ou la source indiquée dans l’annonce.</p>`
+    body: () => `<p>Une question, une suggestion ou un problème technique ?</p><p><strong>Email :</strong> ${contactMail()}</p><p>Pour une question sur une offre, contactez directement l’employeur ou la source indiquée dans l’annonce.</p>`
   }
 };
 // ─── 2. STATE ─────────────────────────────────────────────────────
@@ -680,6 +687,7 @@ function showLegalPage(path) {
   $('#legalPage').innerHTML = frTypo(typeof c.body === 'function' ? c.body() : c.body);
   updatePageMeta(c.title + ' — TalentPulse', c.description, path);
   showPage('legal');
+  if (window.location.hash === '#credits') setTimeout(() => document.getElementById('credits')?.scrollIntoView(), 50);
 }
 
 /** showPage(name, { load }) — load:false quand une recherche va être lancée juste après (évite la course). */
@@ -1986,7 +1994,7 @@ function openLegalModal(title, html) {
 function openLegal(key) {
   const c = LEGAL_CONTENT[key];
   if (!c) return;
-  openLegalModal(c.title, c.body);
+  openLegalModal(c.title, typeof c.body === 'function' ? c.body() : c.body);
 }
 function closeModal(id) {
   $('#' + id).classList.remove('open');
