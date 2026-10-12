@@ -129,9 +129,9 @@ ${isParticulier() && !LEGAL.siren ? '' : `<li>SIREN / RCS : ${LV('siren', 'numé
 <h2>Hébergeur</h2>
 <p>Vercel Inc., 440 N Barranca Ave #4133, Covina, CA 91723, États-Unis — <a href="https://vercel.com" rel="noopener" target="_blank" style="text-decoration:underline">vercel.com</a>.</p>
 <h2>Sources des offres</h2>
-<p>Les offres d’emploi affichées proviennent de l’API Offres d’emploi de France Travail et de l’API Adzuna. Elles restent la propriété et la responsabilité de leurs émetteurs. TalentPulse n’est pas l’employeur. Il ne transmet une candidature que sur demande expresse du candidat, uniquement à l’adresse e-mail publiée dans une offre France Travail ; sinon, vous postulez sur le site d’origine de chaque annonce.</p>
+<p>Les offres d’emploi affichées proviennent de l’API Offres d’emploi de France Travail, de l’API Adzuna et des données ouvertes « Choisir le Service Public » (fonction publique). Elles restent la propriété et la responsabilité de leurs émetteurs. TalentPulse n’est pas l’employeur. Il ne transmet une candidature que sur demande expresse du candidat, uniquement à l’adresse e-mail publiée dans une offre France Travail ; sinon, vous postulez sur le site d’origine de chaque annonce.</p>
 <h2>Réutilisation des offres et traitements appliqués</h2>
-<p>Les offres France Travail proviennent de l’API Offres d’emploi et sont réutilisées conformément à la <a href="https://francetravail.io/produits-partages/catalogue/offres-emploi" rel="noopener" target="_blank" style="text-decoration:underline">licence de réutilisation des offres d’emploi de France Travail</a>. Elles sont interrogées en temps réel à chaque recherche ; la date de publication et de dernière mise à jour figure sur chaque offre. Les offres Adzuna sont affichées avec la mention « Jobs by Adzuna » exigée par les <a href="https://developer.adzuna.com/docs/terms_of_service" rel="noopener" target="_blank" style="text-decoration:underline">conditions de l’API Adzuna</a>.</p>
+<p>Les offres France Travail proviennent de l’API Offres d’emploi et sont réutilisées conformément à la <a href="https://francetravail.io/produits-partages/catalogue/offres-emploi" rel="noopener" target="_blank" style="text-decoration:underline">licence de réutilisation des offres d’emploi de France Travail</a>. Elles sont interrogées en temps réel à chaque recherche ; la date de publication et de dernière mise à jour figure sur chaque offre. Les offres de la fonction publique proviennent du jeu de données « Les offres diffusées sur Choisir le Service Public » (Direction générale de l’administration et de la fonction publique), publié sur <a href="https://www.data.gouv.fr/datasets/les-offres-diffusees-sur-choisir-le-service-public" rel="noopener" target="_blank" style="text-decoration:underline">data.gouv.fr</a> sous Licence Ouverte 2.0, actualisé chaque semaine ; la date d’extraction figure dans les données. Les offres Adzuna sont affichées avec la mention « Jobs by Adzuna » exigée par les <a href="https://developer.adzuna.com/docs/terms_of_service" rel="noopener" target="_blank" style="text-decoration:underline">conditions de l’API Adzuna</a>.</p>
 <p>Traitements appliqués, sans modifier le fond des annonces : intitulés et noms d’entreprise écrits en MAJUSCULES remis en casse normale, mention « (H/F) » dédoublonnée, libellés de lieu harmonisés (« Lyon 05 » → « Lyon 5e »), libellés d’expérience reformulés (« 2 An(s) » → « 2 ans d’expérience »), salaires convertis dans un format lisible, et suppression des doublons (même intitulé, même entreprise, même ville) entre les deux sources.</p>
 <h2>Propriété intellectuelle</h2>
 <p>La marque, le logo et l’interface TalentPulse sont la propriété de l’éditeur. Toute reproduction sans autorisation est interdite. France Travail et Adzuna sont des marques de leurs titulaires respectifs ; elles sont citées uniquement pour indiquer la source des annonces.</p>
@@ -195,11 +195,11 @@ function privacyPolicy() {
 const LEGAL_CONTENT = {
   about: {
     title: 'À propos de TalentPulse',
-    body: '<p>TalentPulse est un agrégateur gratuit : il rassemble en une seule recherche les offres de France Travail et d’Adzuna, supprime les doublons et affiche un lien direct vers l’annonce d’origine.</p><p>TalentPulse n’est pas l’employeur des offres affichées et ne transmet pas de candidature. Les informations peuvent évoluer ou disparaître selon les sources d’origine.</p>'
+    body: '<p>TalentPulse est un agrégateur gratuit : il rassemble en une seule recherche les offres de France Travail, d’Adzuna et de la fonction publique (Choisir le Service Public), supprime les doublons et affiche un lien direct vers l’annonce d’origine.</p><p>TalentPulse n’est pas l’employeur des offres affichées et ne transmet pas de candidature. Les informations peuvent évoluer ou disparaître selon les sources d’origine.</p>'
   },
   cgu: {
     title: 'Conditions Générales d’Utilisation',
-    body: '<h4>1. Objet</h4><p>Les présentes conditions encadrent l’utilisation du service gratuit TalentPulse.</p><h4>2. Offres tierces</h4><p>TalentPulse affiche des annonces provenant de France Travail et d’Adzuna. Leur contenu, leur disponibilité et les modalités de candidature relèvent de leurs sources d’origine.</p><h4>3. Candidatures</h4><p>TalentPulse ne transmet aucune candidature. « Postuler » prépare votre candidature (coordonnées, lettre, CV) et l’ajoute à votre suivi, enregistré sur votre appareil ou dans votre compte. Lorsque l’offre France Travail publie une adresse e-mail de candidature et que vous le demandez expressément, TalentPulse envoie votre lettre et votre CV à cette adresse, en votre nom, avec votre e-mail en adresse de réponse. Dans tous les autres cas, l’envoi final se fait sur le site d’origine ou depuis votre messagerie : TalentPulse n’indique jamais qu’une candidature a été transmise si elle ne l’a pas été. TalentPulse n’est ni l’employeur ni un intermédiaire de recrutement.</p><h4>4. Données</h4><p>Voir la <a href="/confidentialite" data-route="/confidentialite" style="text-decoration:underline">politique de confidentialité</a>.</p>'
+    body: '<h4>1. Objet</h4><p>Les présentes conditions encadrent l’utilisation du service gratuit TalentPulse.</p><h4>2. Offres tierces</h4><p>TalentPulse affiche des annonces provenant de France Travail, d’Adzuna et de Choisir le Service Public. Leur contenu, leur disponibilité et les modalités de candidature relèvent de leurs sources d’origine.</p><h4>3. Candidatures</h4><p>TalentPulse ne transmet aucune candidature. « Postuler » prépare votre candidature (coordonnées, lettre, CV) et l’ajoute à votre suivi, enregistré sur votre appareil ou dans votre compte. Lorsque l’offre France Travail publie une adresse e-mail de candidature et que vous le demandez expressément, TalentPulse envoie votre lettre et votre CV à cette adresse, en votre nom, avec votre e-mail en adresse de réponse. Dans tous les autres cas, l’envoi final se fait sur le site d’origine ou depuis votre messagerie : TalentPulse n’indique jamais qu’une candidature a été transmise si elle ne l’a pas été. TalentPulse n’est ni l’employeur ni un intermédiaire de recrutement.</p><h4>4. Données</h4><p>Voir la <a href="/confidentialite" data-route="/confidentialite" style="text-decoration:underline">politique de confidentialité</a>.</p>'
   },
   contact: {
     title: 'Contact',
@@ -346,7 +346,7 @@ function jobSnapshot(j) {
   const url = /^https?:\/\//i.test(j.url || '') ? clip(j.url, 1000) : '';
   return { title: clip(j.title, 200), company: clip(j.company, 160), city: clip(j.city, 160), contract: clip(j.contract, 40), salary: clip(j.salary, 80), source: clip(j.source, 40), sourceSite: clip(j.sourceSite, 80), posted: clip(j.posted, 40), url };
 }
-const validJobId = id => /^(ft|adz|lba)_[A-Za-z0-9._-]+$/.test(id || '') && id.length <= 80;
+const validJobId = id => /^(ft|adz|lba|csp|cj|jb|emp)_[A-Za-z0-9._-]+$/.test(id || '') && id.length <= 80;
 function profilePayload() {
   const p = State.profile || {};
   return { prenom: clip(p.prenom, 60), nom: clip(p.nom, 60), title: clip(p.title, 120), city: clip(p.city, 80), skills: clip(p.skills, 1000), contract: clip(p.contract, 40) };
@@ -458,7 +458,8 @@ const $ = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
 const on = (el, evt, fn) => el && el.addEventListener(evt, fn);
 function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
-function sourceClass(s) { return s === 'France Travail' ? 'src-ft' : s === 'Adzuna' ? 'src-adz' : ''; }
+function sourceClass(s) { return s === 'France Travail' ? 'src-ft' : s === 'Adzuna' ? 'src-adz' : s === 'Choisir le Service Public' ? 'src-csp' : ''; }
+const CSP_DATA_URL = 'https://www.data.gouv.fr/datasets/les-offres-diffusees-sur-choisir-le-service-public';
 const FT_LICENCE_URL = 'https://francetravail.io/produits-partages/catalogue/offres-emploi';
 const fmtDate = d => (d && !isNaN(new Date(d)) ? new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '');
 /** Mention exigée par les conditions de l'API Adzuna : « Jobs by Adzuna », « Jobs » et le logo liés à adzuna.fr */
@@ -658,7 +659,7 @@ function hydrateSsr(rawPath) {
   renderJobs();
   bindNavLinks($('#page-jobs'));
   const seq = jobsRequestSeq;
-  const qs = buildJobsQuery(State.lastSearch, 1); qs.set('source', 'adzuna');
+  const qs = buildJobsQuery(State.lastSearch, 1); qs.set('source', 'adzuna,csp');
   apiFetch(`${API}?${qs}`, { timeout: 15000 }).then(data => {
     if (seq !== jobsRequestSeq || !data || !Array.isArray(data.resultats)) return; // une autre recherche a pris le relais
     const known = new Set(State.jobs.map(j => j.id));
@@ -1344,6 +1345,8 @@ function parseAggregatedJob(j) {
     source: j.source || '',
     sourceSite: j.sourceSite || j.source || '',
     otherLocations: j.otherLocations || 0,
+    publicSector: !!j.publicSector,
+    categoriePublique: j.categoriePublique || '',
     cat: j.cat || '',
     applyEmail: /^[^\s@<>"]+@[^\s@<>"]+\.[a-z]{2,24}$/i.test(j.applyEmail || '') ? j.applyEmail : '',
     applyUrl: /^https?:\/\//i.test(j.applyUrl || '') ? j.applyUrl : ''
@@ -1456,6 +1459,16 @@ function companyLabel(j) {
   return j.company ? esc(j.company) : '<span class="muted">Entreprise non communiquée</span>';
 }
 
+/** « 1 868 – 2 500 €/mois » → { amount: '1 868 – 2 500 €', unit: '/mois', note } (affichage façon montant bancaire) */
+function salaryParts(label) {
+  const s = String(label || '').trim();
+  const m = s.match(/^(.*?\d[\d\s  ,.]*(?:\s*[–-]\s*[\d\s  ,.]+)?)\s*(k?€)\s*(\/\s*[a-zé]+)?(.*)$/i);
+  if (!m) return { amount: s, unit: '', note: '' };
+  return { amount: `${m[1].trim()} ${m[2]}`, unit: (m[3] || '').replace(/\s+/g, ''), note: (m[4] || '').replace(/^[\s,·(-]+|[\s)]+$/g, '') };
+}
+const SOURCE_SHORT = { 'Choisir le Service Public': 'Service public' };
+const CONTRACT_TONE = { CDI: 'c-cdi', CDD: 'c-cdd', 'Intérim': 'c-int', Interim: 'c-int', Alternance: 'c-alt', Stage: 'c-alt' };
+
 function jobCard(j) {
   const saved = State.saved.has(j.id);
   const tracked = State.applied.has(j.id);
@@ -1464,33 +1477,37 @@ function jobCard(j) {
   const when = relativeDate(j.posted);
   const name = j.company || j.title || '?';
   const fresh = when === "Aujourd'hui" || when === 'Il y a 1 jour';
-  return `<article class="job${viewed ? ' viewed' : ''}" data-id="${esc(j.id)}">
-    ${avatarHtml(j, name)}
-    <div class="job-main">
-      <h2 class="job-title"><a class="job-link" href="/offre/${encodeURIComponent(j.id)}" data-id="${esc(j.id)}">${esc(j.title)}</a></h2>
-      <div class="job-co"><span>${companyLabel(j)}</span>${loc ? `<span class="sep" aria-hidden="true">•</span><span class="job-loc">${ICONS.location}${esc(loc)}</span>` : ''}</div>
+  const sal = j.salary ? salaryParts(j.salary) : null;
+  const app = State.applications[j.id];
+  const status = app ? `<span class="tracked-badge">${ICONS.check}${app.status === 'sent' ? 'Envoyée' : 'Prête'}</span>` : tracked ? `<span class="tracked-badge">${ICONS.check}Suivie</span>` : viewed ? '<span class="job-viewed">Consultée</span>' : '';
+  const pills = [
+    j.contract ? `<span class="pill pill-contract ${CONTRACT_TONE[j.contract] || ''}">${esc(j.contract)}</span>` : '',
+    j.publicSector && j.categoriePublique ? `<span class="pill">Catégorie ${esc(j.categoriePublique)}</span>` : '',
+    j.experience ? `<span class="pill">${esc(j.experience)}</span>` : '',
+    j.tempsPlein === 'Temps partiel' ? '<span class="pill">Temps partiel</span>' : '',
+    j.applyEmail ? `<span class="pill pill-ok">${icon('mail')}Candidature par e-mail</span>` : '',
+    j.otherLocations ? `<span class="pill">+${j.otherLocations} lieu${j.otherLocations > 1 ? 'x' : ''}</span>` : '',
+    matchBadge(matchScore(j)),
+  ].filter(Boolean).join('');
+  const source = j.source === 'Adzuna' ? adzunaAttribution() : j.source ? `<span class="src ${sourceClass(j.source)}" title="Source : ${esc(j.source)}">${sourceIcon(j.source)}${esc(SOURCE_SHORT[j.source] || j.source)}</span>` : '';
+  return `<article class="job${viewed ? ' viewed' : ''}${fresh ? ' is-fresh' : ''}" data-id="${esc(j.id)}">
+    <div class="job-head">
+      ${avatarHtml(j, name)}
+      <div class="job-main">
+        <h2 class="job-title"><a class="job-link" href="/offre/${encodeURIComponent(j.id)}" data-id="${esc(j.id)}">${esc(j.title)}</a></h2>
+        <p class="job-sub"><span class="job-company">${companyLabel(j)}</span>${loc ? `<span class="job-loc">${ICONS.location}${esc(loc)}</span>` : ''}</p>
+      </div>
+      <div class="job-actions">
+        <button class="save-btn ${saved ? 'saved' : ''}" type="button" data-id="${esc(j.id)}" aria-pressed="${saved}" aria-label="${saved ? 'Retirer des favoris' : 'Ajouter aux favoris'} : ${esc(j.title)}">${SVG_BOOKMARK(saved)}</button>
+      </div>
     </div>
-    <div class="job-actions">
-      <button class="share-btn" type="button" data-share="${esc(j.id)}" aria-label="Partager l’offre ${esc(j.title)}">${ICONS.share}</button>
-      <button class="save-btn ${saved ? 'saved' : ''}" type="button" data-id="${esc(j.id)}" aria-pressed="${saved}" aria-label="${saved ? 'Retirer des favoris' : 'Ajouter aux favoris'} : ${esc(j.title)}">${SVG_BOOKMARK(saved)}</button>
-    </div>
-    <div class="job-meta">
-      ${j.contract ? `<span class="tag tag-brand">${esc(j.contract)}</span>` : ''}
-      ${j.salary ? `<span class="tag job-sal">${icon('salary')}${esc(j.salary)}</span>` : ''}
-      ${j.experience ? `<span class="tag">${esc(j.experience)}</span>` : ''}
-      ${j.applyEmail ? `<span class="tag tag-ok">${icon('mail')}Candidature par e-mail</span>` : ''}
-      ${j.otherLocations ? `<span class="tag">+${j.otherLocations} autre${j.otherLocations > 1 ? 's' : ''} lieu${j.otherLocations > 1 ? 'x' : ''}</span>` : ''}
-      ${matchBadge(matchScore(j))}
-    </div>
+    ${pills ? `<div class="job-pills">${pills}</div>` : ''}
     <div class="job-foot">
       <div class="job-foot-left">
-        ${j.source === 'Adzuna' ? adzunaAttribution() : j.source ? `<span class="src ${sourceClass(j.source)}">${sourceIcon(j.source)}${esc(j.source)}</span>` : ''}
-        ${when ? `<span class="job-time${fresh ? ' fresh' : ''}">${fresh ? '<span class="fresh-dot" aria-hidden="true"></span>Nouveau · ' : ''}${esc(when)}</span>` : ''}
+        ${sal ? `<div class="job-amount" title="${esc(j.salary)}"><span class="amt">${esc(sal.amount)}</span>${sal.unit ? `<span class="unit">${esc(sal.unit)}</span>` : ''}${sal.note ? `<span class="note">${esc(sal.note)}</span>` : ''}</div>` : `<div class="job-amount is-empty">${j.publicSector ? 'Grille de la fonction publique' : 'Salaire non précisé'}</div>`}
+        <div class="job-src">${source}${when ? `<span class="job-time${fresh ? ' fresh' : ''}">${fresh ? '<span class="fresh-dot" aria-hidden="true"></span>' : ''}${esc(when)}</span>` : ''}${status}</div>
       </div>
-      <div class="job-foot-right">
-        ${State.applications[j.id] ? `<span class="tracked-badge">${ICONS.check}${State.applications[j.id].status === 'sent' ? 'Envoyée' : 'Prête'}</span>` : tracked ? `<span class="tracked-badge">${ICONS.check}Suivie</span>` : viewed ? '<span class="job-viewed">Consultée</span>' : ''}
-        <button class="btn btn-primary btn-sm job-apply" type="button" data-apply="${esc(j.id)}" aria-haspopup="dialog" aria-label="${State.applications[j.id] ? 'Voir ma candidature' : 'Postuler'} : ${esc(j.title)}">${State.applications[j.id] ? 'Ma candidature' : `${icon('send')}Postuler`}</button>
-      </div>
+      <button class="btn btn-primary job-apply" type="button" data-apply="${esc(j.id)}" aria-haspopup="dialog" aria-label="${app ? 'Voir ma candidature' : 'Postuler'} : ${esc(j.title)}">${app ? 'Ma candidature' : `Postuler${ICONS.arrowUpRight.replace('class="i"', 'class="i apply-arrow"')}`}</button>
     </div>
   </article>`;
 }
@@ -1582,11 +1599,11 @@ function openDetail(id, { push = true } = {}) {
     </div>
     ${facts.length ? `<dl class="detail-grid">${facts.map(([k, v]) => `<div class="detail-grid-item"><dt class="k"><span class="ic" aria-hidden="true">${ICONS[FACT_ICONS[k]] || ICONS.info}</span>${k}</dt><dd class="v">${esc(v)}</dd></div>`).join('')}</dl>` : ''}
     ${detailSection(j.descIsExcerpt ? 'Extrait de l’annonce' : 'Description du poste', j.desc)}
-    ${j.descIsExcerpt ? `<p class="excerpt-note">Adzuna ne fournit qu’un extrait : la description complète est sur le site d’origine.</p>` : ''}
+    ${j.descIsExcerpt ? `<p class="excerpt-note">${j.publicSector ? 'Résumé issu des données ouvertes : la fiche de poste complète est sur Choisir le Service Public.' : 'Adzuna ne fournit qu’un extrait : la description complète est sur le site d’origine.'}</p>` : ''}
     ${detailSection('Compétences demandées', j.competencesReq)}
     ${detailSection('Qualités professionnelles', j.qualites)}
     ${detailSection('Avantages et compléments de salaire', j.avantages)}
-    ${j.source === 'Adzuna' ? `<p class="detail-attr">${adzunaAttribution()}</p>` : j.source === 'France Travail' ? `<p class="detail-attr">Source : France Travail${j.updated ? `, offre mise à jour le ${esc(fmtDate(j.updated))}` : ''}. Réutilisation soumise à la <a href="${FT_LICENCE_URL}" target="_blank" rel="noopener">licence de réutilisation des offres d’emploi de France Travail</a>.</p>` : ''}
+    ${j.source === 'Adzuna' ? `<p class="detail-attr">${adzunaAttribution()}</p>` : j.source === 'France Travail' ? `<p class="detail-attr">Source : France Travail${j.updated ? `, offre mise à jour le ${esc(fmtDate(j.updated))}` : ''}. Réutilisation soumise à la <a href="${FT_LICENCE_URL}" target="_blank" rel="noopener">licence de réutilisation des offres d’emploi de France Travail</a>.</p>` : j.publicSector ? `<p class="detail-attr">Source : Choisir le Service Public (DGAFP), <a href="${CSP_DATA_URL}" target="_blank" rel="noopener">jeu de données ouvert publié sur data.gouv.fr</a> sous Licence Ouverte 2.0. Offre de la fonction publique : la rémunération suit la grille indiciaire du grade.</p>` : ''}
     <p class="detail-note">${icon('info')}<span>${applyMode(j) === 'send' ? 'Ce recruteur reçoit les candidatures par e-mail : avec « Postuler en 1 clic », TalentPulse lui envoie votre lettre et votre CV.' : applyMode(j) === 'mailto' ? 'Ce recruteur reçoit les candidatures par e-mail : « Postuler » prépare l’e-mail complet, envoyé depuis votre messagerie.' : `« Postuler » prépare votre lettre et votre dossier ici ; l’envoi final se fait sur ${esc(site)}, qui n’accepte pas les candidatures transmises par un autre site.`} Votre suivi est ${State.user ? 'synchronisé avec votre compte' : 'enregistré sur cet appareil'}.</span></p>`;
 
   $('#detailCta').innerHTML = `
@@ -2181,7 +2198,7 @@ async function loadLiveCount() {
     el.textContent = fmtCount(data.total);
     Ticker.count = data.total; renderTicker();
     const lbl = el.parentElement;
-    if (lbl && data.totals) lbl.title = Object.entries(data.totals).map(([k, v]) => `${k === 'ft' ? 'France Travail' : 'Adzuna'} : ${fmtCount(v)}`).join(' · ');
+    if (lbl && data.totals) lbl.title = Object.entries(data.totals).map(([k, v]) => `${({ ft: 'France Travail', adzuna: 'Adzuna', csp: 'Fonction publique' })[k] || k} : ${fmtCount(v)}`).join(' · ');
   } catch {
     // Pas de chiffre inventé : on masque simplement la statistique.
     $('#liveJobStat')?.classList.add('hide');

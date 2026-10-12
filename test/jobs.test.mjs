@@ -4,6 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import handler from '../api/jobs.js';
 
+process.env.CSP_DISABLED = '1'; // source Fonction publique testée à part (test/csp.test.mjs)
 process.env.FT_CLIENT_ID = 'x'; process.env.FT_CLIENT_SECRET = 'y'; process.env.ADZUNA_APP_ID = 'a'; process.env.ADZUNA_APP_KEY = 'b';
 const realFetch = global.fetch;
 const calls = [];
