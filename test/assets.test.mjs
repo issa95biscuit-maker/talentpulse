@@ -84,5 +84,5 @@ test('sprint 5 : hero cinématique accessible (voile, mouvement réduit, crédit
   assert.ok(/\.hero\.cine::before\{background:\s*linear-gradient/.test(html), 'voile dégradé');
   const flat = html.replace(/\n/g, ' ');
   assert.ok(/prefers-reduced-motion:reduce\)\{\s*\.hero\.cine \.hero-photo img\{animation:none\}/.test(flat), 'travelling coupé si mouvement réduit');
-  assert.ok(/href="\/img\/CREDITS\.md"/.test(html), 'lien crédits photos');
+  assert.ok(/href="\/mentions-legales#credits"/.test(html), 'lien crédits photos');
 });
