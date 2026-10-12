@@ -1163,6 +1163,68 @@ body.dark .btn-outline:hover{background:rgba(255,255,255,.08)}
   .modal-apply .modal-head{padding:var(--sp-4)}
 }
 @media(prefers-reduced-motion:reduce){.modal-apply{transition:none}}
+
+/* ═══ Sprint 9 : Postuler partout + finition « néobanque » (Revolut-like) ═══ */
+/* Fonds sombres plus riches : halo orange discret + profondeur bleu nuit, fixes au défilement */
+body.dark{
+  --bg:#05070C;
+  --card-bg:linear-gradient(180deg,rgba(255,255,255,.055) 0%,rgba(255,255,255,.025) 100%),#0B0F18;
+  --card-border:rgba(255,255,255,.08);
+  --card-border-hover:rgba(255,154,87,.35);
+  --card-hi:inset 0 1px 0 rgba(255,255,255,.06);
+}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(900px 480px at 85% -10%,rgba(255,106,0,.07),transparent 60%)}
+body.dark::before{background:
+  radial-gradient(900px 520px at 85% -10%,rgba(255,106,0,.16),transparent 60%),
+  radial-gradient(700px 480px at -10% 30%,rgba(56,72,140,.18),transparent 60%),
+  radial-gradient(800px 600px at 50% 110%,rgba(255,106,0,.07),transparent 60%)}
+body.dark .results-top{background:color-mix(in srgb,#05070C 78%,transparent);border-bottom-color:rgba(255,255,255,.06)}
+
+/* Boutons d'action : pilules franches comme une appli bancaire */
+.btn-primary{border-radius:var(--r-full);letter-spacing:-.005em;font-weight:650}
+.btn-primary:active{transform:scale(.98)}
+body.dark .btn-primary{box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 8px 24px -8px rgba(255,106,0,.55)}
+.btn-lg.btn-primary{min-height:54px;font-size:1rem}
+
+/* Carte offre plus compacte, Postuler visible sans ouvrir l'offre */
+.jobs-list{gap:12px}
+.job{border-radius:20px;padding:16px 18px 14px}
+.job-meta{margin-top:10px}
+.job .tag,.badge-row .tag{height:24px;border-radius:999px;padding:0 10px}
+.job-foot{margin-top:12px;padding-top:10px}
+.job-foot-left{min-width:0}
+.job-foot-right{position:relative;z-index:2;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.job-viewed{color:var(--text-3)}
+.job-apply{min-height:40px;padding:8px 16px;font-size:.875rem;gap:6px}
+.job-apply .ui-icon,.job-apply svg{width:16px;height:16px}
+@media (pointer:coarse){.job-apply{min-height:44px}}
+.tracked-badge{border-radius:999px}
+@media(max-width:599px){
+  .job{padding:14px 14px 12px;border-radius:18px}
+  .job-foot{flex-wrap:nowrap;align-items:center}
+  .job-foot-left{flex:1 1 0;flex-direction:column;align-items:flex-start;gap:6px}
+  .job-foot-right{margin-left:auto;flex-direction:column;align-items:flex-end;gap:6px}
+  .job-foot-right .tracked-badge,.job-foot-right .job-viewed{font-size:.6875rem}
+}
+
+/* Agences d'intérim */
+.agency-row{display:flex;flex-wrap:wrap;gap:10px}
+.agency-chip{min-height:44px;padding:8px 16px;font-weight:600;color:var(--text)}
+body.dark .agency-chip{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.1)}
+.agency-chip:hover{border-color:var(--brand-ink);color:var(--brand-ink)}
+.agency-chip svg{color:var(--brand-ink)}
+
+/* Détail : Postuler = action principale, offre d'origine = secondaire */
+body.dark .detail{background:linear-gradient(180deg,#0B0F18 0%,#06080D 100%)}
+body.dark .detail-cta{background:color-mix(in srgb,#06080D 88%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top-color:rgba(255,255,255,.06);box-shadow:0 -16px 40px rgba(0,0,0,.45)}
+.detail-cta .btn-outline,.detail-cta .btn-ghost{border-radius:var(--r-full)}
+.detail-cta .btn-outline{font-weight:600}
+.detail-grid-item{border-radius:16px}
+body.dark .detail-grid-item{background:rgba(255,255,255,.035)}
+@media(max-width:767px){
+  .detail-cta{grid-template-columns:1fr 1fr}
+  .detail-cta .btn-view{min-height:54px}
+}
 </style>
 </head>
 <body>
@@ -1318,6 +1380,24 @@ body.dark .btn-outline:hover{background:rgba(255,255,255,.08)}
       <a class="btn btn-outline" href="/offres/emploi" data-nav="jobs">Toutes les offres</a>
     </div>
     <div class="cards" id="categoriesGrid"></div>
+  </div>
+
+  <div class="section container agencies" style="padding-top:0" aria-labelledby="agTitle">
+    <div class="section-head">
+      <div><span class="eyebrow">Intérim</span><h2 class="section-title" id="agTitle">Offres des agences d’intérim</h2><p class="section-sub">Les annonces des grandes agences, réunies ici. Un clic pour les voir.</p></div>
+    </div>
+    <div class="agency-row">
+        <a class="chip agency-chip" href="/offres/adecco" data-pop-kw="Adecco"><svg class="i" aria-hidden="true"><use href="#i-building-2"/></svg>Adecco</a>
+        <a class="chip agency-chip" href="/offres/manpower" data-pop-kw="Manpower"><svg class="i" aria-hidden="true"><use href="#i-building-2"/></svg>Manpower</a>
+        <a class="chip agency-chip" href="/offres/randstad" data-pop-kw="Randstad"><svg class="i" aria-hidden="true"><use href="#i-building-2"/></svg>Randstad</a>
+        <a class="chip agency-chip" href="/offres/synergie" data-pop-kw="Synergie"><svg class="i" aria-hidden="true"><use href="#i-building-2"/></svg>Synergie</a>
+        <a class="chip agency-chip" href="/offres/proman" data-pop-kw="Proman"><svg class="i" aria-hidden="true"><use href="#i-building-2"/></svg>Proman</a>
+        <a class="chip agency-chip" href="/offres/crit" data-pop-kw="Crit"><svg class="i" aria-hidden="true"><use href="#i-building-2"/></svg>Crit</a>
+        <a class="chip agency-chip" href="/offres/start-people" data-pop-kw="Start People"><svg class="i" aria-hidden="true"><use href="#i-building-2"/></svg>Start People</a>
+        <a class="chip agency-chip" href="/offres/partnaire" data-pop-kw="Partnaire"><svg class="i" aria-hidden="true"><use href="#i-building-2"/></svg>Partnaire</a>
+        <a class="chip agency-chip" href="/offres/gojob" data-pop-kw="Gojob"><svg class="i" aria-hidden="true"><use href="#i-building-2"/></svg>Gojob</a>
+        <a class="chip agency-chip" href="/offres/iziwork" data-pop-kw="Iziwork"><svg class="i" aria-hidden="true"><use href="#i-building-2"/></svg>Iziwork</a>
+    </div>
   </div>
 
   <div class="section container" style="padding-top:0">
@@ -1816,8 +1896,8 @@ body.dark .btn-outline:hover{background:rgba(255,255,255,.08)}
 <!-- ═══ TOAST ═══ -->
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="/assets/geo-fr.js" defer></script>
-<script src="/assets/metiers-fr.js" defer></script>
-<script src="/assets/app.js" defer></script>
+<script src="/assets/geo-fr.js?v=9" defer></script>
+<script src="/assets/metiers-fr.js?v=9" defer></script>
+<script src="/assets/app.js?v=9" defer></script>
 </body>
 </html>
