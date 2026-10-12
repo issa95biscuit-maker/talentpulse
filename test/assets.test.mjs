@@ -26,14 +26,14 @@ test('photos : AVIF + WebP, légères, chargement différé hors hero, crédits 
   const dir = new URL('../public/img/', import.meta.url);
   const files = readdirSync(dir);
   for (const f of files.filter(f => /\.(avif|webp)$/.test(f))) assert.ok(statSync(new URL(f, dir)).size < 120 * 1024, f + ' < 120 Ko');
-  for (const base of ['hero', 'equipe', 'logistique']) for (const ext of ['avif', 'webp']) for (const w of [800, 1600]) assert.ok(files.includes(`${base}-${w}.${ext}`), `${base}-${w}.${ext}`);
+  for (const base of ['paris', 'equipe', 'logistique']) for (const ext of ['avif', 'webp']) for (const w of [800, 1600]) assert.ok(files.includes(`${base}-${w}.${ext}`), `${base}-${w}.${ext}`);
   const credits = readFileSync(new URL('CREDITS.md', dir), 'utf8');
-  assert.ok(/Unsplash/.test(credits) && /Alex Kotliarskyi/.test(credits));
+  assert.ok(/Unsplash/.test(credits) && /StockSnap/.test(credits) && /Joe deSousa/.test(credits));
   const imgs = [...html.matchAll(/<img [^>]*src="\/img\/[^"]+"[^>]*>/g)].map(m => m[0]).filter(t => !/adzuna-logo/.test(t));
   assert.ok(imgs.length >= 3);
   for (const tag of imgs) {
     assert.ok(/alt=""/.test(tag) && /width="\d+"/.test(tag) && /height="\d+"/.test(tag), 'décorative, dimensions fixes : ' + tag.slice(0, 80));
-    if (!/hero-/.test(tag)) assert.ok(/loading="lazy"/.test(tag), 'lazy : ' + tag.slice(0, 80));
+    if (!/paris-/.test(tag)) assert.ok(/loading="lazy"/.test(tag), 'lazy : ' + tag.slice(0, 80));
   }
 });
 
@@ -57,4 +57,32 @@ test('attribution Adzuna : « Jobs by » + logo officiel ≥ 116×23 px, liens v
   assert.ok(/source === 'Adzuna' \? adzunaAttribution\(\)/.test(app), 'sur chaque carte Adzuna');
   assert.ok(statSync(new URL('../public/img/adzuna-logo.png', import.meta.url)).size < 10 * 1024);
   assert.ok(/licence de réutilisation des offres d’emploi de France Travail/.test(app), 'licence FT citée sur les offres');
+});
+
+test('sprint 5 : cartes métiers en vraies photos (AVIF/WebP, 2 tailles, différées, créditées) + icône Lucide', () => {
+  const dir = new URL('../public/img/', import.meta.url);
+  const credits = readFileSync(new URL('CREDITS.md', dir), 'utf8');
+  const cats = [...app.matchAll(/\{ icon: '([a-z]+)', img: '([a-z]+)'/g)];
+  assert.equal(cats.length, 8);
+  const sprite = new Set([...html.matchAll(/<symbol id="(i-[a-z0-9-]+)"/g)].map(m => m[1]));
+  for (const [, icon, img] of cats) {
+    for (const w of [360, 640]) for (const ext of ['avif', 'webp']) {
+      const f = `metier-${img}-${w}.${ext}`;
+      assert.ok(statSync(new URL(f, dir)).size < 40 * 1024, f + ' < 40 Ko');
+    }
+    assert.ok(credits.includes(`metier-${img}-`), 'crédit ' + img);
+    const m = app.match(new RegExp(`\\n  ${icon}: '<svg[^']*#(i-[a-z0-9-]+)`));
+    assert.ok(m && sprite.has(m[1]), 'icône ' + icon);
+  }
+  const tpl = app.match(/const catPhoto = n => `([^`]+)`/)[1];
+  assert.ok(/alt=""/.test(tpl) && /loading="lazy"/.test(tpl) && /width="640" height="800"/.test(tpl) && /type="image\/avif"/.test(tpl));
+  assert.ok(!/\{ icon: '[a-z]+', name:/.test(app), 'plus de catégorie sans photo');
+});
+
+test('sprint 5 : hero cinématique accessible (voile, mouvement réduit, crédits liés)', () => {
+  assert.ok(/<div class="hero cine">/.test(html));
+  assert.ok(/\.hero\.cine::before\{background:\s*linear-gradient/.test(html), 'voile dégradé');
+  const flat = html.replace(/\n/g, ' ');
+  assert.ok(/prefers-reduced-motion:reduce\)\{\s*\.hero\.cine \.hero-photo img\{animation:none\}/.test(flat), 'travelling coupé si mouvement réduit');
+  assert.ok(/href="\/img\/CREDITS\.md"/.test(html), 'lien crédits photos');
 });
