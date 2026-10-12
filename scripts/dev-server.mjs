@@ -27,7 +27,7 @@ const API_ROUTES = [
   [/^\/api\/auth\/([a-z-]+)$/, 'api/auth/[action].js', 'action'],
   [/^\/api\/me\/([a-z-]+)$/, 'api/me/[resource].js', 'resource'],
   [/^\/api\/cron\/alerts$/, 'api/cron/alerts.js'],
-  [/^\/api\/(health|jobs|lettre|unsubscribe)$/, null],
+  [/^\/api\/(health|jobs|lettre|suggest|unsubscribe)$/, null],
 ];
 
 function patternToRegex(source) {
