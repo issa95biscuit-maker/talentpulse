@@ -42,6 +42,7 @@ test('extractApply : e-mail dans une phrase, lien de candidature, adresse France
   assert.equal(_test.extractApply({ urlPostulation: 'https://ats.exemple.com/x?id=1' }).applyUrl, 'https://ats.exemple.com/x?id=1');
   assert.equal(_test.extractApply({ courriel: 'ape.12345@francetravail.fr' }).applyEmail, '');
   assert.equal(_test.extractApply(undefined).applyEmail, '');
+  assert.equal(_test.extractApply({ urlPostulation: 'https://candidat.francetravail.fr/offres/recherche/detail/215BMMC' }).applyUrl, '', 'fiche France Travail ≠ formulaire du recruteur');
   assert.equal(_test.mapFT(ftOffer()).applyEmail, 'recrutement@brasserie-du-port.fr');
 });
 
