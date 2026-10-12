@@ -14,10 +14,10 @@ test('health : fonctionnalités désactivées sans variables, activées avec', a
   setEnv({});
   let r = await call(health);
   assert.equal(r.status, 200);
-  assert.deepEqual(r.body.features, { auth: false, sync: false, savedSearches: false, aiLetter: false, emailAlerts: false, whatsappAlerts: false });
+  assert.deepEqual(r.body.features, { auth: false, sync: false, savedSearches: false, aiLetter: false, emailAlerts: false, whatsappAlerts: false, accountEmails: false });
   setEnv({ ...ENV_BASE, CRON_SECRET: 'c'.repeat(20), RESEND_API_KEY: 're_x', ALERTS_FROM_EMAIL: 'a@b.fr', AI_GATEWAY_API_KEY: 'k' });
   r = await call(health);
-  assert.equal(r.body.features.auth, true); assert.equal(r.body.features.emailAlerts, true); assert.equal(r.body.features.aiLetter, true); assert.equal(r.body.features.whatsappAlerts, false);
+  assert.equal(r.body.features.auth, true); assert.equal(r.body.features.emailAlerts, true); assert.equal(r.body.features.aiLetter, true); assert.equal(r.body.features.whatsappAlerts, false); assert.equal(r.body.features.accountEmails, true);
   assert.ok(!JSON.stringify(r.body).includes('re_x'), 'aucun secret exposé');
 });
 

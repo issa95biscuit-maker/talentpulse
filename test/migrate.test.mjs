@@ -10,5 +10,5 @@ test('migration : chaque instruction passe seule (driver HTTP Neon) et le schém
   assert.ok(stmts.length >= 15);
   for (let run = 0; run < 2; run++) for (const s of stmts) await pg.query(s);
   const t = (await pg.query(`select table_name from information_schema.tables where table_schema = 'public' order by 1`)).rows.map(r => r.table_name);
-  assert.deepEqual(t, ['alert_deliveries', 'alerts', 'favorites', 'pipeline_items', 'rate_limits', 'schema_migrations', 'sessions', 'users']);
+  assert.deepEqual(t, ['alert_deliveries', 'alerts', 'auth_tokens', 'favorites', 'pipeline_items', 'rate_limits', 'schema_migrations', 'sessions', 'users']);
 });
