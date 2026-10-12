@@ -149,7 +149,8 @@
   ],
   "functions": {
     "api/cron/alerts.js": {
-      "maxDuration": 60
+      "maxDuration": 60,
+      "includeFiles": "lib/data/**"
     },
     "api/lettre.js": {
       "maxDuration": 30
@@ -159,6 +160,10 @@
     },
     "api/seo.js": {
       "includeFiles": "public/index.html",
+      "maxDuration": 15
+    },
+    "api/jobs.js": {
+      "includeFiles": "lib/data/**",
       "maxDuration": 15
     }
   },

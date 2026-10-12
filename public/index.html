@@ -331,6 +331,7 @@ body.dark .theme-icon-light{display:none}
 .source-mark svg{width:18px;height:18px}
 .source-mark.ft{background:var(--ft-bg);color:var(--ft)}
 .source-mark.adz{background:var(--adz-bg);color:var(--adz)}
+.source-mark.csp{background:#EEF0FF;color:#4F46E5}body.dark .source-mark.csp{background:rgba(99,102,241,.16);color:#A5B4FC}
 @media (max-width:767px){.sources-inner{flex-direction:column;align-items:stretch;gap:var(--sp-3)}.sources-label{text-align:center}.sources-list{flex-direction:column;align-items:flex-start;gap:var(--sp-3);margin:0 auto}}
 .steps{display:grid;gap:var(--sp-5);list-style:none}
 @media(min-width:800px){.steps{grid-template-columns:repeat(3,1fr)}}
@@ -1225,6 +1226,104 @@ body.dark .detail-grid-item{background:rgba(255,255,255,.035)}
   .detail-cta{grid-template-columns:1fr 1fr}
   .detail-cta .btn-view{min-height:54px}
 }
+
+/* ═══ Sprint 10 : carte offre « néobanque » — dense, verre sombre, hiérarchie nette ═══
+   Lecture en 3 temps comme une ligne de compte Revolut : qui / quoi (titre, entreprise, lieu),
+   conditions (pastilles), montant (salaire) + action (Postuler). */
+:root{
+  --job-bg:#fff;--job-border:rgba(15,23,42,.08);--job-border-hover:rgba(15,23,42,.18);
+  --job-sh:0 1px 2px rgba(15,23,42,.04),0 6px 20px -12px rgba(15,23,42,.18);
+  --job-sh-hover:0 2px 6px rgba(15,23,42,.06),0 18px 40px -18px rgba(15,23,42,.32);
+  --pill-bg:#F1F4F8;--pill-fg:#334155;--pill-border:transparent;
+  --amt:#0B1220;--muted-2:#64748B;
+  --c-cdi:#047857;--c-cdi-bg:#E7F8F0;--c-cdd:#1D4ED8;--c-cdd-bg:#EAF0FE;--c-int:#6D28D9;--c-int-bg:#F1EBFE;--c-alt:#B45309;--c-alt-bg:#FEF4E2;
+}
+body.dark{
+  --job-bg:linear-gradient(180deg,rgba(255,255,255,.065) 0%,rgba(255,255,255,.028) 100%);
+  --job-border:rgba(255,255,255,.085);--job-border-hover:rgba(255,255,255,.2);
+  --job-sh:inset 0 1px 0 rgba(255,255,255,.06),0 10px 30px -16px rgba(0,0,0,.8);
+  --job-sh-hover:inset 0 1px 0 rgba(255,255,255,.08),0 22px 50px -20px rgba(0,0,0,.9),0 0 0 1px rgba(255,154,87,.12);
+  --pill-bg:rgba(255,255,255,.06);--pill-fg:#CBD5E1;--pill-border:rgba(255,255,255,.06);
+  --amt:#F8FAFC;--muted-2:#8A94A6;
+  --c-cdi:#6EE7B7;--c-cdi-bg:rgba(16,185,129,.14);--c-cdd:#93B4FF;--c-cdd-bg:rgba(59,130,246,.16);--c-int:#C4B5FD;--c-int-bg:rgba(139,92,246,.17);--c-alt:#FCD34D;--c-alt-bg:rgba(245,158,11,.15);
+}
+.jobs-list{gap:10px}
+.job{display:flex;flex-direction:column;gap:10px;padding:14px 16px 14px;border-radius:20px;background:var(--job-bg);border:1px solid var(--job-border);box-shadow:var(--job-sh);overflow:hidden;
+  transition:border-color .18s var(--ease),box-shadow .22s var(--ease),transform .22s var(--ease)}
+body.dark .job{-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter:blur(18px) saturate(140%)}
+.job::before{display:none}
+.job:hover{border-color:var(--job-border-hover);box-shadow:var(--job-sh-hover);transform:translateY(-1px)}
+.job:focus-within{border-color:var(--job-border-hover);box-shadow:var(--job-sh-hover),0 0 0 3px color-mix(in srgb,var(--focus) 30%,transparent)}
+.job-head{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:12px;align-items:start}
+.job .co-avatar{grid-row:auto;width:44px;height:44px;border-radius:14px;font-size:1rem;font-weight:700}
+.job .co-logo{background:#fff}
+.job .co-logo img{width:100%;height:100%;object-fit:contain;border-radius:inherit;padding:4px}
+.job-main{min-width:0;padding-top:1px}
+.job-title{font-size:1rem;font-weight:650;line-height:1.3;letter-spacing:-.015em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.job-sub{display:flex;flex-wrap:wrap;align-items:center;gap:2px 10px;margin-top:3px;font-size:.8125rem;line-height:1.35;color:var(--muted-2);min-width:0}
+.job-sub>span{min-width:0;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.job-company{font-weight:600;color:var(--text-2)}
+.job-company .muted{font-weight:450;font-style:normal;color:var(--muted-2)}
+.job-sub .job-loc{display:inline-flex;align-items:center;gap:3px}
+.job-sub .job-loc svg{width:13px;height:13px;margin:0;color:var(--muted-2)}
+.job-actions{margin:-6px -8px 0 0}
+.job .save-btn{width:40px;height:40px;border-radius:12px}
+@media (pointer:coarse){.job .save-btn{width:44px;height:44px}}
+.job-pills{display:flex;flex-wrap:wrap;gap:6px;padding-left:56px}
+.pill,.job .match-badge{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:999px;font-size:.75rem;font-weight:600;letter-spacing:-.003em;white-space:nowrap;background:var(--pill-bg);color:var(--pill-fg);border:1px solid var(--pill-border)}
+.pill svg,.job .match-badge svg{width:13px;height:13px}
+.pill-contract{background:var(--brand-50);color:var(--brand-ink);border-color:transparent}
+.pill-contract.c-cdi{background:var(--c-cdi-bg);color:var(--c-cdi)}
+.pill-contract.c-cdd{background:var(--c-cdd-bg);color:var(--c-cdd)}
+.pill-contract.c-int{background:var(--c-int-bg);color:var(--c-int)}
+.pill-contract.c-alt{background:var(--c-alt-bg);color:var(--c-alt)}
+.pill-ok{background:var(--c-cdi-bg);color:var(--c-cdi)}
+.job-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:2px 0 0;padding:12px 0 0 56px;border-top:0;position:relative;font-size:.75rem;color:var(--muted-2)}
+.job-foot::before{content:"";position:absolute;left:56px;right:0;top:0;height:1px;background:var(--divider)}
+.job-foot-left{min-width:0;display:flex;flex-direction:column;gap:3px}
+.job-amount{display:flex;align-items:baseline;gap:3px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--amt);font-variant-numeric:tabular-nums}
+.job-amount .amt{font-size:1.0625rem;font-weight:700;letter-spacing:-.02em;overflow:hidden;text-overflow:ellipsis}
+.job-amount .unit{font-size:.8125rem;font-weight:600;color:var(--muted-2)}
+.job-amount .note{margin-left:6px;font-size:.6875rem;font-weight:500;color:var(--muted-2);overflow:hidden;text-overflow:ellipsis}
+.job-amount.is-empty{font-size:.8125rem;font-weight:550;color:var(--muted-2)}
+.job-src{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px;min-width:0}
+.job-src .src{font-size:.75rem}
+.job-src .adz-attr{transform:scale(.92);transform-origin:left center}
+.job-time{display:inline-flex;align-items:center;gap:5px}
+.job-time.fresh{color:var(--ok);font-weight:600}
+.job-src .tracked-badge,.job-src .job-viewed{font-size:.75rem}
+.src-csp{color:#4F46E5}body.dark .src-csp{color:#A5B4FC}
+.job-apply{flex-shrink:0;min-height:44px;padding:0 16px 0 18px;border-radius:999px;font-size:.9375rem;font-weight:650;gap:6px;
+  background:linear-gradient(180deg,#F26B1D 0%,#C2410C 100%);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 6px 18px -8px rgba(234,88,12,.7)}
+.job-apply:hover{background:linear-gradient(180deg,#F97316 0%,#B93D0A 100%)}
+.job-apply .apply-arrow{width:16px;height:16px;transition:transform .18s var(--ease)}
+.job-apply:hover .apply-arrow{transform:translate(2px,-2px)}
+@media(max-width:599px){
+  .job{padding:13px 13px 12px;border-radius:18px;gap:9px}
+  .job-head{grid-template-columns:40px minmax(0,1fr) auto;gap:11px}
+  .job .co-avatar{width:40px;height:40px;border-radius:12px}
+  .job-pills,.job-foot{padding-left:0}
+  .job-foot::before{left:0}
+  .job-foot{flex-wrap:nowrap}
+  .job-foot-left{flex:1 1 auto}
+  .job-amount .note{display:none}
+}
+@media(prefers-reduced-motion:reduce){.job,.job-apply .apply-arrow{transition:none}.job:hover{transform:none}}
+.job-foot-left{align-items:flex-start}
+/* Bureau : montant aligné à droite comme une ligne de compte, Postuler sous le montant */
+@media(min-width:768px){
+  .job{display:grid;grid-template-columns:44px minmax(0,1fr) auto auto;grid-template-areas:"av main amt save" "av pills cta cta" "av src cta cta";column-gap:14px;row-gap:6px;padding:16px 16px 14px 18px}
+  .job-head,.job-foot,.job-foot-left{display:contents}
+  .job .co-avatar{grid-area:av}
+  .job-main{grid-area:main}
+  .job-actions{grid-area:save;margin:-8px -8px 0 -6px}
+  .job-pills{grid-area:pills;padding-left:0;margin-top:4px}
+  .job-amount{grid-area:amt;justify-self:end;align-self:start;padding-top:1px;max-width:280px}
+  .job-amount .amt{font-size:1.125rem}
+  .job-src{grid-area:src;padding-top:6px;margin-top:4px;border-top:1px solid var(--divider)}
+  .job-apply{grid-area:cta;justify-self:end;align-self:end;min-width:132px;justify-content:center}
+  .job-foot::before{display:none}
+}
 </style>
 </head>
 <body>
@@ -1358,6 +1457,7 @@ body.dark .detail-grid-item{background:rgba(255,255,255,.035)}
       <ul class="sources-list" role="list">
         <li class="source-logo"><span class="source-mark ft" aria-hidden="true"><svg class="i"><use href="#i-landmark"/></svg></span><span class="source-txt"><b>France Travail</b><small>Service public de l’emploi, alternance incluse</small></span></li>
         <li class="source-logo"><span class="source-mark adz" aria-hidden="true"><svg class="i"><use href="#i-globe"/></svg></span><span class="source-txt"><b>Adzuna</b><small>Annonces d’entreprises et de sites carrières</small></span><span class="adz-attr"><a href="https://www.adzuna.fr" target="_blank" rel="noopener">Jobs</a> by <a href="https://www.adzuna.fr" target="_blank" rel="noopener" class="adz-logo"><img src="/img/adzuna-logo.png" alt="Adzuna" width="87" height="23" loading="lazy" decoding="async"></a></span></li>
+        <li class="source-logo"><span class="source-mark csp" aria-hidden="true"><svg class="i"><use href="#i-building-2"/></svg></span><span class="source-txt"><b>Choisir le Service Public</b><small>Fonction publique d’État, territoriale et hospitalière</small></span></li>
       </ul>
     </div>
   </div>
@@ -1367,7 +1467,7 @@ body.dark .detail-grid-item{background:rgba(255,255,255,.035)}
   <div class="section container" aria-labelledby="howTitle">
     <div class="section-head"><div><span class="eyebrow">Comment ça marche</span><h2 class="section-title" id="howTitle">Trouvez, suivez, postulez</h2></div></div>
     <ol class="steps" role="list">
-      <li class="step"><div class="step-top"><span class="step-ic" aria-hidden="true"><svg class="i"><use href="#i-search"/></svg></span><div class="step-num" aria-hidden="true">01</div></div><h3>Une seule recherche</h3><p>Métier et ville : nous interrogeons France Travail et Adzuna en même temps, puis supprimons les doublons.</p></li>
+      <li class="step"><div class="step-top"><span class="step-ic" aria-hidden="true"><svg class="i"><use href="#i-search"/></svg></span><div class="step-num" aria-hidden="true">01</div></div><h3>Une seule recherche</h3><p>Métier et ville : nous interrogeons France Travail, Adzuna et la fonction publique en même temps, puis supprimons les doublons.</p></li>
       <li class="step"><div class="step-top"><span class="step-ic" aria-hidden="true"><svg class="i"><use href="#i-list-checks"/></svg></span><div class="step-num" aria-hidden="true">02</div></div><h3>Comparez en un coup d’œil</h3><p>Contrat, salaire, date de publication et source sont affichés sur chaque offre. Filtrez sans recharger la page.</p></li>
       <li class="step"><div class="step-top"><span class="step-ic" aria-hidden="true"><svg class="i"><use href="#i-kanban"/></svg></span><div class="step-num" aria-hidden="true">03</div></div><h3>Postulez et suivez</h3><p>Postulez sur le site d’origine, puis suivez vos candidatures dans un tableau simple : à postuler, entretien, offre.</p></li>
     </ol>
@@ -1896,8 +1996,8 @@ body.dark .detail-grid-item{background:rgba(255,255,255,.035)}
 <!-- ═══ TOAST ═══ -->
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="/assets/geo-fr.js?v=9" defer></script>
-<script src="/assets/metiers-fr.js?v=9" defer></script>
-<script src="/assets/app.js?v=9" defer></script>
+<script src="/assets/geo-fr.js?v=10" defer></script>
+<script src="/assets/metiers-fr.js?v=10" defer></script>
+<script src="/assets/app.js?v=10" defer></script>
 </body>
 </html>

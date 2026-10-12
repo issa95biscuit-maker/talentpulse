@@ -1,0 +1,31 @@
+# À COPIER dans .github/workflows/ (le jeton GitHub de l’agent n’a pas le droit « workflow »).
+# Rafraîchit chaque lundi l'index des offres de la fonction publique (Choisir le Service Public,
+# données ouvertes DGAFP sur data.gouv.fr, Licence Ouverte 2.0). Le commit sur main redéploie le site.
+name: Offres fonction publique (CSP)
+on:
+  schedule:
+    - cron: '30 4 * * 1'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: node scripts/build-csp.mjs
+      - run: node --test test/csp.test.mjs
+      - name: Commit si l'index a changé
+        run: |
+          if git diff --quiet -- lib/data/csp-offres.json; then echo "Aucun changement"; exit 0; fi
+          git config user.name "talentpulse-bot"
+          git config user.email "talentpulse-bot@users.noreply.github.com"
+          git add lib/data/csp-offres.json
+          git commit -m "Données : offres fonction publique (Choisir le Service Public) du $(date +%F)"
+          git push
