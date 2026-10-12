@@ -24,7 +24,7 @@ const SITE = 'https://talentpulse-topaz.vercel.app';
 // sans clés, le site fonctionne exactement comme avant (tout en local).
 // Informations légales de l'éditeur (variables LEGAL_* / CONTACT_EMAIL côté Vercel, lues sur /api/health)
 const LEGAL = {};
-const FEATURES = { auth: false, sync: false, savedSearches: false, aiLetter: false, emailAlerts: false, whatsappAlerts: false, accountEmails: false };
+const FEATURES = { auth: false, sync: false, savedSearches: false, aiLetter: false, emailAlerts: false, whatsappAlerts: false, accountEmails: false, applyEmail: false };
 let featuresPromise = null;
 function loadFeatures() { return (featuresPromise ||= fetchFeatures()); }
 async function fetchFeatures() {
@@ -85,7 +85,8 @@ const ICONS = {
   user: '<svg class="i" aria-hidden="true"><use href="#i-user"/></svg>',
   calendar: '<svg class="i" aria-hidden="true"><use href="#i-calendar"/></svg>',
   mail: '<svg class="i" aria-hidden="true"><use href="#i-mail"/></svg>',
-  phone: '<svg class="i" aria-hidden="true"><use href="#i-phone"/></svg>'
+  phone: '<svg class="i" aria-hidden="true"><use href="#i-phone"/></svg>',
+  send: '<svg class="i" aria-hidden="true"><use href="#i-send"/></svg>'
 };
 const SVG_BOOKMARK = filled => `<svg class="i${filled ? ' i-fill' : ''}" aria-hidden="true"><use href="#i-bookmark"/></svg>`;
 const icon = (name, cls = 'ui-icon') => `<span class="${cls}" aria-hidden="true">${ICONS[name] || ICONS.briefcase}</span>`;
@@ -128,7 +129,7 @@ ${isParticulier() && !LEGAL.siren ? '' : `<li>SIREN / RCS : ${LV('siren', 'numé
 <h2>Hébergeur</h2>
 <p>Vercel Inc., 440 N Barranca Ave #4133, Covina, CA 91723, États-Unis — <a href="https://vercel.com" rel="noopener" target="_blank" style="text-decoration:underline">vercel.com</a>.</p>
 <h2>Sources des offres</h2>
-<p>Les offres d’emploi affichées proviennent de l’API Offres d’emploi de France Travail et de l’API Adzuna. Elles restent la propriété et la responsabilité de leurs émetteurs. TalentPulse n’est pas l’employeur et ne transmet aucune candidature : vous postulez sur le site d’origine de chaque annonce.</p>
+<p>Les offres d’emploi affichées proviennent de l’API Offres d’emploi de France Travail et de l’API Adzuna. Elles restent la propriété et la responsabilité de leurs émetteurs. TalentPulse n’est pas l’employeur. Il ne transmet une candidature que sur demande expresse du candidat, uniquement à l’adresse e-mail publiée dans une offre France Travail ; sinon, vous postulez sur le site d’origine de chaque annonce.</p>
 <h2>Réutilisation des offres et traitements appliqués</h2>
 <p>Les offres France Travail proviennent de l’API Offres d’emploi et sont réutilisées conformément à la <a href="https://francetravail.io/produits-partages/catalogue/offres-emploi" rel="noopener" target="_blank" style="text-decoration:underline">licence de réutilisation des offres d’emploi de France Travail</a>. Elles sont interrogées en temps réel à chaque recherche ; la date de publication et de dernière mise à jour figure sur chaque offre. Les offres Adzuna sont affichées avec la mention « Jobs by Adzuna » exigée par les <a href="https://developer.adzuna.com/docs/terms_of_service" rel="noopener" target="_blank" style="text-decoration:underline">conditions de l’API Adzuna</a>.</p>
 <p>Traitements appliqués, sans modifier le fond des annonces : intitulés et noms d’entreprise écrits en MAJUSCULES remis en casse normale, mention « (H/F) » dédoublonnée, libellés de lieu harmonisés (« Lyon 05 » → « Lyon 5e »), libellés d’expérience reformulés (« 2 An(s) » → « 2 ans d’expérience »), salaires convertis dans un format lisible, et suppression des doublons (même intitulé, même entreprise, même ville) entre les deux sources.</p>
@@ -160,10 +161,12 @@ function privacyPolicy() {
     rows.push(['Sécurité', 'Session (cookie technique httpOnly), empreintes HMAC d’adresse IP et d’e-mail pour limiter les tentatives', 'Intérêt légitime (sécurité du service)', 'Session : 30 jours ; compteurs anti-abus : 48 h']);
   }
   if (F.emailAlerts || F.whatsappAlerts) rows.push(['Alertes', 'Critères de recherche, canal choisi, ' + (F.whatsappAlerts ? 'numéro WhatsApp, ' : '') + 'historique des offres envoyées', 'Consentement (activation de l’alerte, retrait à tout moment)', 'Historique d’envoi : 90 jours']);
+  rows.push(['Candidatures préparées', 'Nom, e-mail, téléphone (facultatif), lettre, nom et taille du fichier CV, offre concernée' + (accounts ? '' : ''), 'Consentement (case cochée à chaque candidature)', (accounts ? 'Appareil, ou compte si vous êtes connecté : ' : 'Sur votre appareil : ') + 'jusqu’à suppression par vous' + (accounts ? ' ou du compte' : '') + '. Le fichier CV lui-même n’est jamais stocké par TalentPulse']);
+  if (F.applyEmail) rows.push(['Envoi au recruteur', 'Lettre, coordonnées et CV transmis à l’adresse de candidature publiée dans l’offre France Travail, uniquement quand vous cliquez « Envoyer »', 'Exécution du service demandé', 'CV non conservé ; date et destinataire de l’envoi conservés avec la candidature']);
   if (F.aiLetter) rows.push(['Lettre de motivation IA', 'Poste, entreprise, atouts et profil saisis dans le formulaire', 'Exécution du service demandé', 'Non conservés par TalentPulse']);
   const processors = ['<li><strong>Vercel Inc.</strong> (hébergement, États-Unis, clauses contractuelles types / Data Privacy Framework)</li>'];
   if (accounts) processors.push('<li><strong>Neon</strong> (base de données PostgreSQL, hébergée dans l’Union européenne)</li>');
-  if (F.emailAlerts || F.accountEmails) processors.push(`<li><strong>Resend</strong> (envoi des e-mails ${F.accountEmails ? 'de confirmation d’adresse et de réinitialisation du mot de passe' : ''}${F.accountEmails && F.emailAlerts ? ' et ' : ''}${F.emailAlerts ? 'd’alerte' : ''})</li>`);
+  if (F.emailAlerts || F.accountEmails || F.applyEmail) processors.push(`<li><strong>Resend</strong> (envoi des e-mails${F.applyEmail ? ', dont les candidatures que vous adressez aux recruteurs' : ''} ${F.accountEmails ? 'de confirmation d’adresse et de réinitialisation du mot de passe' : ''}${F.accountEmails && F.emailAlerts ? ' et ' : ''}${F.emailAlerts ? 'd’alerte' : ''})</li>`);
   if (F.whatsappAlerts) processors.push('<li><strong>Twilio</strong> et <strong>Meta (WhatsApp)</strong> (envoi des alertes WhatsApp)</li>');
   if (F.aiLetter) processors.push('<li><strong>Vercel AI Gateway</strong> et le fournisseur du modèle de langage (génération de la lettre ; les données ne servent pas à entraîner les modèles selon leurs conditions)</li>');
   processors.push('<li><strong>France Travail</strong> et <strong>Adzuna</strong> reçoivent uniquement les critères de recherche (via nos serveurs), sans donnée personnelle</li>');
@@ -183,7 +186,7 @@ function privacyPolicy() {
 <h2>Destinataires et sous-traitants</h2>
 <ul>${processors.join('')}</ul>
 <h2>Liens vers les sites d’origine</h2>
-<p>Lorsque vous cliquez sur « Voir l’offre », vous quittez TalentPulse pour le site de la source (France Travail, Adzuna ou un partenaire). Leur propre politique de confidentialité s’applique alors.</p>
+<p>Lorsque vous cliquez sur « Voir l’offre » ou « Copier ma lettre et ouvrir… », vous quittez TalentPulse pour le site de la source (France Travail, Adzuna ou un partenaire). Leur propre politique de confidentialité s’applique alors.</p>
 <h2>Vos droits</h2>
 <p>Vous disposez d’un droit d’accès, de rectification, d’effacement, de limitation, d’opposition et de portabilité.${accounts ? ' Depuis « Mon espace », vous pouvez <strong>exporter</strong> toutes vos données (JSON) et <strong>supprimer votre compte</strong> : la suppression est immédiate et définitive.' : ''} Pour toute demande : ${contactMail()}. Vous pouvez également introduire une réclamation auprès de la CNIL (cnil.fr).</p>
 <h2>Sécurité</h2>
@@ -196,7 +199,7 @@ const LEGAL_CONTENT = {
   },
   cgu: {
     title: 'Conditions Générales d’Utilisation',
-    body: '<h4>1. Objet</h4><p>Les présentes conditions encadrent l’utilisation du service gratuit TalentPulse.</p><h4>2. Offres tierces</h4><p>TalentPulse affiche des annonces provenant de France Travail et d’Adzuna. Leur contenu, leur disponibilité et les modalités de candidature relèvent de leurs sources d’origine.</p><h4>3. Candidatures</h4><p>TalentPulse ne transmet aucune candidature. Le bouton « Voir l’offre » vous redirige vers le site d’origine, où vous postulez directement. Le « suivi » est un aide-mémoire enregistré sur votre appareil (ou dans votre compte si vous en avez créé un).</p><h4>4. Données</h4><p>Voir la <a href="/confidentialite" data-route="/confidentialite" style="text-decoration:underline">politique de confidentialité</a>.</p>'
+    body: '<h4>1. Objet</h4><p>Les présentes conditions encadrent l’utilisation du service gratuit TalentPulse.</p><h4>2. Offres tierces</h4><p>TalentPulse affiche des annonces provenant de France Travail et d’Adzuna. Leur contenu, leur disponibilité et les modalités de candidature relèvent de leurs sources d’origine.</p><h4>3. Candidatures</h4><p>TalentPulse ne transmet aucune candidature. « Postuler » prépare votre candidature (coordonnées, lettre, CV) et l’ajoute à votre suivi, enregistré sur votre appareil ou dans votre compte. Lorsque l’offre France Travail publie une adresse e-mail de candidature et que vous le demandez expressément, TalentPulse envoie votre lettre et votre CV à cette adresse, en votre nom, avec votre e-mail en adresse de réponse. Dans tous les autres cas, l’envoi final se fait sur le site d’origine ou depuis votre messagerie : TalentPulse n’indique jamais qu’une candidature a été transmise si elle ne l’a pas été. TalentPulse n’est ni l’employeur ni un intermédiaire de recrutement.</p><h4>4. Données</h4><p>Voir la <a href="/confidentialite" data-route="/confidentialite" style="text-decoration:underline">politique de confidentialité</a>.</p>'
   },
   contact: {
     title: 'Contact',
@@ -220,6 +223,8 @@ const State = {
   kanban:  safeGet('tp_kanban', {}),
   history: safeGet('tp_history', []),
   cv:      safeGet('tp_cv', null),
+  applications: safeGet('tp_applications', {}),
+  lettres: safeGet('tp_lettres', {}),
   alerts:  safeGet('tp_alerts', []),
   searches:safeGet('tp_searches', []),
   lastSearch: null,
@@ -359,7 +364,8 @@ function buildSyncPayload() {
   }));
   const alerts = State.alerts.filter(a => !a.id && (a.kw || a.city)).slice(0, 20).map(a => ({ ...alertPayload(a), channels: [] }));
   const p = profilePayload();
-  return { favorites, pipeline, alerts, profile: Object.values(p).some(Boolean) ? p : undefined };
+  const applications = Object.values(State.applications || {}).filter(a => validJobId(a.jobId) && a.status !== 'sent' && a.letter && a.letter.length >= 50 && a.name && a.email).slice(0, 200).map(appPayload);
+  return { favorites, pipeline, alerts, applications, profile: Object.values(p).some(Boolean) ? p : undefined };
 }
 function applyServerState(data) {
   if (!data) return;
@@ -381,6 +387,13 @@ function applyServerState(data) {
     State.alerts = data.alerts.map(a => ({ id: a.id, kw: a.query.kw || '', city: a.query.city || '', label: a.label, channels: a.channels || [], whatsappTo: a.whatsappTo || '', created: Date.parse(a.createdAt) || Date.now(), lastSentAt: a.lastSentAt || null }));
     safeSet('tp_alerts', State.alerts);
   }
+  if (Array.isArray(data.applications)) {
+    const local = State.applications || {};
+    const next = {};
+    data.applications.forEach(a => { next[a.jobId] = { ...a, applyEmail: local[a.jobId]?.applyEmail || '', applyUrl: local[a.jobId]?.applyUrl || '' }; });
+    State.applications = next;
+    saveApplications();
+  }
   const prof = data.user && data.user.profile;
   if (prof && typeof prof === 'object') {
     Object.entries(prof).forEach(([k, v]) => { if (v && k in State.profile) State.profile[k] = v; });
@@ -394,18 +407,18 @@ function applyServerState(data) {
 async function pullServerState() {
   if (!remoteOn()) return;
   setSyncStatus('syncing');
-  const [fav, pipe, al, prof] = await Promise.all([
-    remote('/api/me/favorites'), remote('/api/me/pipeline'), remote('/api/me/alerts'), remote('/api/me/profile'),
+  const [fav, pipe, al, prof, apps] = await Promise.all([
+    remote('/api/me/favorites'), remote('/api/me/pipeline'), remote('/api/me/alerts'), remote('/api/me/profile'), remote('/api/me/applications'),
   ]);
   if (!fav && !pipe && !al) return;
-  applyServerState({ favorites: fav?.favorites, pipeline: pipe?.pipeline, alerts: al?.alerts, user: prof?.user });
+  applyServerState({ favorites: fav?.favorites, pipeline: pipe?.pipeline, alerts: al?.alerts, user: prof?.user, applications: apps?.applications });
   setSyncStatus('ok');
   rerenderCurrent();
 }
 async function syncAfterLogin() {
   if (!remoteOn()) return 0;
   const payload = buildSyncPayload();
-  const n = payload.favorites.length + payload.pipeline.length + payload.alerts.length;
+  const n = payload.favorites.length + payload.pipeline.length + payload.alerts.length + payload.applications.length;
   setSyncStatus('syncing');
   const data = await remote('/api/me/sync', { method: 'POST', body: payload, timeout: 20000 });
   if (data) { applyServerState(data); setSyncStatus('ok'); }
@@ -421,7 +434,7 @@ function clearAccountCache() {
   try { Object.keys(localStorage).filter(k => k.startsWith('tp_') && k !== 'tp_dark' && k !== 'tp_filters').forEach(k => localStorage.removeItem(k)); } catch {}
   State.profile = { prenom:'', nom:'', title:'', city:'', skills:'', contract:'' };
   State.saved = new Set(); State.applied = new Set(); State.viewed = new Set();
-  State.kanban = {}; State.history = []; State.cv = null; State.alerts = []; State.searches = []; State.jobCache = {};
+  State.kanban = {}; State.history = []; State.cv = null; State.alerts = []; State.searches = []; State.jobCache = {}; State.applications = {}; State.lettres = {};
   updateFavBadge();
 }
 function syncState() {
@@ -1127,7 +1140,7 @@ async function exportData() {
     payload = {
       exportedAt: new Date().toISOString(), source: 'appareil',
       profile: State.profile, favorites: [...State.saved].map(id => ({ jobId: id, job: jobSnapshot(findJob(id)) })),
-      pipeline: State.kanban, history: State.history, alerts: State.alerts, searches: State.searches, cv: State.cv,
+      pipeline: State.kanban, history: State.history, alerts: State.alerts, searches: State.searches, cv: State.cv, applications: Object.values(State.applications || {}),
     };
   }
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
@@ -1331,7 +1344,9 @@ function parseAggregatedJob(j) {
     source: j.source || '',
     sourceSite: j.sourceSite || j.source || '',
     otherLocations: j.otherLocations || 0,
-    cat: j.cat || ''
+    cat: j.cat || '',
+    applyEmail: /^[^\s@<>"]+@[^\s@<>"]+\.[a-z]{2,24}$/i.test(j.applyEmail || '') ? j.applyEmail : '',
+    applyUrl: /^https?:\/\//i.test(j.applyUrl || '') ? j.applyUrl : ''
   };
 }
 
@@ -1457,6 +1472,7 @@ function jobCard(j) {
       ${j.contract ? `<span class="tag tag-brand">${esc(j.contract)}</span>` : ''}
       ${j.salary ? `<span class="tag job-sal">${icon('salary')}${esc(j.salary)}</span>` : ''}
       ${j.experience ? `<span class="tag">${esc(j.experience)}</span>` : ''}
+      ${j.applyEmail ? `<span class="tag tag-ok">${icon('mail')}Candidature par e-mail</span>` : ''}
       ${j.otherLocations ? `<span class="tag">+${j.otherLocations} autre${j.otherLocations > 1 ? 's' : ''} lieu${j.otherLocations > 1 ? 'x' : ''}</span>` : ''}
       ${matchBadge(matchScore(j))}
     </div>
@@ -1465,7 +1481,7 @@ function jobCard(j) {
         ${j.source === 'Adzuna' ? adzunaAttribution() : j.source ? `<span class="src ${sourceClass(j.source)}">${sourceIcon(j.source)}${esc(j.source)}</span>` : ''}
         ${when ? `<span class="job-time${fresh ? ' fresh' : ''}">${fresh ? '<span class="fresh-dot" aria-hidden="true"></span>Nouveau · ' : ''}${esc(when)}</span>` : ''}
       </div>
-      ${tracked ? `<span class="tracked-badge">${ICONS.check}Suivie</span>` : viewed ? '<span>Déjà consultée</span>' : ''}
+      ${State.applications[j.id] ? `<span class="tracked-badge">${ICONS.check}${State.applications[j.id].status === 'sent' ? 'Candidature envoyée' : 'Candidature prête'}</span>` : tracked ? `<span class="tracked-badge">${ICONS.check}Suivie</span>` : viewed ? '<span>Déjà consultée</span>' : ''}
     </div>
   </article>`;
 }
@@ -1562,12 +1578,12 @@ function openDetail(id, { push = true } = {}) {
     ${detailSection('Qualités professionnelles', j.qualites)}
     ${detailSection('Avantages et compléments de salaire', j.avantages)}
     ${j.source === 'Adzuna' ? `<p class="detail-attr">${adzunaAttribution()}</p>` : j.source === 'France Travail' ? `<p class="detail-attr">Source : France Travail${j.updated ? `, offre mise à jour le ${esc(fmtDate(j.updated))}` : ''}. Réutilisation soumise à la <a href="${FT_LICENCE_URL}" target="_blank" rel="noopener">licence de réutilisation des offres d’emploi de France Travail</a>.</p>` : ''}
-    <p class="detail-note">${icon('info')}<span>TalentPulse n’envoie pas votre candidature : vous postulez directement sur ${esc(site)}. L’onglet « Suivi » de Mon espace est un aide-mémoire ${State.user ? 'synchronisé avec votre compte' : 'enregistré sur cet appareil'}.</span></p>`;
+    <p class="detail-note">${icon('info')}<span>${applyMode(j) === 'send' ? 'Ce recruteur reçoit les candidatures par e-mail : avec « Postuler en 1 clic », TalentPulse lui envoie votre lettre et votre CV.' : applyMode(j) === 'mailto' ? 'Ce recruteur reçoit les candidatures par e-mail : « Postuler » prépare l’e-mail complet, envoyé depuis votre messagerie.' : `« Postuler » prépare votre lettre et votre dossier ici ; l’envoi final se fait sur ${esc(site)}, qui n’accepte pas les candidatures transmises par un autre site.`} Votre suivi est ${State.user ? 'synchronisé avec votre compte' : 'enregistré sur cet appareil'}.</span></p>`;
 
   $('#detailCta').innerHTML = `
-    ${j.url ? `<a class="btn btn-primary btn-lg btn-view" id="detailView" href="${esc(j.url)}" target="_blank" rel="noopener noreferrer">Voir l’offre sur ${esc(site)} ${ICONS.external}<span class="sr-only">(nouvel onglet)</span></a>` : ''}
-    <button class="btn btn-outline btn-lg" id="detailTrack" type="button" aria-pressed="${tracked}">${trackBtnLabel(tracked)}</button>
-    <button class="btn btn-ghost btn-lg" id="detailLettre" type="button">${icon('document')} <span class="lbl-long">Préparer ma lettre</span><span class="lbl-short">Ma lettre</span></button>`;
+    <button class="btn btn-primary btn-lg btn-view" id="detailApply" type="button" aria-haspopup="dialog">${applyCtaLabel(j)}</button>
+    ${j.url ? `<a class="btn btn-outline btn-lg" id="detailView" href="${esc(j.url)}" target="_blank" rel="noopener noreferrer"><span class="lbl-long">Voir sur ${esc(site)}</span><span class="lbl-short">Offre d’origine</span> ${ICONS.external}<span class="sr-only">(nouvel onglet)</span></a>` : ''}
+    <button class="btn btn-ghost btn-lg" id="detailTrack" type="button" aria-pressed="${tracked}">${trackBtnLabel(tracked)}</button>`;
 
   const panel = $('#detail');
   lastFocusBeforeDetail = document.activeElement;
@@ -1578,13 +1594,7 @@ function openDetail(id, { push = true } = {}) {
   document.body.classList.add('no-scroll');
   setTimeout(() => $('#detailBack')?.focus(), 50);
   refreshDetailSaveBtn();
-  on($('#detailLettre'), 'click', () => {
-    closeDetail();
-    goToPage('lettre');
-    $('#lettrePoste').value = j.title;
-    $('#lettreEntreprise').value = j.company || '';
-    State.lettreOffre = { title: clip(j.title, 200), company: clip(j.company, 160), desc: clip(j.desc, 4000) };
-  });
+  on($('#detailApply'), 'click', () => openApply(id));
   on($('#detailTrack'), 'click', () => toggleTrack(id));
   on($('#detailView'), 'click', () => historyAdd(j, 'viewed'));
 }
@@ -1637,6 +1647,348 @@ function toggleTrack(id) {
   if (btn) { const t = State.applied.has(id); btn.innerHTML = trackBtnLabel(t); btn.setAttribute('aria-pressed', String(t)); }
   if ($('#page-jobs').classList.contains('active')) renderJobs();
 }
+// ─── POSTULER DANS TALENTPULSE (sprint 8) ─────────────────────────
+// Trois chemins, choisis automatiquement selon ce que publie l'offre, sans jamais prétendre
+// qu'une candidature est « envoyée » si ce n'est pas vrai :
+//   'send'   offre France Travail avec e-mail de candidature + envoi activé → TalentPulse envoie
+//            lettre + CV au recruteur (Resend), réponse directe au candidat (« Postuler en 1 clic »).
+//   'mailto' e-mail publié mais envoi direct indisponible → e-mail pré-rempli dans la messagerie du candidat.
+//   'source' pas d'e-mail (Adzuna, la plupart des offres) → dossier prêt ici, lettre copiée, offre
+//            ouverte dans un nouvel onglet avec les étapes à suivre.
+const CV_MAX = 3 * 1024 * 1024;
+const PLACEHOLDER_RE = /\[[^\]\n]{3,}\]/;
+const applyState = { job: null, step: 'form', sending: false };
+function saveApplications() { safeSet('tp_applications', State.applications); }
+function getApplication(id) { return State.applications[id] || null; }
+function applyMode(j) {
+  if (j && j.applyEmail && String(j.id || '').startsWith('ft_')) return FEATURES.applyEmail ? 'send' : 'mailto';
+  return 'source';
+}
+function applyCtaLabel(j) {
+  const a = getApplication(j.id);
+  if (a && a.status === 'sent') return `${icon('check')} Candidature envoyée`;
+  if (a) return `${icon('check')} Ma candidature`;
+  const m = applyMode(j);
+  return m === 'send' ? `${icon('sparkles')} Postuler en 1 clic` : `${icon('send')} Postuler`;
+}
+function siteOf(j) { return j.sourceSite || j.source || 'le site de l’offre'; }
+function defaultLetter(j) {
+  // 1) lettre déjà enregistrée, 2) lettre générée depuis cette offre dans l'outil Lettre, 3) trame à compléter
+  const saved = getApplication(j.id);
+  if (saved && saved.letter) return saved.letter;
+  if (State.lettres && State.lettres[j.id]) return State.lettres[j.id];
+  return localLettre(j.title || 'ce poste', j.company || 'votre entreprise', '');
+}
+function applicantDefaults(j) {
+  const a = getApplication(j.id) || {};
+  const p = State.profile || {};
+  return {
+    name: a.name || [p.prenom || State.user?.prenom || '', p.nom || ''].filter(Boolean).join(' '),
+    email: a.email || State.user?.email || safeGet('tp_apply_email', ''),
+    phone: a.phone || safeGet('tp_apply_phone', ''),
+  };
+}
+
+function openApply(id, { step } = {}) {
+  const j = findJob(id) || (getApplication(id) && { id, ...getApplication(id).job });
+  if (!j) return;
+  applyState.job = j;
+  applyState.step = step || (getApplication(id) ? 'done' : 'form');
+  lastFocusBeforeModal = document.activeElement;
+  renderApply();
+  $('#applyModal').classList.add('open');
+  $('#applyModal').removeAttribute('inert');
+  setTimeout(() => ($('#applyModal [data-autofocus]') || $('#applyModal .modal-close'))?.focus(), 40);
+}
+
+function renderApply() {
+  const j = applyState.job;
+  if (!j) return;
+  $('#applyTitle').textContent = applyState.step === 'form' ? 'Postuler' : 'Votre candidature';
+  $('#applySub').textContent = [j.title, j.company].filter(Boolean).join(' · ');
+  $('#applyBody').innerHTML = applyState.step === 'form' ? applyFormHtml(j) : applyDoneHtml(j);
+  $('#applyBody').scrollTop = 0;
+  if (applyState.step === 'form') bindApplyForm(j); else bindApplyDone(j);
+}
+
+function modeNotice(j, mode) {
+  if (mode === 'send') return `<div class="notice notice-brand apply-mode">${ICONS.sparkles}<span><strong>Postuler en 1 clic.</strong> Ce recruteur reçoit les candidatures par e-mail : TalentPulse lui envoie votre lettre et votre CV, et il vous répond directement.</span></div>`;
+  if (mode === 'mailto') return `<div class="notice notice-brand apply-mode">${ICONS.mail}<span><strong>Candidature par e-mail.</strong> Ce recruteur publie son adresse : on prépare l’e-mail complet, il part de votre propre messagerie.</span></div>`;
+  return `<div class="notice apply-mode">${ICONS.info}<span><strong>Préparez tout ici, envoyez en 30 secondes.</strong> ${esc(siteOf(j))} n’accepte pas les candidatures transmises par un autre site : on prépare votre dossier, on copie votre lettre et on ouvre l’offre, il ne reste qu’à coller.</span></div>`;
+}
+
+function applyFormHtml(j) {
+  const d = applicantDefaults(j);
+  const mode = applyMode(j);
+  const cv = applyState.cvFile;
+  const where = State.user ? 'dans votre compte' : 'sur cet appareil';
+  return `<form id="applyForm" class="apply-form" novalidate>
+    ${modeNotice(j, mode)}
+    <ol class="apply-steps" aria-label="Étapes"><li class="on" aria-current="step">Votre dossier</li><li>Envoi</li></ol>
+    <div class="apply-row">
+      <div class="form-group"><label class="form-label" for="apName">Prénom et nom</label><input class="form-input" id="apName" autocomplete="name" required maxlength="120" value="${esc(d.name)}" data-autofocus aria-describedby="apNameErr"><p class="field-hint err" id="apNameErr"></p></div>
+      <div class="form-group"><label class="form-label" for="apEmail">E-mail</label><input class="form-input" id="apEmail" type="email" inputmode="email" autocomplete="email" required maxlength="254" value="${esc(d.email)}" aria-describedby="apEmailErr"><p class="field-hint err" id="apEmailErr"></p></div>
+    </div>
+    <div class="form-group"><label class="form-label" for="apPhone">Téléphone <span class="opt">(facultatif)</span></label><input class="form-input" id="apPhone" type="tel" inputmode="tel" autocomplete="tel" maxlength="30" value="${esc(d.phone)}" aria-describedby="apPhoneErr"><p class="field-hint err" id="apPhoneErr"></p></div>
+    <div class="form-group">
+      <div class="apply-label-row"><label class="form-label" for="apLetter">Lettre de motivation</label><button class="btn btn-ghost btn-sm" id="apGen" type="button">${icon('sparkles')} ${FEATURES.aiLetter ? 'Rédiger avec l’IA' : 'Nouvelle trame'}</button></div>
+      <textarea class="form-input apply-letter" id="apLetter" rows="10" maxlength="6000" required aria-describedby="apLetterHint apLetterErr">${esc(defaultLetter(j))}</textarea>
+      <p class="field-hint" id="apLetterHint">Remplacez les passages entre [crochets] par vos propres mots.</p><p class="field-hint err" id="apLetterErr"></p>
+    </div>
+    <div class="form-group">
+      <span class="form-label" id="apCvLabel">CV <span class="opt">(PDF ou .txt, 3 Mo max${mode === 'send' ? ', requis pour l’envoi' : ''})</span></span>
+      <label class="apply-cv" for="apCv">
+        <span class="apply-cv-ic" aria-hidden="true">${ICONS.file}</span>
+        <span class="apply-cv-txt" id="apCvName">${cv ? `<strong>${esc(cv.name)}</strong> · ${Math.max(1, Math.round(cv.size / 1024))} Ko` : 'Choisir mon CV'}</span>
+        <span class="apply-cv-act">${cv ? 'Changer' : 'Parcourir'}</span>
+      </label>
+      <input type="file" id="apCv" class="sr-only" accept=".pdf,.txt,application/pdf,text/plain" aria-labelledby="apCvLabel" aria-describedby="apCvHint apCvErr">
+      <p class="field-hint" id="apCvHint">Votre CV reste sur votre appareil${mode === 'send' ? ' : il n’est transmis qu’au recruteur, au moment de l’envoi, et jamais conservé' : ''}.</p><p class="field-hint err" id="apCvErr"></p>
+    </div>
+    <div class="form-group"><label class="check"><input type="checkbox" id="apConsent" required aria-describedby="apConsentErr"${getApplication(j.id) ? ' checked' : ''}><span>J’accepte que TalentPulse enregistre cette candidature (nom, e-mail, téléphone, lettre) ${where} pour mon suivi. <a href="/confidentialite" data-route="/confidentialite">Confidentialité</a></span></label><p class="field-hint err" id="apConsentErr"></p></div>
+    <div class="apply-actions"><button class="btn btn-primary btn-lg btn-block" id="apSubmit" type="submit">Continuer ${ICONS.right}</button></div>
+    ${State.user ? '' : `<p class="apply-foot">Astuce : <a href="/connexion" data-route="/connexion">créez un compte</a> pour retrouver vos candidatures sur tous vos appareils${mode === 'send' ? ' et postuler en 1 clic' : ''}.</p>`}
+  </form>`;
+}
+
+function setFieldErr(id, msg) {
+  const el = $('#' + id + 'Err'); const input = $('#' + id);
+  if (el) el.textContent = msg || '';
+  if (input) { if (msg) input.setAttribute('aria-invalid', 'true'); else input.removeAttribute('aria-invalid'); }
+}
+
+function bindApplyForm(j) {
+  on($('#apCv'), 'change', e => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    const okType = /\.(pdf|txt)$/i.test(f.name) && (!f.type || ['application/pdf', 'text/plain'].includes(f.type));
+    if (!okType) { setFieldErr('apCv', 'Format non pris en charge : PDF ou .txt uniquement.'); e.target.value = ''; return; }
+    if (f.size > CV_MAX) { setFieldErr('apCv', 'Fichier trop volumineux (3 Mo maximum).'); e.target.value = ''; return; }
+    setFieldErr('apCv', '');
+    applyState.cvFile = f;
+    $('#apCvName').innerHTML = `<strong>${esc(f.name)}</strong> · ${Math.max(1, Math.round(f.size / 1024))} Ko`;
+    $('.apply-cv-act').textContent = 'Changer';
+  });
+  on($('#apGen'), 'click', async () => {
+    const btn = $('#apGen');
+    const ta = $('#apLetter');
+    if (!FEATURES.aiLetter) { ta.value = localLettre(j.title || 'ce poste', j.company || 'votre entreprise', State.profile?.skills || ''); ta.focus(); return; }
+    btn.disabled = true; btn.innerHTML = '<span class="spinner" aria-hidden="true"></span> Rédaction…';
+    try {
+      const data = await apiFetch('/api/lettre', { method: 'POST', auth: true, timeout: 30000, body: { poste: clip(j.title || 'Poste', 160), entreprise: clip(j.company, 160), atouts: clip(State.profile?.skills, 1500), profile: profilePayload(), offre: { title: clip(j.title, 200), company: clip(j.company, 160), desc: clip(j.desc, 4000) } } });
+      if (data.lettre) { ta.value = data.lettre; announce('Lettre rédigée : relisez-la avant envoi.'); }
+    } catch (err) { toast(err.status === 429 ? err.message : 'IA indisponible : gardez la trame et personnalisez-la.', 'err'); }
+    btn.disabled = false; btn.innerHTML = `${icon('sparkles')} Rédiger avec l’IA`;
+  });
+  on($('#applyForm'), 'submit', e => { e.preventDefault(); submitApply(j); });
+}
+
+function readApplyForm() {
+  const v = id => ($('#' + id)?.value || '').trim();
+  const data = { name: v('apName'), email: v('apEmail').toLowerCase(), phone: v('apPhone'), letter: v('apLetter'), consent: !!$('#apConsent')?.checked };
+  const errs = {};
+  if (data.name.length < 2) errs.apName = 'Indiquez votre prénom et votre nom.';
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(data.email)) errs.apEmail = 'Adresse e-mail invalide.';
+  if (data.phone && !/^[+0-9 ().-]{6,30}$/.test(data.phone)) errs.apPhone = 'Numéro de téléphone invalide.';
+  if (data.letter.length < 50) errs.apLetter = 'Votre lettre est trop courte (50 caractères minimum).';
+  else if (PLACEHOLDER_RE.test(data.letter)) errs.apLetter = 'Remplacez les passages entre [crochets] avant de continuer.';
+  if (!data.consent) errs.apConsent = 'Cochez cette case pour enregistrer votre candidature.';
+  ['apName', 'apEmail', 'apPhone', 'apLetter', 'apConsent'].forEach(k => setFieldErr(k, errs[k]));
+  return { data, errs };
+}
+
+async function submitApply(j) {
+  const { data, errs } = readApplyForm();
+  const first = Object.keys(errs)[0];
+  if (first) { $('#' + first)?.focus(); announce(errs[first]); return; }
+  const prev = getApplication(j.id);
+  const cv = applyState.cvFile;
+  const app = {
+    jobId: j.id, job: jobSnapshot(j), name: data.name, email: data.email, phone: data.phone, letter: data.letter,
+    cvName: cv ? cv.name : (prev?.cvName || ''), cvSize: cv ? cv.size : (prev?.cvSize || 0),
+    channel: prev?.channel || 'package', status: prev?.status === 'sent' ? 'sent' : 'ready',
+    sentTo: prev?.sentTo || '', sentAt: prev?.sentAt || null, updatedAt: new Date().toISOString(),
+    applyEmail: j.applyEmail || '', applyUrl: j.applyUrl || '',
+  };
+  State.applications[j.id] = app;
+  saveApplications();
+  safeSet('tp_apply_phone', data.phone);
+  if (!State.user) safeSet('tp_apply_email', data.email);
+  if (!State.profile.prenom && !State.profile.nom && data.name) { const [p, ...n] = data.name.split(' '); State.profile.prenom = p; State.profile.nom = n.join(' '); syncProfile(); }
+  // Suivi : colonne « J'ai postulé » (sans rétrograder un entretien en cours)
+  const cur = KCOLS.find(c => (State.kanban[c.key] || []).some(k => k.id === j.id))?.key;
+  rememberJob(j);
+  State.applied.add(j.id);
+  if (!cur || cur === 'todo') kanbanAdd(j, 'applied');
+  historyAdd(j, 'applied');
+  syncState();
+  if (validJobId(j.id) && remoteOn()) {
+    const r = await remote('/api/me/applications', { method: 'POST', body: appPayload(app) });
+    if (r && r.application) { State.applications[j.id] = { ...app, ...r.application, applyEmail: app.applyEmail, applyUrl: app.applyUrl }; saveApplications(); }
+  }
+  applyState.step = 'done';
+  renderApply();
+  refreshDetailApplyBtn();
+  setTimeout(() => $('#applyBody [data-autofocus]')?.focus(), 30);
+}
+function appPayload(a) {
+  return { jobId: a.jobId, job: a.job || {}, name: clip(a.name, 120), email: clip(a.email, 254), phone: clip(a.phone, 30), letter: clip(a.letter, 6000), cvName: clip(a.cvName, 200), cvSize: Math.min(a.cvSize || 0, 10 * 1024 * 1024), channel: ['package', 'mailto', 'source'].includes(a.channel) ? a.channel : 'package', consent: true };
+}
+
+function mailtoHref(j, a) {
+  const subject = `Candidature : ${j.title || 'votre offre'}${String(j.id || '').startsWith('ft_') ? ' (offre France Travail n° ' + j.id.slice(3) + ')' : ''}`;
+  const body = `${a.letter}\n\n${[a.name, a.email, a.phone].filter(Boolean).join('\n')}\n\nCV en pièce jointe.`;
+  return `mailto:${encodeURIComponent(j.applyEmail).replace(/%40/g, '@')}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
+function applyDoneHtml(j) {
+  const a = getApplication(j.id);
+  if (!a) return applyFormHtml(j);
+  const mode = applyMode({ ...j, applyEmail: j.applyEmail || a.applyEmail });
+  const site = siteOf(j);
+  const url = j.url || a.job?.url || '';
+  const applyUrl = j.applyUrl || a.applyUrl || '';
+  const cvName = applyState.cvFile?.name || a.cvName;
+  const sent = a.status === 'sent';
+  const status = sent
+    ? `<div class="apply-status ok" role="status">${ICONS.check}<div><strong>Candidature envoyée au recruteur</strong><span>Envoyée le ${esc(fmtDate(a.sentAt))} à ${esc(a.sentTo)}. Une copie vous a été adressée ; le recruteur vous répondra directement par e-mail.</span></div></div>`
+    : `<div class="apply-status" role="status">${ICONS.clipboard}<div><strong>Dossier prêt · ajouté à votre suivi</strong><span>Il n’est pas encore transmis au recruteur : c’est la dernière étape ci-dessous.</span></div></div>`;
+  let primary = '';
+  if (!sent && mode === 'send') {
+    if (!State.user) primary = `<a class="btn btn-primary btn-lg btn-block" href="/connexion" data-route="/connexion" data-autofocus>${ICONS.user} Me connecter pour envoyer en 1 clic</a>
+      <a class="btn btn-outline btn-lg btn-block" id="apMailto" href="${esc(mailtoHref({ ...j, applyEmail: j.applyEmail || a.applyEmail }, a))}">${ICONS.mail} Ou l’envoyer depuis ma messagerie</a>`;
+    else if (State.user.emailVerified === false) primary = `<div class="notice">${ICONS.info}<span>Confirmez d’abord votre adresse e-mail (lien reçu à l’inscription, ou depuis Mon espace) : le recruteur vous répondra dessus.</span></div>
+      <a class="btn btn-outline btn-lg btn-block" id="apMailto" href="${esc(mailtoHref({ ...j, applyEmail: j.applyEmail || a.applyEmail }, a))}" data-autofocus>${ICONS.mail} L’envoyer depuis ma messagerie</a>`;
+    else primary = `<button class="btn btn-primary btn-lg btn-block" id="apSend" type="button" data-autofocus>${ICONS.send} Envoyer ma candidature au recruteur</button>
+      <p class="apply-fine">Lettre + CV${cvName ? ' (' + esc(cvName) + ')' : ''} envoyés à l’adresse publiée dans l’offre France Travail. Réponse directe sur ${esc(State.user.email)}.</p>`;
+  } else if (!sent && mode === 'mailto') {
+    primary = `<a class="btn btn-primary btn-lg btn-block" id="apMailto" href="${esc(mailtoHref({ ...j, applyEmail: j.applyEmail || a.applyEmail }, a))}" data-autofocus>${ICONS.mail} Ouvrir mon e-mail prêt à envoyer</a>
+      <p class="apply-fine">Destinataire, objet et lettre sont déjà remplis.${cvName ? ` Joignez <strong>${esc(cvName)}</strong> avant d’envoyer.` : ' Joignez votre CV avant d’envoyer.'}</p>`;
+  } else if (!sent && (applyUrl || url)) {
+    // Lien de candidature direct du recruteur (France Travail « urlPostulation ») en priorité : une étape de moins.
+    const target = applyUrl || url;
+    const where = applyUrl ? 'le site du recruteur' : site;
+    primary = `<a class="btn btn-primary btn-lg btn-block" id="apGo" href="${esc(target)}" target="_blank" rel="noopener noreferrer" data-autofocus>${ICONS.clipboard} Copier ma lettre et ${applyUrl ? 'postuler chez le recruteur' : 'ouvrir ' + esc(site)} ${ICONS.external}<span class="sr-only">(nouvel onglet)</span></a>
+      <ol class="apply-howto">
+        <li>Sur ${esc(where)}, ${applyUrl ? 'remplissez le formulaire de candidature' : `cliquez sur <strong>Postuler</strong>${/France Travail/.test(site) ? ' (connexion France Travail demandée)' : ''}`}.</li>
+        <li>Dans le champ message ou lettre, <strong>collez</strong> : votre lettre est déjà copiée (appui long › Coller sur mobile).</li>
+        <li>Joignez ${cvName ? `<strong>${esc(cvName)}</strong>` : 'votre CV'}, puis validez.</li>
+        <li>Revenez ici : votre candidature est déjà dans votre suivi.</li>
+      </ol>`;
+  }
+  return `${status}
+    <ol class="apply-steps" aria-label="Étapes"><li class="done">Votre dossier</li><li class="${sent ? 'done' : 'on'}"${sent ? '' : ' aria-current="step"'}>Envoi</li></ol>
+    <div class="apply-primary">${primary}</div>
+    <div class="apply-pack">
+      <h3 class="apply-h">Votre dossier</h3>
+      <div class="apply-pack-row"><span class="apply-pack-ic" aria-hidden="true">${ICONS.document}</span><div class="apply-pack-txt"><strong>Lettre de motivation</strong><span>${a.letter.length} caractères</span></div>
+        <button class="btn btn-ghost btn-sm" id="apCopy" type="button">Copier</button><button class="btn btn-ghost btn-sm" id="apDl" type="button">Télécharger</button></div>
+      <div class="apply-pack-row"><span class="apply-pack-ic" aria-hidden="true">${ICONS.file}</span><div class="apply-pack-txt"><strong>CV</strong><span>${cvName ? esc(cvName) : 'Aucun CV joint'}</span></div><button class="btn btn-ghost btn-sm" id="apEdit" type="button">Modifier</button></div>
+    </div>
+    <div class="apply-links">
+      ${url && (sent || mode !== 'source' || applyUrl) ? `<a class="btn btn-outline btn-block" id="apSource" href="${esc(url)}" target="_blank" rel="noopener noreferrer">Voir l’offre sur ${esc(site)} ${ICONS.external}<span class="sr-only">(nouvel onglet)</span></a>` : ''}
+      ${applyUrl && !sent && mode !== 'source' ? `<a class="btn btn-outline btn-block" id="apEmployer" href="${esc(applyUrl)}" target="_blank" rel="noopener noreferrer">Postuler sur le site du recruteur ${ICONS.external}<span class="sr-only">(nouvel onglet)</span></a>` : ''}
+      <a class="btn btn-ghost btn-block" href="/mon-espace" data-route="/mon-espace" id="apTrack">${ICONS.clipboard} Voir mon suivi</a>
+    </div>`;
+}
+
+function markChannel(j, channel) {
+  const a = getApplication(j.id);
+  if (!a || a.status === 'sent' || a.channel === channel) return;
+  a.channel = channel; a.updatedAt = new Date().toISOString();
+  saveApplications();
+  if (validJobId(j.id)) remote('/api/me/applications', { method: 'POST', body: appPayload(a) });
+}
+
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); return true; }
+  catch {
+    // Repli (navigateurs sans API presse-papiers) : sélection d'un textarea temporaire
+    const t = document.createElement('textarea'); t.value = text; t.setAttribute('readonly', ''); t.style.position = 'fixed'; t.style.opacity = '0';
+    document.body.appendChild(t); t.select();
+    let ok = false; try { ok = document.execCommand('copy'); } catch {}
+    t.remove(); return ok;
+  }
+}
+
+function bindApplyDone(j) {
+  const a = getApplication(j.id);
+  if (!a) return;
+  on($('#apCopy'), 'click', async () => toast(await copyText(a.letter) ? 'Lettre copiée' : 'Copie impossible : sélectionnez le texte', 'ok'));
+  on($('#apDl'), 'click', () => {
+    const blob = new Blob([a.letter + '\n'], { type: 'text/plain;charset=utf-8' });
+    const href = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = href; link.download = `lettre-${slugify(j.title || 'candidature').slice(0, 40) || 'candidature'}${j.company ? '-' + slugify(j.company).slice(0, 30) : ''}.txt`;
+    document.body.appendChild(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(href), 1000);
+  });
+  on($('#apEdit'), 'click', () => { applyState.step = 'form'; renderApply(); setTimeout(() => $('#apName')?.focus(), 30); });
+  on($('#apMailto'), 'click', () => { markChannel(j, 'mailto'); toast('Votre messagerie s’ouvre : joignez votre CV puis envoyez.', 'ok'); });
+  // Lien natif (jamais bloqué comme pop-up) : la copie se fait pendant le même clic utilisateur
+  on($('#apGo'), 'click', async () => {
+    const copied = await copyText(a.letter);
+    markChannel(j, 'source');
+    toast(copied ? `Lettre copiée. Collez-la sur ${siteOf(j)}.` : 'Offre ouverte. Copiez la lettre avec le bouton « Copier ».', copied ? 'ok' : 'err');
+  });
+  on($('#apSend'), 'click', () => sendApplication(j));
+  $$('#applyBody [data-route]').forEach(el => on(el, 'click', () => closeApply({ restoreFocus: false })));
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result).split(',')[1] || '');
+    r.onerror = () => reject(r.error);
+    r.readAsDataURL(file);
+  });
+}
+
+async function sendApplication(j) {
+  const a = getApplication(j.id);
+  const btn = $('#apSend');
+  if (!a || applyState.sending) return;
+  const cv = applyState.cvFile;
+  if (!cv) { toast('Ajoutez votre CV pour l’envoyer au recruteur.', 'err'); applyState.step = 'form'; renderApply(); setTimeout(() => $('#apCv')?.closest('.form-group')?.querySelector('.apply-cv')?.focus(), 30); return; }
+  applyState.sending = true;
+  btn.disabled = true; btn.innerHTML = '<span class="spinner" aria-hidden="true"></span> Envoi en cours…';
+  try {
+    // le dossier doit exister côté serveur (consentement enregistré) avant l'envoi
+    await apiFetch('/api/me/applications', { method: 'POST', auth: true, body: appPayload(a) });
+    const data = await apiFetch('/api/candidature', { method: 'POST', auth: true, timeout: 45000, body: {
+      jobId: j.id, name: a.name, phone: a.phone, letter: a.letter, consent: true,
+      cv: { name: cv.name, type: /\.pdf$/i.test(cv.name) ? 'application/pdf' : 'text/plain', data: await fileToBase64(cv) },
+    } });
+    State.applications[j.id] = { ...a, ...data.application, applyEmail: a.applyEmail, applyUrl: a.applyUrl };
+    saveApplications();
+    toast('Candidature envoyée au recruteur.', 'ok');
+    announce(`Candidature envoyée à ${data.sentTo}.`);
+  } catch (err) {
+    toast(err.message || 'L’envoi a échoué : rien n’a été transmis.', 'err');
+    if (err.status === 409 && /déjà envoyée/.test(err.message || '')) await pullServerState();
+  }
+  applyState.sending = false;
+  renderApply();
+  refreshDetailApplyBtn();
+}
+
+function closeApply({ restoreFocus = true } = {}) {
+  const m = $('#applyModal');
+  if (!m.classList.contains('open')) return;
+  m.classList.remove('open');
+  m.setAttribute('inert', '');
+  if ($('#page-profile')?.classList.contains('active')) renderKanban();
+  if (restoreFocus && lastFocusBeforeModal && document.contains(lastFocusBeforeModal)) lastFocusBeforeModal.focus();
+}
+
+function refreshDetailApplyBtn() {
+  const btn = $('#detailApply');
+  const j = State.currentJobId && findJob(State.currentJobId);
+  if (btn && j) btn.innerHTML = applyCtaLabel(j);
+  const t = $('#detailTrack');
+  if (t && j) { const tr = State.applied.has(j.id); t.innerHTML = trackBtnLabel(tr); t.setAttribute('aria-pressed', String(tr)); }
+}
+
 // ─── 8. LETTRE ────────────────────────────────────────────────────
 function renderLettreMode() {
   const note = $('#lettreModeNote');
@@ -1691,6 +2043,8 @@ Dans l'attente de votre retour, je vous prie d'agréer, Madame, Monsieur, l'expr
 ${signature}`;
 }
 function showLettreResult(text, source) {
+  const lo = State.lettreOffre;
+  if (lo && lo.id && lo.title === $('#lettrePoste').value.trim()) { State.lettres[lo.id] = text; const ks = Object.keys(State.lettres); if (ks.length > 30) delete State.lettres[ks[0]]; safeSet('tp_lettres', State.lettres); }
   $('#lettreResult').textContent = text;
   $('#lettreResult').classList.remove('hide');
   $('#lettreActions').classList.remove('hide');
@@ -1975,7 +2329,7 @@ function clearLocalData() {
   State.user = null;
   State.profile = { prenom:'', nom:'', title:'', city:'', skills:'', contract:'' };
   State.saved = new Set(); State.applied = new Set(); State.viewed = new Set();
-  State.kanban = {}; State.history = []; State.cv = null; State.alerts = []; State.searches = []; State.jobCache = {};
+  State.kanban = {}; State.history = []; State.cv = null; State.alerts = []; State.searches = []; State.jobCache = {}; State.applications = {}; State.lettres = {};
   State.filters = defaultFilters();
   updateFavBadge();
   refreshAuthUI();
@@ -1997,6 +2351,7 @@ function openLegal(key) {
   openLegalModal(c.title, typeof c.body === 'function' ? c.body() : c.body);
 }
 function closeModal(id) {
+  if (id === 'applyModal') return closeApply();
   $('#' + id).classList.remove('open');
   if (lastFocusBeforeModal && document.contains(lastFocusBeforeModal)) lastFocusBeforeModal.focus();
 }
@@ -2286,6 +2641,7 @@ function renderKanban() {
       if (id) kanbanMove(id, col.dataset.col);
     });
   });
+  $$('#kanban .kcard-app').forEach(b => on(b, 'click', e => { e.stopPropagation(); openApply(b.dataset.app, { step: 'done' }); }));
   // Boutons mobiles (← →)
   $$('#kanban .kcard-btn').forEach(btn => on(btn, 'click', e => {
     e.stopPropagation();
@@ -2303,6 +2659,7 @@ function kanbanCard(k, col) {
   return `<div class="kcard" draggable="true" data-id="${esc(k.id)}">
     <div class="kcard-title">${k.url ? `<a href="${esc(k.url)}" target="_blank" rel="noopener noreferrer">${esc(k.title)}<span class="sr-only"> (nouvel onglet)</span></a>` : esc(k.title)}</div>
     <div class="kcard-co">${esc(k.company || 'Entreprise non communiquée')}</div>
+    ${State.applications[k.id] ? `<button class="kcard-app${State.applications[k.id].status === 'sent' ? ' sent' : ''}" type="button" data-app="${esc(k.id)}">${State.applications[k.id].status === 'sent' ? ICONS.check + ' Envoyée au recruteur' : ICONS.document + ' Dossier prêt · ouvrir'}</button>` : ''}
     <div class="kcard-actions">
       ${prev ? `<button class="kcard-btn" type="button" data-id="${esc(k.id)}" data-dir="prev" aria-label="Déplacer vers « ${prev.label} »">${ICONS.left}</button>` : ''}
       ${next ? `<button class="kcard-btn" type="button" data-id="${esc(k.id)}" data-dir="next" aria-label="Déplacer vers « ${next.label} »">${ICONS.right}</button>` : ''}
@@ -2323,7 +2680,7 @@ const HISTORY_STATUS = {
 function historyAdd(job, status = 'todo') {
   const existing = State.history.find(h => h.id === job.id);
   if (existing) {
-    if (status !== 'viewed' && existing.status === 'viewed') { existing.status = status; safeSet('tp_history', State.history); }
+    if ((status !== 'viewed' && existing.status === 'viewed') || (status === 'applied' && existing.status === 'todo')) { existing.status = status; safeSet('tp_history', State.history); }
     return;
   }
   State.history.unshift({ id: job.id, title: job.title, company: job.company, url: job.url || '', status, date: Date.now() });

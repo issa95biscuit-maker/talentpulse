@@ -35,3 +35,20 @@
   `curl -H "Authorization: Bearer $CRON_SECRET" https://talentpulse-topaz.vercel.app/api/cron/alerts`
   (valeur de `CRON_SECRET` : `vercel env pull`, ne jamais la publier).
 - En local : `npm ci && npm test` (base PGlite en mémoire, aucun service externe), `npm run dev` (http://localhost:4173).
+
+## Postuler depuis TalentPulse (sprint 8)
+
+Le bouton principal de chaque offre est désormais **Postuler** : le candidat prépare sa candidature dans le site (nom, e-mail, téléphone, lettre, CV, consentement), puis la dernière étape dépend de ce que l'offre permet réellement :
+
+| Offre | Ce que fait TalentPulse | Variable |
+|---|---|---|
+| France Travail avec e-mail de candidature | **Postuler en 1 clic** : lettre + CV envoyés au recruteur via Resend, réponse directe au candidat, copie au candidat | `APPLY_FROM_EMAIL` (domaine vérifié dans Resend) |
+| Idem, envoi non activé | E-mail complet pré-rempli dans la messagerie du candidat (`mailto:`) | — |
+| France Travail avec lien de candidature (`urlPostulation`) | Lettre copiée + ouverture du formulaire du recruteur | — |
+| Autres (Adzuna, la plupart des offres FT) | Lettre copiée + ouverture de l'offre d'origine, mode d'emploi en 4 étapes | — |
+
+Dans tous les cas la candidature est enregistrée (appareil, ou table `applications` du compte) et l'offre passe dans la colonne « J'ai postulé » du suivi. Le statut « envoyée » n'est posé **que** par `/api/candidature`, après acceptation par Resend ; le CV n'est jamais stocké.
+
+La table `applications` est créée automatiquement au premier usage ; `npm run migrate` reste la méthode de référence.
+
+Activer l'envoi réel : vérifier `talentpulse.fr` dans Resend (DNS OVH), puis définir `APPLY_FROM_EMAIL="TalentPulse <candidatures@talentpulse.fr>"` dans Vercel et redéployer.

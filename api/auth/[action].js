@@ -93,7 +93,7 @@ function requireAccountEmails() {
 async function sendAccountEmail(kind, user) {
   const token = await issueToken(user.id, kind);
   const link = `${siteUrl()}/${kind === 'reset' ? 'nouveau-mot-de-passe' : 'verifier-email'}#t=${encodeURIComponent(token)}`;
-  const from = env('AUTH_FROM_EMAIL') || env('ALERTS_FROM_EMAIL');
+  const from = env('AUTH_FROM_EMAIL') || env('ALERTS_FROM_EMAIL') || env('APPLY_FROM_EMAIL');
   await sendEmail({ to: user.email, from, ...renderAccountEmail(kind, { prenom: user.prenom, link }) });
 }
 

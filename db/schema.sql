@@ -103,3 +103,26 @@ create table if not exists auth_tokens (
 create index if not exists auth_tokens_user_idx on auth_tokens (user_id, purpose);
 create index if not exists auth_tokens_expires_idx on auth_tokens (expires_at);
 insert into schema_migrations (version) values ('2026-10-03-auth-tokens') on conflict do nothing;
+
+-- Sprint 8 : candidatures préparées dans TalentPulse (lettre + infos du candidat).
+-- Le CV n'est JAMAIS stocké : seuls son nom et sa taille sont conservés. Il ne transite par le serveur
+-- que si le candidat choisit l'envoi par e-mail au recruteur (adresse publiée dans l'offre).
+create table if not exists applications (
+  user_id    uuid not null references users(id) on delete cascade,
+  job_id     text not null,
+  job        jsonb not null default '{}'::jsonb,
+  name       text not null default '',
+  email      text not null default '',
+  phone      text not null default '',
+  letter     text not null default '',
+  cv_name    text not null default '',
+  cv_size    integer not null default 0,
+  channel    text not null default 'package' check (channel in ('package', 'mailto', 'source', 'email')),
+  status     text not null default 'ready' check (status in ('ready', 'sent')),
+  sent_to    text,
+  sent_at    timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  primary key (user_id, job_id)
+);
+insert into schema_migrations (version) values ('2026-10-12-applications') on conflict do nothing;
