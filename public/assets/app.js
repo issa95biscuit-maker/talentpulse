@@ -1463,7 +1463,7 @@ function jobCard(j) {
     <div class="job-foot">
       <div class="job-foot-left">
         ${j.source === 'Adzuna' ? adzunaAttribution() : j.source ? `<span class="src ${sourceClass(j.source)}">${sourceIcon(j.source)}${esc(j.source)}</span>` : ''}
-        ${when ? `<span class="job-time"${fresh ? ' style="color:var(--ok);font-weight:600"' : ''}>${fresh ? 'Nouveau · ' : ''}${esc(when)}</span>` : ''}
+        ${when ? `<span class="job-time${fresh ? ' fresh' : ''}">${fresh ? '<span class="fresh-dot" aria-hidden="true"></span>Nouveau · ' : ''}${esc(when)}</span>` : ''}
       </div>
       ${tracked ? `<span class="tracked-badge">${ICONS.check}Suivie</span>` : viewed ? '<span>Déjà consultée</span>' : ''}
     </div>

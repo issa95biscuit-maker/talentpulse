@@ -161,6 +161,7 @@ legend{padding:0}
 .adz-attr img{display:block;width:87px;height:23px;max-width:none;flex-shrink:0}
 .detail-attr{margin-top:var(--sp-5);font-size:var(--fs-xs);color:var(--text-3);line-height:1.6}
 .detail-attr a{color:var(--text-2);text-decoration:underline}
+.detail-attr .adz-attr a{color:#1E293B}
 .co-logo{background:#fff;border:1px solid var(--border);padding:4px;overflow:hidden}
 .co-logo img{width:100%;height:100%;object-fit:contain;display:block}
 
@@ -908,6 +909,199 @@ body.dark .site-header{background:color-mix(in srgb,#07090F 80%,transparent)}
   .cat-card:hover{transform:none}
   .cat-card:hover .cat-photo img{transform:none}
 }
+
+/* ═══ 18. SPRINT 7 — FINITIONS « STUDIO » (niveau Stripe / Linear / Apple)
+   Un seul langage de carte pour tout le site : bord hairline, ombre en couches, reflet supérieur,
+   survol = légère élévation + bord teinté, focus = anneau net. Clair et sombre. ═══ */
+:root{
+  --card-bg:var(--surface);
+  --card-border:rgba(15,23,42,.08);
+  --card-border-hover:rgba(15,23,42,.16);
+  --card-sh:0 0 0 1px rgba(15,23,42,.02),0 1px 2px rgba(15,23,42,.04),0 2px 6px -2px rgba(15,23,42,.05);
+  --card-sh-hover:0 0 0 1px rgba(15,23,42,.03),0 2px 4px rgba(15,23,42,.04),0 12px 32px -12px rgba(15,23,42,.18);
+  --card-hi:inset 0 1px 0 rgba(255,255,255,.7);
+  --card-r:14px;
+  --ring:0 0 0 2px var(--surface),0 0 0 4px var(--focus);
+  --tag-bg:var(--surface-2);--tag-border:rgba(15,23,42,.06);
+  --divider:rgba(15,23,42,.07);
+}
+body.dark{
+  --card-bg:linear-gradient(180deg,#111827 0%,#0D121C 100%);
+  --card-border:rgba(255,255,255,.07);
+  --card-border-hover:rgba(255,255,255,.16);
+  --card-sh:0 1px 2px rgba(0,0,0,.35),0 8px 24px -12px rgba(0,0,0,.5);
+  --card-sh-hover:0 2px 4px rgba(0,0,0,.4),0 24px 48px -16px rgba(0,0,0,.7);
+  --card-hi:inset 0 1px 0 rgba(255,255,255,.05);
+  --tag-bg:rgba(255,255,255,.05);--tag-border:rgba(255,255,255,.08);
+  --divider:rgba(255,255,255,.07);
+}
+/* Base commune des cartes */
+.job,.step,.stat-card,.prof-section,.export-card,.conseil,.auth-card,.filter-drawer,.hist-item,.alert-item,.kcard,.cv-file,.lettre-form.card,.lettre-preview.card,.card{
+  background:var(--card-bg);border:1px solid var(--card-border);box-shadow:var(--card-hi),var(--card-sh)}
+.job,.step,.stat-card,.prof-section,.export-card,.conseil,.filter-drawer{border-radius:var(--card-r)}
+
+/* ── Carte offre ── */
+.jobs-list{gap:10px}
+.job{grid-template-columns:52px minmax(0,1fr) auto;gap:2px var(--sp-4);padding:20px 22px 16px;overflow:hidden;
+  transition:border-color .18s var(--ease),box-shadow .25s var(--ease),transform .25s var(--ease),background-color .18s}
+.job::before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:0 3px 3px 0;background:var(--brand);opacity:0;transform:scaleY(.4);transition:opacity .2s var(--ease),transform .25s var(--ease)}
+.job:hover{border-color:var(--card-border-hover);box-shadow:var(--card-hi),var(--card-sh-hover);transform:translateY(-2px)}
+.job:hover::before,.job:focus-within::before{opacity:1;transform:none}
+.job:focus-within{border-color:var(--card-border-hover);box-shadow:var(--card-hi),var(--card-sh-hover),0 0 0 3px color-mix(in srgb,var(--focus) 28%,transparent)}
+.co-avatar{width:52px;height:52px;border-radius:12px;font-size:1.125rem;font-weight:650;letter-spacing:-.02em;box-shadow:inset 0 0 0 1px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.06)}
+body.dark .co-avatar{box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+body.dark .co-avatar:not(.co-logo){background:color-mix(in srgb,var(--av-bg,#FFEDD5) 14%,#111827);color:color-mix(in srgb,var(--av-bg,#FFEDD5) 92%,#fff)}
+.co-logo{background:#fff;border:0;box-shadow:inset 0 0 0 1px rgba(15,23,42,.08)}
+.job-title{font-size:1.0625rem;font-weight:650;line-height:1.3;letter-spacing:-.018em;text-wrap:pretty}
+.job-link{transition:color .15s}
+.job:hover .job-link{color:var(--brand-ink)}
+.job.viewed .job-title a{color:var(--text-2)}
+.job-co{margin-top:4px;gap:2px 10px;font-size:.875rem;color:var(--text-2)}
+.job-co>span:first-child{font-weight:550;color:var(--text)}
+.job-co .muted{font-weight:400;color:var(--text-3)}
+.job-co .sep{color:var(--text-3);opacity:.5}
+.job-loc{color:var(--text-2)}
+.job-meta{gap:6px;margin-top:12px}
+.job-meta:not(:has(*)){display:none}
+.job .tag,.badge-row .tag{height:26px;padding:0 10px;border-radius:7px;background:var(--tag-bg);border:1px solid var(--tag-border);color:var(--text-2);font-weight:550;letter-spacing:-.003em}
+.job .tag-brand,.badge-row .tag-brand{background:var(--brand-50);border-color:color-mix(in srgb,var(--brand-ink) 18%,transparent);color:var(--brand-ink)}
+.job .job-sal,.badge-row .job-sal{background:var(--ok-bg);border-color:color-mix(in srgb,var(--ok) 20%,transparent);color:var(--ok);font-variant-numeric:tabular-nums;font-weight:650}
+.job .match-badge{border-radius:7px;border:1px solid transparent}
+.job-foot{margin-top:14px;padding-top:12px;border-top:1px solid var(--divider);color:var(--text-3);font-size:.75rem}
+.job-time{display:inline-flex;align-items:center;gap:6px}
+.job-time.fresh{color:var(--ok);font-weight:600}
+.fresh-dot{width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 0 3px color-mix(in srgb,currentColor 20%,transparent)}
+.job-actions{margin:-8px -12px 0 0;gap:2px}
+.save-btn,.share-btn{width:40px;height:40px;border-radius:10px;color:var(--text-3)}
+@media (pointer:coarse){.save-btn,.share-btn{width:44px;height:44px}}
+.save-btn:hover,.share-btn:hover{background:var(--surface-2);color:var(--text)}
+.save-btn.saved{color:var(--brand-ink);background:var(--brand-50)}
+.tracked-badge{padding:2px 8px;border-radius:6px;background:var(--ok-bg)}
+@media(max-width:599px){
+  .job{grid-template-columns:44px minmax(0,1fr) auto;padding:16px 16px 14px;gap:2px var(--sp-3)}
+  .co-avatar{width:44px;height:44px;border-radius:11px;font-size:1rem}
+  .job-meta,.job-foot{grid-column:1/4}
+  .job:hover{transform:none}
+}
+/* Squelettes alignés sur la carte */
+.skel-card{grid-template-columns:52px 1fr;padding:20px 22px;border-radius:var(--card-r);background:var(--card-bg);border:1px solid var(--card-border);box-shadow:var(--card-hi),var(--card-sh)}
+.skel-card .skel.av{width:52px;height:52px;border-radius:12px}
+
+/* ── Bandeau d'information / tri ── */
+.jobs-notice{background:var(--card-bg);border-color:var(--card-border);box-shadow:var(--card-sh);color:var(--text-2);border-radius:12px}
+.jobs-notice svg{color:var(--brand-ink)}
+.jobs-toolbar{margin:var(--sp-4) 0 var(--sp-3)}
+.sort-select{border-radius:10px;border-color:var(--card-border-hover);box-shadow:var(--card-sh)}
+.fchip{border-radius:8px;border:1px solid color-mix(in srgb,var(--brand-ink) 20%,transparent)}
+.chip{transition:background .15s,border-color .15s,color .15s,box-shadow .15s}
+.chip:hover{box-shadow:var(--card-sh)}
+
+/* ── Filtres ── */
+.filter-drawer{overflow:hidden}
+.filter-head{padding:16px 20px;border-bottom:1px solid var(--divider)}
+.filter-head h2{display:flex;align-items:center;gap:8px;font-size:.9375rem;font-weight:650;letter-spacing:-.01em}
+.filter-body{padding:4px 20px 12px}
+.filter-group{padding:18px 0;border-bottom:1px solid var(--divider)}
+.filter-group:first-child{padding-top:16px}
+.filter-label{font-size:.6875rem;font-weight:650;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px}
+.filter-check-row,.filter-radio-row{min-height:36px;padding:0 8px;margin:0 -8px;border-radius:8px;transition:background .12s,color .12s}
+.filter-check-row.checked{color:var(--text);background:var(--brand-50)}
+.filter-check-row input,.filter-radio-row input,.check input{width:17px;height:17px;border-radius:5px}
+.filter-group .search-field,.filter-group select.form-input{border-radius:10px}
+.filter-foot{border-top:1px solid var(--divider);background:color-mix(in srgb,var(--surface-2) 50%,transparent)}
+@media(max-width:1023px){.filter-drawer{border-radius:20px 20px 0 0;background:var(--surface)}}
+
+/* ── États vide / erreur ── */
+.empty{position:relative;isolation:isolate;overflow:hidden;gap:10px;padding:56px 28px;border:1px solid var(--card-border);border-radius:var(--card-r);background:var(--card-bg);box-shadow:var(--card-hi),var(--card-sh)}
+.empty::before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(520px 220px at 50% 0%,color-mix(in srgb,var(--brand) 9%,transparent),transparent 70%)}
+.empty-icon{position:relative;width:60px;height:60px;margin-bottom:10px;border-radius:16px;background:var(--surface);color:var(--brand-ink);box-shadow:0 0 0 1px var(--card-border),0 8px 20px -8px rgba(15,23,42,.2),0 0 0 8px color-mix(in srgb,var(--brand) 6%,transparent),0 0 0 16px color-mix(in srgb,var(--brand) 3%,transparent)}
+body.dark .empty-icon{background:#151C2A}
+.empty-title{font-size:1.1875rem;font-weight:650;letter-spacing:-.02em;text-wrap:balance}
+.empty p,.empty ul{color:var(--text-2)}
+.empty-actions{margin-top:14px}
+.empty.error .empty-icon{background:var(--danger-bg);color:var(--danger);box-shadow:0 0 0 1px color-mix(in srgb,var(--danger) 25%,transparent),0 0 0 8px color-mix(in srgb,var(--danger) 7%,transparent)}
+.empty.error::before{background:radial-gradient(520px 220px at 50% 0%,color-mix(in srgb,var(--danger) 8%,transparent),transparent 70%)}
+.kempty{border-radius:10px;border-color:var(--card-border-hover);background:color-mix(in srgb,var(--surface) 50%,transparent)}
+
+/* ── Comment ça marche ── */
+.steps{gap:16px}
+.step{padding:26px 26px 28px;overflow:hidden;transition:transform .25s var(--ease),box-shadow .25s var(--ease),border-color .2s}
+.step::after{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--brand) 55%,transparent),transparent);opacity:.7}
+.photo-section .step{background:color-mix(in srgb,var(--surface) 86%,transparent);box-shadow:var(--card-hi),var(--card-sh)}
+.step:hover{transform:translateY(-3px);border-color:var(--card-border-hover);box-shadow:var(--card-hi),var(--card-sh-hover)}
+.step-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.step-ic{display:grid;place-items:center;width:44px;height:44px;border-radius:12px;color:#fff;background:linear-gradient(180deg,#FF8A3D,#E2560A);box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 6px 16px -6px rgba(226,86,10,.6)}
+.step-ic svg{width:20px;height:20px}
+.step-top .step-num{margin:0;padding:0;border:0;font-size:.75rem;letter-spacing:.16em;color:var(--text-3)}
+.step h3{font-size:1.125rem;font-weight:650;letter-spacing:-.02em;margin-bottom:8px}
+.step p{font-size:.9rem;line-height:1.6;color:var(--text-2)}
+
+/* ── Cartes métiers ── */
+.cat-card{border-radius:16px;box-shadow:0 0 0 1px rgba(2,6,23,.06),0 2px 4px rgba(2,6,23,.08),0 20px 40px -20px rgba(2,6,23,.55)}
+.cat-card::after{box-shadow:inset 0 0 0 1px rgba(255,255,255,.1),inset 0 1px 0 rgba(255,255,255,.12)}
+.cat-card .cat-name{font-size:1.0625rem;font-weight:650;letter-spacing:-.02em}
+.cat-card .cat-count{display:inline-flex;align-items:center;gap:6px;font-weight:500}
+.cat-card:hover{transform:translateY(-4px);box-shadow:0 0 0 1px rgba(2,6,23,.08),0 4px 8px rgba(2,6,23,.1),0 32px 64px -24px rgba(2,6,23,.7)}
+
+/* ── Mon espace ── */
+.profile-head{background:radial-gradient(800px 200px at 15% 0%,color-mix(in srgb,var(--brand) 7%,transparent),transparent 70%),linear-gradient(var(--surface),var(--bg))}
+.profile-avatar{background:linear-gradient(180deg,#FF8A3D,#C2410C);box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 10px 24px -10px rgba(194,65,12,.7),0 0 0 4px var(--surface)}
+.profile-name{font-weight:700;letter-spacing:-.035em}
+.stats{gap:12px}
+.stat-card{position:relative;display:grid;grid-template-columns:1fr auto;grid-template-areas:"num ic" "lbl ic";align-items:center;padding:18px 20px;transition:box-shadow .2s,border-color .2s}
+.stat-card:hover{border-color:var(--card-border-hover);box-shadow:var(--card-hi),var(--card-sh-hover)}
+.stat-card .num{grid-area:num;font-size:1.75rem;font-weight:700;letter-spacing:-.03em;line-height:1.1}
+.stat-card .lbl{grid-area:lbl;font-size:.8125rem;font-weight:500;color:var(--text-3)}
+.stat-ic{grid-area:ic;display:grid;place-items:center;width:40px;height:40px;border-radius:11px;background:var(--brand-50);color:var(--brand-ink);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--brand-ink) 14%,transparent)}
+.stat-ic svg{width:19px;height:19px}
+@media(max-width:599px){.stat-card{grid-template-columns:1fr;grid-template-areas:"ic" "num" "lbl";padding:14px}.stat-ic{width:32px;height:32px;border-radius:9px;margin-bottom:8px}.stat-ic svg{width:16px;height:16px}.stat-card .num{font-size:1.375rem}}
+.ptabs{gap:2px;border-bottom:1px solid var(--divider)}
+.ptab{border-radius:8px 8px 0 0;transition:color .15s,background .15s}
+@media(hover:none){.ptab:hover{background:none}}
+.ptab.active{color:var(--text)}
+.ptab.active::after{left:12px;right:12px;height:2px;background:var(--brand-btn)}
+.prof-section{padding:24px 26px}
+.prof-section h2{font-size:1.0625rem;font-weight:650;letter-spacing:-.02em;padding-bottom:14px;margin-bottom:6px;border-bottom:1px solid var(--divider)}
+.prof-display-row{border-bottom:1px solid var(--divider);padding:12px 0}
+.prof-display-row .k{font-weight:500}
+.export-card{padding:22px}
+.kcol{border-radius:14px;background:color-mix(in srgb,var(--surface-2) 70%,transparent);border:1px solid var(--divider)}
+.kcard{border-radius:10px;padding:12px 14px;transition:box-shadow .2s,transform .2s,border-color .2s}
+.kcard:hover{border-color:var(--card-border-hover);box-shadow:var(--card-hi),var(--card-sh-hover);transform:translateY(-1px)}
+.kcard-title{font-weight:600;letter-spacing:-.01em}
+.hist-item,.alert-item{border-radius:12px;padding:14px 16px;transition:border-color .15s,box-shadow .2s}
+.hist-item:hover,.alert-item:hover{border-color:var(--card-border-hover);box-shadow:var(--card-hi),var(--card-sh-hover)}
+.cv-drop{border-radius:var(--card-r);border-width:1.5px;background:radial-gradient(400px 160px at 50% 0%,color-mix(in srgb,var(--brand) 6%,transparent),transparent 70%),var(--surface)}
+.cv-file{border-radius:12px}
+.soon-card{border-radius:var(--card-r);background:radial-gradient(500px 160px at 0% 0%,color-mix(in srgb,var(--warn) 7%,transparent),transparent 70%),var(--surface)}
+
+/* ── Conseils / Auth ── */
+.conseil{padding:26px;transition:transform .25s var(--ease),box-shadow .25s var(--ease),border-color .2s}
+.conseil:hover{transform:translateY(-3px);border-color:var(--card-border-hover);box-shadow:var(--card-hi),var(--card-sh-hover)}
+.conseil-icon,.cat-icon:not(.cat-card .cat-icon),.cv-file-icon{border-radius:12px;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--brand-ink) 14%,transparent)}
+.conseil-title{font-weight:650;letter-spacing:-.02em}
+.conseil-more{display:inline-flex;align-items:center;gap:6px}
+.auth-card{border-radius:20px;padding:32px;box-shadow:var(--card-hi),0 1px 2px rgba(15,23,42,.04),0 24px 60px -24px rgba(15,23,42,.25)}
+body.dark .auth-card{box-shadow:var(--card-hi),0 24px 60px -24px rgba(0,0,0,.8)}
+.auth-tabs{border-radius:12px;padding:4px}
+.auth-tab{border-radius:9px}
+@media(max-width:599px){.auth-card{padding:24px 20px}}
+
+/* ── Détail : tuiles d'information ── */
+.detail-grid-item{border-radius:12px;border-color:var(--card-border);box-shadow:var(--card-sh)}
+.detail-grid-item .ic{border-radius:9px;background:var(--brand-50);color:var(--brand-ink)}
+
+/* ── Focus clavier : anneau net, cohérent partout ── */
+.btn:focus-visible,.chip:focus-visible,.icon-btn:focus-visible,.save-btn:focus-visible,.share-btn:focus-visible,.kcard-btn:focus-visible,.ptab:focus-visible,.auth-tab:focus-visible{outline:none;box-shadow:var(--ring)}
+.btn-primary{background:linear-gradient(180deg,#D1500F,var(--brand-btn));box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 1px 2px rgba(124,45,18,.3),0 4px 12px -4px rgba(194,65,12,.45)}
+.btn-primary:hover{background:linear-gradient(180deg,#B8450C,var(--brand-btn-hover))}
+.btn-outline{box-shadow:var(--card-sh);border-color:var(--card-border-hover)}
+body.dark .btn-outline{background:rgba(255,255,255,.04)}
+body.dark .btn-outline:hover{background:rgba(255,255,255,.08)}
+
+@media (prefers-reduced-motion:reduce){
+  .job:hover,.step:hover,.conseil:hover,.kcard:hover{transform:none}
+}
 </style>
 </head>
 <body>
@@ -1050,9 +1244,9 @@ body.dark .site-header{background:color-mix(in srgb,#07090F 80%,transparent)}
   <div class="section container" aria-labelledby="howTitle">
     <div class="section-head"><div><span class="eyebrow">Comment ça marche</span><h2 class="section-title" id="howTitle">Trouvez, suivez, postulez</h2></div></div>
     <ol class="steps" role="list">
-      <li class="step"><div class="step-num" aria-hidden="true">01</div><h3>Une seule recherche</h3><p>Métier et ville : nous interrogeons France Travail et Adzuna en même temps, puis supprimons les doublons.</p></li>
-      <li class="step"><div class="step-num" aria-hidden="true">02</div><h3>Comparez en un coup d’œil</h3><p>Contrat, salaire, date de publication et source sont affichés sur chaque offre. Filtrez sans recharger la page.</p></li>
-      <li class="step"><div class="step-num" aria-hidden="true">03</div><h3>Postulez et suivez</h3><p>Postulez sur le site d’origine, puis suivez vos candidatures dans un tableau simple : à postuler, entretien, offre.</p></li>
+      <li class="step"><div class="step-top"><span class="step-ic" aria-hidden="true"><svg class="i"><use href="#i-search"/></svg></span><div class="step-num" aria-hidden="true">01</div></div><h3>Une seule recherche</h3><p>Métier et ville : nous interrogeons France Travail et Adzuna en même temps, puis supprimons les doublons.</p></li>
+      <li class="step"><div class="step-top"><span class="step-ic" aria-hidden="true"><svg class="i"><use href="#i-list-checks"/></svg></span><div class="step-num" aria-hidden="true">02</div></div><h3>Comparez en un coup d’œil</h3><p>Contrat, salaire, date de publication et source sont affichés sur chaque offre. Filtrez sans recharger la page.</p></li>
+      <li class="step"><div class="step-top"><span class="step-ic" aria-hidden="true"><svg class="i"><use href="#i-kanban"/></svg></span><div class="step-num" aria-hidden="true">03</div></div><h3>Postulez et suivez</h3><p>Postulez sur le site d’origine, puis suivez vos candidatures dans un tableau simple : à postuler, entretien, offre.</p></li>
     </ol>
   </div>
   </div>
@@ -1297,9 +1491,9 @@ body.dark .site-header{background:color-mix(in srgb,#07090F 80%,transparent)}
         </div>
       </div>
       <div class="stats">
-        <div class="stat-card"><div class="num" id="statSaved">0</div><div class="lbl">Favoris</div></div>
-        <div class="stat-card"><div class="num" id="statApplied">0</div><div class="lbl">Offres suivies</div></div>
-        <div class="stat-card"><div class="num" id="statViewed">0</div><div class="lbl">Consultées</div></div>
+        <div class="stat-card"><span class="stat-ic" aria-hidden="true"><svg class="i"><use href="#i-bookmark"/></svg></span><div class="num" id="statSaved">0</div><div class="lbl">Favoris</div></div>
+        <div class="stat-card"><span class="stat-ic" aria-hidden="true"><svg class="i"><use href="#i-kanban"/></svg></span><div class="num" id="statApplied">0</div><div class="lbl">Offres suivies</div></div>
+        <div class="stat-card"><span class="stat-ic" aria-hidden="true"><svg class="i"><use href="#i-eye"/></svg></span><div class="num" id="statViewed">0</div><div class="lbl">Consultées</div></div>
       </div>
     </div>
   </div>
