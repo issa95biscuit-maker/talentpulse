@@ -4,6 +4,7 @@
  *   /api/me/pipeline   GET | PUT { jobId, status, position?, notes?, job } | DELETE ?jobId=
  *   /api/me/alerts     GET | POST { label?, query, channels?, whatsappTo? } | PATCH ?id= {…} | DELETE ?id=
  *   /api/me/profile    GET | PUT { prenom, nom, title, city, skills, contract }
+ *   /api/me/applications GET | POST { jobId, job, name, email, phone?, letter, cvName?, cvSize?, channel?, consent } | DELETE ?jobId=
  *   /api/me/sync       POST { favorites, pipeline, alerts, profile } — fusionne les données locales au 1er login
  *   /api/me/export     GET  — export JSON de toutes les données (RGPD, portabilité)
  */
@@ -11,7 +12,7 @@ import { api, sendJson, readJson, allowMethods, assertSameOrigin, HttpError } fr
 import { requireUser, publicUser } from '../../lib/auth.js';
 import { features } from '../../lib/env.js';
 import { enforce } from '../../lib/ratelimit.js';
-import { parse, favoriteSchema, pipelineSchema, alertSchema, alertPatchSchema, profileSchema, syncSchema, jobId as jobIdSchema } from '../../lib/validate.js';
+import { parse, favoriteSchema, pipelineSchema, alertSchema, alertPatchSchema, profileSchema, syncSchema, applicationSchema, jobId as jobIdSchema } from '../../lib/validate.js';
 import * as data from '../../lib/userdata.js';
 import { z } from 'zod';
 
@@ -43,6 +44,13 @@ const RESOURCES = {
     const id = parse(uuid, qp(req, 'id'));
     if (m === 'PATCH') return sendJson(res, 200, { alert: await data.updateAlert(user.id, id, parse(alertPatchSchema, await readJson(req))) });
     return sendJson(res, 200, { deleted: await data.deleteAlert(user.id, id) });
+  },
+  async applications(req, res, user) {
+    const m = allowMethods(req, res, ['GET', 'POST', 'PUT', 'DELETE']);
+    if (m === 'GET') return sendJson(res, 200, { applications: await data.listApplications(user.id), delivery: { email: features().applyEmail } });
+    if (m === 'DELETE') return sendJson(res, 200, { deleted: await data.deleteApplication(user.id, parse(jobIdSchema, qp(req, 'jobId'))) });
+    await enforce([{ key: 'apps:' + user.id, limit: 120, windowSec: 3600 }]);
+    return sendJson(res, 200, { application: await data.upsertApplication(user.id, parse(applicationSchema, await readJson(req))) });
   },
   async profile(req, res, user) {
     const m = allowMethods(req, res, ['GET', 'PUT']);

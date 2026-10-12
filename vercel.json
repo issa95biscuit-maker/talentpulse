@@ -154,6 +154,9 @@
     "api/lettre.js": {
       "maxDuration": 30
     },
+    "api/candidature.js": {
+      "maxDuration": 30
+    },
     "api/seo.js": {
       "includeFiles": "public/index.html",
       "maxDuration": 15
