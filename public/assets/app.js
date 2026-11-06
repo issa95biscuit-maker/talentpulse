@@ -648,7 +648,9 @@ function hydrateSsr(rawPath) {
   for (const id of ['searchCity', 'rsCity', 'filterLocation']) { const el = $('#' + id); if (el) el.value = ssr.city; }
   const sb = $('#saveSearchBtn'); if (sb) sb.style.display = 'inline-flex';
   State.jobs = (ssr.resultats || []).map(parseAggregatedJob).filter(Boolean);
-  State.total = ssr.total || 0;
+  State.totalFt = ssr.totalFt ?? ssr.total ?? 0;
+  State.totals = { ft: State.totalFt, ...(ssr.totals || {}) };
+  State.total = State.totalFt; // FT seul jusqu’à l’arrivée des partenaires
   State.apiPage = 1;
   State.hasMore = !!ssr.hasMore;
   State.resolvedLocation = ssr.location;
@@ -664,9 +666,14 @@ function hydrateSsr(rawPath) {
     if (seq !== jobsRequestSeq || !data || !Array.isArray(data.resultats)) return; // une autre recherche a pris le relais
     const known = new Set(State.jobs.map(j => j.id));
     const extra = data.resultats.map(parseAggregatedJob).filter(j => j && !known.has(j.id));
-    if (!extra.length) return;
-    State.jobs = State.jobs.concat(extra);
-    State.total = (State.total || 0) + (data.total || 0);
+    const t = data.totals || {};
+    State.totals = {
+      ft: State.totalFt || 0,
+      adzuna: Number(t.adzuna) || 0,
+      csp: Number(t.csp) || 0,
+    };
+    State.total = State.totals.ft + State.totals.adzuna + State.totals.csp;
+    if (extra.length) State.jobs = State.jobs.concat(extra);
     State.hasMore = State.hasMore || !!data.hasMore;
     renderJobs();
   }).catch(() => {});
@@ -1374,8 +1381,14 @@ function renderJobs() {
   const all = getFilteredSorted();
   const count = $('#jobsCount');
   if (count) {
+    const partners = (State.totals?.adzuna || 0) + (State.totals?.csp || 0);
+    const ftOnly = State.totalFt != null && partners === 0 && getSsr()?.path === searchPath(State.lastSearch || {});
     count.textContent = all.length
-      ? (State.total > all.length ? `${fmtCount(State.total)} offres · ${fmtCount(all.length)} affichées` : `${fmtCount(all.length)} offre${all.length > 1 ? 's' : ''}`)
+      ? (State.total > all.length
+          ? (ftOnly
+              ? `${fmtCount(State.total)} offres France Travail · ${fmtCount(all.length)} affichées`
+              : `${fmtCount(State.total)} offres · ${fmtCount(all.length)} affichées`)
+          : `${fmtCount(all.length)} offre${all.length > 1 ? 's' : ''}`)
       : (State.loadError ? '' : '0 offre');
   }
 
@@ -2145,7 +2158,7 @@ function renderTicker() {
   if (!track) return;
   if (!Ticker.tips) Ticker.tips = [...track.children].filter(li => !li.hasAttribute('aria-hidden') && !li.dataset.live).map(li => li.outerHTML);
   const items = [];
-  if (Ticker.count) items.push(`<li data-live="1"><svg class="i" aria-hidden="true"><use href="#i-trending-up"/></svg><span><span class="tk-num">${fmtCount(Ticker.count)}</span> offres disponibles en ce moment</span></li>`);
+  if (Ticker.count) items.push(`<li data-live="1"><svg class="i" aria-hidden="true"><use href="#i-trending-up"/></svg><span><span class="tk-num">${fmtCount(Ticker.count)}</span> offres agrégées en ce moment (France Travail, Adzuna, fonction publique)</span></li>`);
   const tips = Ticker.tips.slice();
   Ticker.offers.slice(0, 6).forEach((o, i) => {
     items.push(`<li data-live="1"><svg class="i" aria-hidden="true"><use href="#i-briefcase-business"/></svg><span><b>Nouvelle offre</b> · ${esc(o.title)}${o.city ? ` <span class="tk-mut">· ${esc(o.city)}</span>` : ''}</span></li>`);

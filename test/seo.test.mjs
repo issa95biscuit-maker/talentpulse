@@ -39,7 +39,7 @@ test('page curée : title/meta/canonical uniques, H1, 1re page en HTML, fil d’
   const r = await call({ kw: 'developpeur', lieu: 'ile-de-france' });
   assert.equal(r.status, 200);
   const h = r.body;
-  assert.equal(meta(h, /<title>([^<]*)<\/title>/), 'Développeur en Île-de-France : 152 offres d’emploi | TalentPulse');
+  assert.equal(meta(h, /<title>([^<]*)<\/title>/), 'Développeur en Île-de-France : 152 offres France Travail | TalentPulse');
   assert.match(meta(h, /<meta name="description" content="([^"]*)"/), /^152 offres de développeur \/ développeuse dans toute la région/);
   assert.equal(meta(h, /<link rel="canonical" href="([^"]*)"/), 'https://talentpulse-topaz.vercel.app/offres/developpeur/ile-de-france');
   assert.equal(meta(h, /<meta name="robots" content="([^"]*)"/), 'index,follow');
@@ -69,6 +69,7 @@ test('introduction et encart marché calculés sur les offres réelles, maillage
   const r = await call({ kw: 'serveur', lieu: 'rhone' });
   const h = r.body;
   assert.match(h, /<strong>152 offres de serveur \/ serveuse<\/strong> publiées sur France Travail dans tout le département \(69\)/);
+  assert.match(h, /total toutes sources/);
   assert.match(h, /9 CDI, 3 CDD parmi les 12 premières offres/);
   assert.match(h, /6 offres sur 12 indiquent un salaire, médiane d’environ 1\u202f850\u00a0€ brut par mois/);
   assert.match(h, /Employeurs qui recrutent<\/strong>\u00a0: Brasserie Bellecour, Hôtel du Parc/);
