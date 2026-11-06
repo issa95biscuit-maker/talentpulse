@@ -80,3 +80,27 @@ test('Adzuna : arrondissement seul reconstruit avec la ville', async () => {
   assert.equal(c({ display_name: 'Villeurbanne, Rhône' }), 'Villeurbanne');
   assert.equal(c({}), 'France');
 });
+
+test('parseFTSalary : corrige les périodes incohérentes (mensuel/annuel/horaire)', async () => {
+  const { _test } = await import('../lib/jobs.js');
+  const p = _test.parseFTSalary;
+
+  const badMensuel = p('Mensuel de 32000.0 Euros à 50000.0 Euros');
+  assert.match(badMensuel.label, /€\/an/);
+  assert.equal(badMensuel.annualMin, 32000);
+  assert.equal(badMensuel.annualMax, 50000);
+  assert.match(badMensuel.extra, /interprété en annuel/);
+
+  const okMensuel = p('Mensuel de 2200.0 Euros sur 12.0 mois');
+  assert.equal(okMensuel.label, '2 200 €/mois');
+  assert.equal(okMensuel.annualMin, 26400);
+
+  const badAnnuel = p('Annuel de 1800.0 Euros à 2000.0 Euros');
+  assert.match(badAnnuel.label, /€\/mois/);
+  assert.equal(badAnnuel.annualMin, 1800 * 12);
+  assert.equal(badAnnuel.annualMax, 2000 * 12);
+
+  const horaire = p('Horaire de 12.31 Euros');
+  assert.equal(horaire.label, '12,31 €/h');
+  assert.equal(horaire.annualMin, Math.round(12.31 * 1607));
+});
