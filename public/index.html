@@ -267,6 +267,14 @@ body.dark .toast{background:#F1F5F9;color:#0F172A}
   .nav-burger{display:none}
 }
 @media(max-width:767px){.nav-user span:not(.nav-avatar){display:none}.nav-user{padding:0 4px}}
+@media(max-width:360px){
+  .nav{gap:var(--sp-2);padding:0 var(--sp-3)}
+  .logo{gap:8px;min-width:0;font-size:1rem}
+  .logo-text{display:none}
+  .logo-icon{flex-shrink:0}
+  .nav-right{gap:var(--sp-1);flex-shrink:0}
+  .container{padding:0 var(--sp-3)}
+}
 .theme-icon-dark{display:none}
 body.dark .theme-icon-dark{display:block}
 body.dark .theme-icon-light{display:none}
@@ -372,9 +380,9 @@ body.dark .theme-icon-light{display:none}
 .results-search .btn{min-height:46px}
 @media(max-width:599px){
   .results-search{grid-template-columns:1fr 52px;align-items:stretch}
-  .results-search .rs-fields{grid-template-columns:1fr}
-  .results-search .search-field{min-height:44px}
-  .results-search .search-field input{min-height:44px}
+  .results-search .rs-fields{grid-template-columns:1fr;min-width:0}
+  .results-search .search-field{min-height:44px;min-width:0}
+  .results-search .search-field input{min-height:44px;min-width:0}
   .results-search .search-field+.search-field{border-left:0;border-top:1px solid var(--border)}
   .rs-btn{padding:0;height:auto}
   .rs-btn-lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
@@ -385,6 +393,13 @@ body.dark .theme-icon-light{display:none}
   .save-search-btn{margin-left:-12px}
   #jobsSourcesLine{display:none}
   .jobs-toolbar{justify-content:flex-end;margin-top:0}
+}
+@media(max-width:360px){
+  .results-search{grid-template-columns:1fr;gap:var(--sp-2)}
+  .rs-btn{min-height:44px;width:100%;justify-content:center;padding:0 var(--sp-4)}
+  .rs-btn-lbl{position:static;width:auto;height:auto;overflow:visible;clip:auto;white-space:normal;margin-left:6px}
+  .crumbs ol{flex-wrap:wrap}
+  .crumbs li{overflow-wrap:anywhere}
 }
 .jobs-page{padding-block:var(--sp-6) var(--sp-16)}
 .jobs-head{display:flex;align-items:flex-end;justify-content:space-between;gap:var(--sp-4);flex-wrap:wrap;margin-bottom:var(--sp-4)}
@@ -1337,7 +1352,7 @@ body.dark .job{-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter
 <nav class="nav" aria-label="Navigation principale">
   <a class="logo" id="logo" href="/" aria-label="TalentPulse, accueil">
     <span class="logo-icon" aria-hidden="true"><svg class="i i-bold" aria-hidden="true"><use href="#i-zap"/></svg></span>
-    <span>Talent<b>Pulse</b></span>
+    <span class="logo-text"><span>Talent<b>Pulse</b></span></span>
   </a>
   <div class="nav-links" id="navLinks">
     <a class="nav-link" href="/offres/emploi" data-nav="jobs">Offres d’emploi</a>
@@ -1367,7 +1382,7 @@ body.dark .job{-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter
 <div class="drawer-overlay" id="drawerOverlay"></div>
 <aside class="drawer" id="drawer" aria-label="Menu" inert>
   <div class="drawer-head">
-    <div class="logo"><span class="logo-icon" aria-hidden="true"><svg class="i i-bold" aria-hidden="true"><use href="#i-zap"/></svg></span><span>Talent<b>Pulse</b></span></div>
+    <div class="logo"><span class="logo-icon" aria-hidden="true"><svg class="i i-bold" aria-hidden="true"><use href="#i-zap"/></svg></span><span class="logo-text"><span>Talent<b>Pulse</b></span></span></div>
     <button class="icon-btn" id="drawerClose" type="button" aria-label="Fermer le menu"><svg class="i" aria-hidden="true"><use href="#i-x"/></svg></button>
   </div>
   <div class="drawer-body">
@@ -1941,7 +1956,7 @@ body.dark .job{-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter
   <div class="footer-inner">
     <div class="footer-grid">
       <div>
-        <div class="footer-brand"><span class="logo-icon" aria-hidden="true"><svg class="i i-bold" aria-hidden="true"><use href="#i-zap"/></svg></span><span>Talent<b>Pulse</b></span></div>
+        <div class="footer-brand"><span class="logo-icon" aria-hidden="true"><svg class="i i-bold" aria-hidden="true"><use href="#i-zap"/></svg></span><span class="logo-text"><span>Talent<b>Pulse</b></span></span></div>
         <p class="footer-copy">Agrégateur gratuit d’offres d’emploi issues de France Travail et d’Adzuna. TalentPulse n’est pas l’employeur et ne transmet pas de candidature : vous postulez sur le site d’origine de l’annonce.</p>
       </div>
       <div>
