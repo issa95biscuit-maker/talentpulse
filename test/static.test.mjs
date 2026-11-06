@@ -38,3 +38,14 @@ test('dev-server : réécritures SPA, en-têtes de sécurité, compression, poli
     assert.equal(typeof h.features.auth, 'boolean');
   } finally { server.close(); }
 });
+
+test('footer et drawer : À propos, Contact et CGU pointent vers de vraies pages', () => {
+  assert.ok(!/data-legal=/.test(html), 'plus de data-legal');
+  for (const path of ['/a-propos', '/contact', '/cgu']) {
+    assert.ok(html.includes(`href="${path}"`), path + ' présent');
+  }
+  const rewrites = vercel.rewrites.map(r => r.source);
+  for (const path of ['/a-propos', '/contact', '/cgu']) {
+    assert.ok(rewrites.includes(path), 'rewrite Vercel ' + path);
+  }
+});

@@ -123,6 +123,7 @@ test('sitemaps : index → pages + offres, uniquement les combinaisons curées',
   assert.ok(!locs.includes('/offres/macon/le-havre'), 'palier 2 hors grandes villes exclu');
   r = await call({ sitemap: 'pages' });
   assert.match(r.body, /<loc>https:\/\/talentpulse-topaz\.vercel\.app\/<\/loc>/);
+  for (const p of ['/a-propos', '/contact', '/cgu', '/mentions-legales', '/confidentialite']) assert.match(r.body, new RegExp('<loc>https://talentpulse-topaz\\.vercel\\.app' + p.replace('/', '\\/') + '</loc>'));
   assert.ok(!/mon-espace|connexion|nouveau-mot-de-passe/.test(r.body), 'pages privées exclues');
   assert.equal((await call({ sitemap: 'nope' })).status, 404);
 });
