@@ -65,6 +65,18 @@
     {
       "source": "/confidentialite",
       "destination": "/index.html"
+    },
+    {
+      "source": "/a-propos",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/contact",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/cgu",
+      "destination": "/index.html"
     }
   ],
   "headers": [

@@ -146,6 +146,44 @@ ${isParticulier() && !LEGAL.siren ? '' : `<li>SIREN / RCS : ${LV('siren', 'numé
     title: 'Politique de confidentialité',
     description: 'Comment TalentPulse traite vos données : stockage local, compte optionnel, sous-traitants, durées de conservation et droits.',
     body: () => privacyPolicy()
+  },
+  '/a-propos': {
+    title: 'À propos',
+    description: 'TalentPulse, agrégateur gratuit d’offres d’emploi France Travail, Adzuna et Choisir le Service Public.',
+    body: () => `<h1 id="legalPageTitle">À propos de TalentPulse</h1>
+<p>TalentPulse est un agrégateur gratuit : il rassemble en une seule recherche les offres de France Travail, d’Adzuna et de la fonction publique (Choisir le Service Public), et affiche un lien direct vers l’annonce d’origine.</p>
+<p>TalentPulse n’est pas l’employeur des offres affichées et ne transmet pas de candidature, sauf demande expresse du candidat vers une adresse e-mail publiée dans une offre France Travail. Les informations peuvent évoluer ou disparaître selon les sources d’origine.</p>
+<p>Éditeur : ${LV('editor', 'nom et prénom de l’éditeur ou raison sociale')}. Contact : ${contactMail()}.</p>`
+  },
+  '/contact': {
+    title: 'Contact',
+    description: 'Contacter l’éditeur de TalentPulse pour une question, une suggestion ou un problème technique.',
+    body: () => `<h1 id="legalPageTitle">Contact</h1>
+<p>Une question, une suggestion ou un problème technique ?</p>
+<p><strong>Email :</strong> ${contactMail()}</p>
+<p>Pour une question sur une offre, contactez directement l’employeur ou la source indiquée dans l’annonce. TalentPulse n’est pas l’employeur.</p>`
+  },
+  '/cgu': {
+    title: 'Conditions générales d’utilisation',
+    description: 'Conditions d’utilisation du service gratuit TalentPulse : offres tierces, candidatures, compte, données et droit applicable.',
+    body: () => `<h1 id="legalPageTitle">Conditions Générales d’Utilisation</h1>
+<p class="legal-meta">Dernière mise à jour : 6 novembre 2026</p>
+<h2>1. Objet</h2>
+<p>Les présentes conditions encadrent l’utilisation du service gratuit TalentPulse.</p>
+<h2>2. Offres tierces</h2>
+<p>TalentPulse affiche des annonces provenant de France Travail, d’Adzuna et de Choisir le Service Public. Leur contenu, leur disponibilité et les modalités de candidature relèvent de leurs sources d’origine.</p>
+<h2>3. Candidatures</h2>
+<p>TalentPulse ne transmet aucune candidature par défaut. « Postuler » prépare votre candidature (coordonnées, lettre, CV) et l’ajoute à votre suivi, enregistré sur votre appareil ou dans votre compte. Lorsque l’offre France Travail publie une adresse e-mail de candidature et que vous le demandez expressément, TalentPulse envoie votre lettre et votre CV à cette adresse, en votre nom, avec votre e-mail en adresse de réponse. Dans tous les autres cas, l’envoi final se fait sur le site d’origine ou depuis votre messagerie. TalentPulse n’est ni l’employeur ni un intermédiaire de recrutement.</p>
+<h2>4. Données</h2>
+<p>Voir la <a href="/confidentialite" data-route="/confidentialite" style="text-decoration:underline">politique de confidentialité</a>.</p>
+<h2>5. Compte utilisateur</h2>
+<p>La création d’un compte est facultative. Vous êtes responsable de la confidentialité de votre mot de passe. Vous pouvez supprimer votre compte depuis « Mon espace » ; la suppression est définitive.</p>
+<h2>6. Propriété intellectuelle</h2>
+<p>Voir les <a href="/mentions-legales" data-route="/mentions-legales" style="text-decoration:underline">mentions légales</a> (marque TalentPulse, licences des sources et crédits).</p>
+<h2>7. Droit applicable</h2>
+<p>Droit français. ${TODO('tribunal compétent')}.</p>
+<h2>8. Contact</h2>
+<p>Pour toute question relative aux présentes CGU : ${contactMail()}.</p>`
   }
 };
 function privacyPolicy() {
@@ -192,20 +230,6 @@ function privacyPolicy() {
 <h2>Sécurité</h2>
 <p>Connexions chiffrées (HTTPS)${accounts ? ', mots de passe hachés avec Argon2id, sessions stockées sous forme d’empreinte, limitation des tentatives de connexion, protection contre les requêtes intersites (CSRF)' : ''}${accounts && F.accountEmails ? '. Les liens envoyés par e-mail sont à usage unique et stockés sous forme d’empreinte : 1\u00a0heure pour réinitialiser le mot de passe (qui ferme toutes les sessions ouvertes), 48\u00a0heures pour confirmer l’adresse ; les liens expirés sont supprimés automatiquement' : ''}.</p>`;
 }
-const LEGAL_CONTENT = {
-  about: {
-    title: 'À propos de TalentPulse',
-    body: '<p>TalentPulse est un agrégateur gratuit : il rassemble en une seule recherche les offres de France Travail, d’Adzuna et de la fonction publique (Choisir le Service Public), supprime les doublons et affiche un lien direct vers l’annonce d’origine.</p><p>TalentPulse n’est pas l’employeur des offres affichées et ne transmet pas de candidature. Les informations peuvent évoluer ou disparaître selon les sources d’origine.</p>'
-  },
-  cgu: {
-    title: 'Conditions Générales d’Utilisation',
-    body: '<h4>1. Objet</h4><p>Les présentes conditions encadrent l’utilisation du service gratuit TalentPulse.</p><h4>2. Offres tierces</h4><p>TalentPulse affiche des annonces provenant de France Travail, d’Adzuna et de Choisir le Service Public. Leur contenu, leur disponibilité et les modalités de candidature relèvent de leurs sources d’origine.</p><h4>3. Candidatures</h4><p>TalentPulse ne transmet aucune candidature. « Postuler » prépare votre candidature (coordonnées, lettre, CV) et l’ajoute à votre suivi, enregistré sur votre appareil ou dans votre compte. Lorsque l’offre France Travail publie une adresse e-mail de candidature et que vous le demandez expressément, TalentPulse envoie votre lettre et votre CV à cette adresse, en votre nom, avec votre e-mail en adresse de réponse. Dans tous les autres cas, l’envoi final se fait sur le site d’origine ou depuis votre messagerie : TalentPulse n’indique jamais qu’une candidature a été transmise si elle ne l’a pas été. TalentPulse n’est ni l’employeur ni un intermédiaire de recrutement.</p><h4>4. Données</h4><p>Voir la <a href="/confidentialite" data-route="/confidentialite" style="text-decoration:underline">politique de confidentialité</a>.</p>'
-  },
-  contact: {
-    title: 'Contact',
-    body: () => `<p>Une question, une suggestion ou un problème technique ?</p><p><strong>Email :</strong> ${contactMail()}</p><p>Pour une question sur une offre, contactez directement l’employeur ou la source indiquée dans l’annonce.</p>`
-  }
-};
 // ─── 2. STATE ─────────────────────────────────────────────────────
 // Cache d'affichage de la session (le vrai cookie httpOnly est revalidé par /api/auth/me au démarrage)
 const SESSION_TTL = 30 * 24 * 60 * 60 * 1000; // 30 jours, comme la session serveur
@@ -2384,11 +2408,6 @@ function openLegalModal(title, html) {
   $('#legalModal').classList.add('open');
   setTimeout(() => $('#legalModal .modal-close')?.focus(), 30);
 }
-function openLegal(key) {
-  const c = LEGAL_CONTENT[key];
-  if (!c) return;
-  openLegalModal(c.title, typeof c.body === 'function' ? c.body() : c.body);
-}
 function closeModal(id) {
   if (id === 'applyModal') return closeApply();
   $('#' + id).classList.remove('open');
@@ -3179,7 +3198,6 @@ function bindNavLinks(root = document) {
     goToPage(el.dataset.nav);
     if (el.dataset.ptab) setTimeout(() => switchPTab(el.dataset.ptab), 0);
   }));
-  $$('[data-legal]', root).forEach(el => on(el, 'click', e => { e.preventDefault(); closeDrawer(); openLegal(el.dataset.legal); }));
 }
 
 let liveRegion = null;
