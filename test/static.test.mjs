@@ -39,6 +39,22 @@ test('dev-server : réécritures SPA, en-têtes de sécurité, compression, poli
   } finally { server.close(); }
 });
 
+test('pied de page et fiche : sources citées, pas de promesse de doublons, détail fermé inerte', async () => {
+  assert.ok(!/Doublons supprimés/.test(html), 'pas de mention « Doublons supprimés »');
+  assert.match(html, /Choisir le Service Public/);
+  assert.match(html, /id="detail"[^>]*\bhidden\b/);
+  assert.match(html, /id="detail"[^>]*\binert\b/);
+  assert.match(html, /\.detail\[hidden\]\{display:none !important\}/);
+  const app = await readFile(new URL('../public/assets/app.js', import.meta.url), 'utf8');
+  assert.match(app, /timeout: 8000/);
+  assert.match(app, /Compte créé/);
+  assert.match(app, /Contrat non communiqué/);
+  assert.match(app, /Salaire non communiqué/);
+  assert.match(app, /lieu non reconnu/);
+  assert.ok(!/Les comptes TalentPulse arrivent bientôt\.' \}/.test(app), 'meta connexion ne promet plus les comptes');
+  assert.ok(vercel.rewrites.some(r => r.source === '/offre/:id' && r.destination.includes('offre=:id')));
+});
+
 test('footer et drawer : À propos, Contact et CGU pointent vers de vraies pages', () => {
   assert.ok(!/data-legal=/.test(html), 'plus de data-legal');
   for (const path of ['/a-propos', '/contact', '/cgu']) {

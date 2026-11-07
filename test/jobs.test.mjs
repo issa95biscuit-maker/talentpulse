@@ -104,3 +104,44 @@ test('parseFTSalary : corrige les périodes incohérentes (mensuel/annuel/horair
   assert.equal(horaire.label, '12,31 €/h');
   assert.equal(horaire.annualMin, Math.round(12.31 * 1607));
 });
+
+test('contrat : alternance prioritaire, déduction si vide, pastille non inventée côté API', async () => {
+  const { _test } = await import('../lib/jobs.js');
+  const alt = _test.mapFT({ id: '1', intitule: 'Alternance - serveur (H/F)', typeContrat: 'CDD', alternance: false, description: 'Contrat de professionnalisation', dateCreation: '2026-10-01T00:00:00Z' });
+  assert.equal(alt.contract, 'Alternance');
+  const adz = _test.mapAdzuna({ id: 7, title: 'Alternance - serveur (H/F)', contract_type: 'contract', description: 'CDD', redirect_url: 'https://www.adzuna.fr/7' });
+  assert.equal(adz.contract, 'Alternance');
+  const cdi = _test.mapAdzuna({ id: 8, title: 'Serveur', description: 'Poste en CDI, temps plein', redirect_url: 'https://www.adzuna.fr/8' });
+  assert.equal(cdi.contract, 'CDI');
+  const interim = _test.mapAdzuna({ id: 10, title: 'Préparateur de commandes', description: 'Mission d’intérim de 2 semaines', redirect_url: 'https://www.adzuna.fr/10' });
+  assert.equal(interim.contract, 'Intérim');
+  const blank = _test.mapAdzuna({ id: 11, title: 'Agent d’accueil', description: 'Horaires de journée', redirect_url: 'https://www.adzuna.fr/11' });
+  assert.equal(blank.contract, '');
+});
+
+test('villes : casse, article, département homonyme, nom INSEE', async () => {
+  const { _test } = await import('../lib/jobs.js');
+  assert.equal(_test.frenchPlaceCase('PONT-À-MOUSSON'), 'Pont-à-Mousson');
+  assert.equal(_test.frenchPlaceCase('CALUIRE-ET-CUIRE'), 'Caluire-et-Cuire');
+  assert.deepEqual(_test.localPlace('Seine-Saint-Denis'), { city: 'Seine-Saint-Denis (dép.)', dept: '93' });
+  assert.deepEqual(_test.localPlace('Paris'), { city: 'Paris', dept: '75' });
+  const list = [
+    { nom: 'Caluire-et-Cuire', code: '69034', codeDepartement: '69', population: 43000 },
+    { nom: 'La Courneuve', code: '93027', codeDepartement: '93', population: 47000 },
+    { nom: 'Saint-Denis', code: '93066', codeDepartement: '93', population: 113000 },
+  ];
+  assert.equal(_test.pickCommune(list, 'Caluire Et Cuire').nom, 'Caluire-et-Cuire');
+  assert.equal(_test.pickCommune(list, 'Courneuve').nom, 'La Courneuve');
+  assert.equal(_test.pickCommune(list, 'Denis'), null);
+  if (online) {
+    const a = await _test.canonPlace('Caluire Et Cuire');
+    assert.equal(a.city, 'Caluire-et-Cuire');
+    assert.equal(a.dept, '69');
+    const b = await _test.canonPlace('Courneuve');
+    assert.equal(b.city, 'La Courneuve');
+    assert.equal(b.dept, '93');
+    const c = await _test.canonPlace('Seine-Saint-Denis');
+    assert.equal(c.city, 'Seine-Saint-Denis (dép.)');
+    assert.equal(c.dept, '93');
+  }
+});

@@ -31,6 +31,10 @@
       "destination": "/index.html"
     },
     {
+      "source": "/offre/:id",
+      "destination": "/api/seo?offre=:id"
+    },
+    {
       "source": "/offre/:path*",
       "destination": "/index.html"
     },

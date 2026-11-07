@@ -35,9 +35,12 @@ async function register(req, res) {
      returning id, email, prenom, profile, created_at`, [body.email, passwordHash, body.prenom]);
   if (!rows.length) throw new HttpError(409, 'Un compte existe déjà avec cette adresse. Connectez-vous.', 'email_taken');
   await createSession(req, res, rows[0].id);
-  // Lien de vérification : un échec d'envoi ne bloque pas l'inscription (renvoi possible depuis Mon espace)
+  // Lien de vérification : un échec ou une lenteur d'envoi ne bloque pas l'inscription (renvoi possible depuis Mon espace).
   let verificationSent = false;
-  if (features().accountEmails) verificationSent = await sendAccountEmail('verify', rows[0]).then(() => true, e => { console.error('[auth] verify mail', e.message); return false; });
+  if (features().accountEmails) {
+    const sent = sendAccountEmail('verify', rows[0]).then(() => true, e => { console.error('[auth] verify mail', e.message); return false; });
+    verificationSent = await Promise.race([sent, new Promise(resolve => setTimeout(() => resolve(false), 4000))]);
+  }
   return sendJson(res, 201, { user: publicUser(rows[0]), verificationSent });
 }
 

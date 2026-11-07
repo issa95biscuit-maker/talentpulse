@@ -16,6 +16,11 @@ global.fetch = async (url) => {
   if (url.includes('geo.api.gouv.fr')) throw new Error('offline');
   const json = (obj, headers = {}, status = 200) => new Response(status === 204 ? null : JSON.stringify(obj), { status, headers: { 'content-type': 'application/json', ...headers } });
   if (url.includes('access_token')) return json({ access_token: 'tok', expires_in: 1499 });
+  if (/\/offres\/[^/?]+$/.test(url.split('?')[0]) && !url.includes('/search')) {
+    if (mode === 'down') return new Response('boom', { status: 500 });
+    if (mode === 'found') return json({ id: 'OK1', intitule: 'Serveur H/F', entreprise: { nom: 'Brasserie' }, lieuTravail: { libelle: '69 - LYON' }, typeContrat: 'CDI', dateCreation: new Date().toISOString(), origineOffre: { urlOrigine: 'https://candidat.francetravail.fr/x' } });
+    return json({ message: 'absent' }, {}, 404);
+  }
   if (url.includes('offres/search')) {
     if (mode === 'empty') return json(null, {}, 204);
     if (mode === 'down') return new Response('boom', { status: 500 });
@@ -126,6 +131,39 @@ test('sitemaps : index → pages + offres, uniquement les combinaisons curées',
   for (const p of ['/a-propos', '/contact', '/cgu', '/mentions-legales', '/confidentialite']) assert.match(r.body, new RegExp('<loc>https://talentpulse-topaz\\.vercel\\.app' + p.replace('/', '\\/') + '</loc>'));
   assert.ok(!/mon-espace|connexion|nouveau-mot-de-passe/.test(r.body), 'pages privées exclues');
   assert.equal((await call({ sitemap: 'nope' })).status, 404);
+});
+
+test('offre inconnue ou expirée : 410, message, noindex, pas de liste nationale ni de JobPosting', async () => {
+  mode = 'ok';
+  const page = await call({ kw: 'serveur', lieu: 'lyon' });
+  assert.equal((page.body.match(/<h1[\s>]/g) || []).length, 1, 'un seul h1 sur la page SEO');
+  assert.match(page.body, /<h1 id="jobsHeader">/);
+  assert.ok(!/<h1[\s>]/.test(page.body.replace(/<h1 id="jobsHeader">[\s\S]*?<\/h1>/, '')), 'les autres vues ne sont pas en h1');
+
+  let r = await call({ offre: 'ft_INEXISTANT' });
+  assert.equal(r.status, 410);
+  assert.match(r.headers['x-robots-tag'], /noindex/);
+  assert.match(r.body, /Cette offre n’est plus disponible/);
+  assert.match(r.body, /noindex,nofollow/);
+  assert.equal((r.body.match(/<article class="job"/g) || []).length, 0);
+  assert.ok(!/JobPosting/.test(r.body));
+  assert.match(r.body, /"unavailable":true/);
+  assert.equal((r.body.match(/<h1[\s>]/g) || []).length, 1);
+
+  mode = 'found';
+  r = await call({ offre: 'ft_OK1' });
+  assert.equal(r.status, 200);
+  assert.match(r.headers['x-robots-tag'], /noindex/);
+  assert.ok(!/JobPosting/.test(r.body));
+
+  mode = 'down';
+  r = await call({ offre: 'ft_OK1' });
+  assert.equal(r.status, 200, 'une panne amont ne déclare pas l’offre expirée');
+
+  r = await call({ offre: 'pas-une-offre' });
+  assert.equal(r.status, 410);
+  r = await call({ offre: 'csp_introuvable' });
+  assert.equal(r.status, 410);
 });
 
 test('données curées cohérentes avec la recherche du site (slugs, lieux reconnus, textes)', () => {

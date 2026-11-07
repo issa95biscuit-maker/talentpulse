@@ -103,6 +103,18 @@ test('lieux : les cas de recette (communes, homonymes, codes postaux, arrondisse
   }
 });
 
+test('lieu inconnu : résultats nationaux assumés, pas de where Adzuna', async () => {
+  const loc = await J.resolveLocation({ lieu: 'zzzz' });
+  assert.equal(loc.type, 'unknown');
+  assert.equal(loc.adzunaWhere, '');
+  calls.length = 0;
+  const r = await call(handler, { motsCles: 'serveur', lieu: 'zzzz' });
+  assert.equal(r.body.location.type, 'unknown');
+  assert.equal(ftUrl().searchParams.get('commune'), null);
+  assert.equal(ftUrl().searchParams.get('departement'), null);
+  assert.equal(adzUrl().searchParams.get('where'), null);
+});
+
 test('lieux : geo.api.gouv.fr indisponible -> référentiel local pour départements et régions', async () => {
   geoDown = true;
   try {
