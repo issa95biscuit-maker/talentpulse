@@ -132,7 +132,7 @@ ${isParticulier() && !LEGAL.siren ? '' : `<li>SIREN / RCS : ${LV('siren', 'numé
 <p>Les offres d’emploi affichées proviennent de l’API Offres d’emploi de France Travail, de l’API Adzuna et des données ouvertes « Choisir le Service Public » (fonction publique). Elles restent la propriété et la responsabilité de leurs émetteurs. TalentPulse n’est pas l’employeur. Il ne transmet une candidature que sur demande expresse du candidat, uniquement à l’adresse e-mail publiée dans une offre France Travail ; sinon, vous postulez sur le site d’origine de chaque annonce.</p>
 <h2>Réutilisation des offres et traitements appliqués</h2>
 <p>Les offres France Travail proviennent de l’API Offres d’emploi et sont réutilisées conformément à la <a href="https://francetravail.io/produits-partages/catalogue/offres-emploi" rel="noopener" target="_blank" style="text-decoration:underline">licence de réutilisation des offres d’emploi de France Travail</a>. Elles sont interrogées en temps réel à chaque recherche ; la date de publication et de dernière mise à jour figure sur chaque offre. Les offres de la fonction publique proviennent du jeu de données « Les offres diffusées sur Choisir le Service Public » (Direction générale de l’administration et de la fonction publique), publié sur <a href="https://www.data.gouv.fr/datasets/les-offres-diffusees-sur-choisir-le-service-public" rel="noopener" target="_blank" style="text-decoration:underline">data.gouv.fr</a> sous Licence Ouverte 2.0 et actualisé régulièrement ; seules les offres dont la date de fin de publication n’est pas passée sont affichées. Les offres Adzuna sont affichées avec la mention « Jobs by Adzuna » exigée par les <a href="https://developer.adzuna.com/docs/terms_of_service" rel="noopener" target="_blank" style="text-decoration:underline">conditions de l’API Adzuna</a>.</p>
-<p>Traitements appliqués, sans modifier le fond des annonces : intitulés et noms d’entreprise écrits en MAJUSCULES remis en casse normale, mention « (H/F) » dédoublonnée, libellés de lieu harmonisés (« Lyon 05 » → « Lyon 5e »), libellés d’expérience reformulés (« 2 An(s) » → « 2 ans d’expérience »), salaires convertis dans un format lisible, et suppression des doublons (même intitulé, même entreprise, même ville) entre les deux sources.</p>
+<p>Traitements appliqués, sans modifier le fond des annonces : intitulés et noms d’entreprise écrits en MAJUSCULES remis en casse normale, mention « (H/F) » dédoublonnée, noms de communes rapprochés du référentiel INSEE lorsque c’est possible, libellés d’expérience reformulés (« 2 An(s) » → « 2 ans d’expérience »), salaires convertis dans un format lisible. Les annonces strictement identiques (même intitulé, même entreprise et même ville) sont regroupées quand elles sont détectées ; une même offre peut toutefois rester visible sur plusieurs lieux.</p>
 <h2>Propriété intellectuelle</h2>
 <p>La marque, le logo et l’interface TalentPulse sont la propriété de l’éditeur. Toute reproduction sans autorisation est interdite. France Travail et Adzuna sont des marques de leurs titulaires respectifs ; elles sont citées uniquement pour indiquer la source des annonces.</p>
 <h2 id="credits">Crédits</h2>
@@ -204,13 +204,13 @@ function privacyPolicy() {
   if (F.aiLetter) rows.push(['Lettre de motivation IA', 'Poste, entreprise, atouts et profil saisis dans le formulaire', 'Exécution du service demandé', 'Non conservés par TalentPulse']);
   const processors = ['<li><strong>Vercel Inc.</strong> (hébergement, États-Unis, clauses contractuelles types / Data Privacy Framework)</li>'];
   if (accounts) processors.push('<li><strong>Neon</strong> (base de données PostgreSQL, hébergée dans l’Union européenne)</li>');
-  if (F.emailAlerts || F.accountEmails || F.applyEmail) processors.push(`<li><strong>Resend</strong> (envoi des e-mails${F.applyEmail ? ', dont les candidatures que vous adressez aux recruteurs' : ''} ${F.accountEmails ? 'de confirmation d’adresse et de réinitialisation du mot de passe' : ''}${F.accountEmails && F.emailAlerts ? ' et ' : ''}${F.emailAlerts ? 'd’alerte' : ''})</li>`);
+  if (F.emailAlerts || F.accountEmails || F.applyEmail) processors.push('<li><strong>Resend</strong> (sous-traitant d’envoi des e-mails : confirmation d’adresse, réinitialisation du mot de passe, alertes ou candidatures, selon les fonctions activées ; Union européenne / États-Unis, accord de traitement)</li>');
   if (F.whatsappAlerts) processors.push('<li><strong>Twilio</strong> et <strong>Meta (WhatsApp)</strong> (envoi des alertes WhatsApp)</li>');
   if (F.aiLetter) processors.push('<li><strong>Vercel AI Gateway</strong> et le fournisseur du modèle de langage (génération de la lettre ; les données ne servent pas à entraîner les modèles selon leurs conditions)</li>');
-  processors.push('<li><strong>France Travail</strong> et <strong>Adzuna</strong> reçoivent uniquement les critères de recherche (via nos serveurs), sans donnée personnelle</li>');
+  processors.push('<li><strong>France Travail</strong> et <strong>Adzuna</strong> reçoivent uniquement les critères de recherche (via nos serveurs), sans donnée personnelle. Les offres <strong>Choisir le Service Public</strong> viennent d’un fichier ouvert (data.gouv.fr) : aucune donnée personnelle ne leur est transmise.</li>');
   processors.push('<li><strong>geo.api.gouv.fr</strong> (service public de la DINUM) : pour suggérer villes, départements et régions, votre navigateur lui envoie directement les lettres saisies dans le champ « Lieu » ; comme pour tout site web, il voit votre adresse IP. Aucune autre donnée n’est transmise.</li>');
   return `<h1 id="legalPageTitle">Politique de confidentialité</h1>
-<p class="legal-meta">Dernière mise à jour : 3 octobre 2026</p>
+<p class="legal-meta">Dernière mise à jour : 7 novembre 2026</p>
 <h2>En résumé</h2>
 <p>TalentPulse fonctionne <strong>sans compte</strong> : vos données restent alors dans votre navigateur.${accounts ? ' Si vous créez un compte (facultatif), nous conservons le strict nécessaire pour synchroniser votre espace entre vos appareils.' : ''} Nous ne déposons <strong>aucun cookie publicitaire ni de mesure d’audience</strong>${accounts ? ' ; le seul cookie est un cookie de session technique, strictement nécessaire, déposé lorsque vous vous connectez' : ''}.</p>
 <h2>Responsable du traitement</h2>
@@ -224,7 +224,7 @@ function privacyPolicy() {
 <h2>Destinataires et sous-traitants</h2>
 <ul>${processors.join('')}</ul>
 <h2>Liens vers les sites d’origine</h2>
-<p>Lorsque vous cliquez sur « Voir l’offre » ou « Copier ma lettre et ouvrir… », vous quittez TalentPulse pour le site de la source (France Travail, Adzuna ou un partenaire). Leur propre politique de confidentialité s’applique alors.</p>
+<p>Lorsque vous cliquez sur « Voir l’offre » ou « Copier ma lettre et ouvrir… », vous quittez TalentPulse pour le site de la source (France Travail, Adzuna, Choisir le Service Public ou un partenaire). Leur propre politique de confidentialité s’applique alors.</p>
 <h2>Vos droits</h2>
 <p>Vous disposez d’un droit d’accès, de rectification, d’effacement, de limitation, d’opposition et de portabilité.${accounts ? ' Depuis « Mon espace », vous pouvez <strong>exporter</strong> toutes vos données (JSON) et <strong>supprimer votre compte</strong> : la suppression est immédiate et définitive.' : ''} Pour toute demande : ${contactMail()}. Vous pouvez également introduire une réclamation auprès de la CNIL (cnil.fr).</p>
 <h2>Sécurité</h2>
@@ -352,14 +352,15 @@ function setSyncStatus(st) {
 }
 async function remote(path, opts = {}) {
   if (!remoteOn()) return null;
+  const { quiet = false, ...rest } = opts;
   try {
-    const data = await apiFetch(path, { ...opts, auth: true });
+    const data = await apiFetch(path, { ...rest, auth: true });
     if (syncStatus === 'error') setSyncStatus('ok');
     return data;
   } catch (err) {
     if (err.kind !== 'auth') {
       setSyncStatus('error');
-      toast('Synchronisation impossible : la modification est gardée sur cet appareil.', 'err');
+      if (!quiet) toast('Synchronisation impossible : la modification est gardée sur cet appareil.', 'err');
     }
     return null;
   }
@@ -428,25 +429,25 @@ function applyServerState(data) {
   syncState();
   updateFavBadge();
 }
-async function pullServerState() {
+async function pullServerState({ quiet = false } = {}) {
   if (!remoteOn()) return;
   setSyncStatus('syncing');
   const [fav, pipe, al, prof, apps] = await Promise.all([
-    remote('/api/me/favorites'), remote('/api/me/pipeline'), remote('/api/me/alerts'), remote('/api/me/profile'), remote('/api/me/applications'),
+    remote('/api/me/favorites', { quiet }), remote('/api/me/pipeline', { quiet }), remote('/api/me/alerts', { quiet }), remote('/api/me/profile', { quiet }), remote('/api/me/applications', { quiet }),
   ]);
   if (!fav && !pipe && !al) return;
   applyServerState({ favorites: fav?.favorites, pipeline: pipe?.pipeline, alerts: al?.alerts, user: prof?.user, applications: apps?.applications });
   setSyncStatus('ok');
   rerenderCurrent();
 }
-async function syncAfterLogin() {
+async function syncAfterLogin({ quiet = false } = {}) {
   if (!remoteOn()) return 0;
   const payload = buildSyncPayload();
   const n = payload.favorites.length + payload.pipeline.length + payload.alerts.length + payload.applications.length;
   setSyncStatus('syncing');
-  const data = await remote('/api/me/sync', { method: 'POST', body: payload, timeout: 20000 });
+  const data = await remote('/api/me/sync', { method: 'POST', body: payload, timeout: 20000, quiet });
   if (data) { applyServerState(data); setSyncStatus('ok'); }
-  else await pullServerState();
+  else await pullServerState({ quiet });
   return data ? n : 0;
 }
 function rerenderCurrent() {
@@ -503,28 +504,38 @@ function avatarStyle(name) {
   return `--av-bg:${bg};--av-fg:${fg}`;
 }
 
-// Date relative façon "Indeed" : Aujourd'hui / Il y a X jours / Il y a X mois...
-function relativeDate(dateStr) {
-  if (!dateStr) return '';
+// Date relative : « Il y a X jours » jusqu’à 90 jours, puis mois. Au-delà de 30 jours, pastille « ancienne ».
+function ageDays(dateStr, now = Date.now()) {
+  if (!dateStr) return null;
   let d;
-  if (/^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
-    d = new Date(dateStr);
-  } else if (/^\d{2}\/\d{2}\/\d{4}/.test(dateStr)) {
+  if (/^\d{4}-\d{2}-\d{2}/.test(dateStr)) d = new Date(dateStr);
+  else if (/^\d{2}\/\d{2}\/\d{4}/.test(dateStr)) {
     const [day, month, year] = dateStr.split('/');
     d = new Date(`${year}-${month}-${day}`);
-  } else {
-    d = new Date(dateStr);
-  }
-  if (isNaN(d.getTime())) return '';
-  const diffDays = Math.floor((Date.now() - d.getTime()) / 86400000);
+  } else d = new Date(dateStr);
+  if (isNaN(d.getTime())) return null;
+  return Math.floor((now - d.getTime()) / 86400000);
+}
+function relativeDate(dateStr, now = Date.now()) {
+  const diffDays = ageDays(dateStr, now);
+  if (diffDays === null) return '';
   if (diffDays <= 0) return "Aujourd'hui";
   if (diffDays === 1) return 'Il y a 1 jour';
-  if (diffDays < 30) return `Il y a ${diffDays} jours`;
+  if (diffDays < 90) return `Il y a ${diffDays} jours`;
   const months = Math.floor(diffDays / 30);
   if (months === 1) return 'Il y a 1 mois';
   if (months < 12) return `Il y a ${months} mois`;
   const years = Math.floor(months / 12);
   return years === 1 ? 'Il y a 1 an' : `Il y a ${years} ans`;
+}
+const CONTRACT_UNKNOWN = 'Contrat non communiqué';
+const SALARY_UNKNOWN = 'Salaire non communiqué';
+function contractLabel(j) { return j.contract || CONTRACT_UNKNOWN; }
+function salaryLabel(j) { return j.salary || (j.publicSector ? 'Grille de la fonction publique' : SALARY_UNKNOWN); }
+function placeLine(j) {
+  if (!j.city) return '';
+  if (/\((?:dép\.|région)\)$/.test(j.city)) return j.city;
+  return j.city + (j.dept && !String(j.city).includes(j.dept) ? ' (' + j.dept + ')' : '');
 }
 
 let toastTimer;
@@ -582,7 +593,7 @@ function syncSearchRoute(params, replace) {
   const p = params || {};
   const path = searchPath(p);
   const title = (p.kw || p.city) ? (p.kw || 'Offres') + (p.city ? ' à ' + p.city : '') + ' — TalentPulse' : 'Offres d’emploi — TalentPulse';
-  const description = (p.kw || p.city) ? 'Offres de ' + (p.kw || 'emploi') + (p.city ? ' à ' + p.city : '') + ' issues de France Travail et Adzuna, réunies sur TalentPulse.' : 'Recherchez parmi les offres France Travail et Adzuna avec TalentPulse.';
+  const description = (p.kw || p.city) ? 'Offres de ' + (p.kw || 'emploi') + (p.city ? ' à ' + p.city : '') + ' issues de France Travail, Adzuna et Choisir le Service Public, réunies sur TalentPulse.' : 'Recherchez parmi les offres France Travail, Adzuna et Choisir le Service Public avec TalentPulse.';
   updatePageMeta(title, description, path);
   if (window.location.pathname !== path) window.history[replace ? 'replaceState' : 'pushState']({ talentpulse: true, kw: p.kw || '', city: p.city || '' }, '', path);
 }
@@ -590,10 +601,10 @@ function syncSearchRoute(params, replace) {
 const STATIC_ROUTES = {
   '/lettre':     { page: 'lettre',   title: 'Lettre de motivation — TalentPulse', desc: 'Générez une trame de lettre de motivation à personnaliser.' },
   '/conseils':   { page: 'conseils', title: 'Conseils carrière — TalentPulse', desc: 'Conseils pour réussir votre recherche d’emploi.' },
-  '/mon-espace': { page: 'profile',  title: 'Mon espace — TalentPulse', desc: 'Vos favoris, votre suivi de candidatures et votre CV, sur cet appareil.' },
+  '/mon-espace': { page: 'profile',  title: 'Mon espace — TalentPulse', desc: 'Vos favoris, votre suivi de candidatures et vos alertes, sur cet appareil ou synchronisés avec votre compte.' },
   '/nouveau-mot-de-passe': { page: 'account-link', title: 'Nouveau mot de passe — TalentPulse', desc: 'Choisissez un nouveau mot de passe pour votre compte TalentPulse.' },
   '/verifier-email': { page: 'account-link', title: 'Confirmation de l’adresse e-mail — TalentPulse', desc: 'Confirmez votre adresse e-mail TalentPulse.' },
-  '/connexion':  { page: 'login',    title: 'Connexion — TalentPulse', desc: 'Les comptes TalentPulse arrivent bientôt.' },
+  '/connexion':  { page: 'login',    title: 'Connexion — TalentPulse', desc: 'Connectez-vous ou créez un compte gratuit pour synchroniser favoris, suivi et alertes.' },
 };
 const PAGE_PATHS = { home: '/', jobs: null, lettre: '/lettre', conseils: '/conseils', profile: '/mon-espace', login: '/connexion' };
 
@@ -610,7 +621,7 @@ function handleRoute() {
   const rawPath = window.location.pathname.replace(/\/+$/, '') || '/';
   const parts = rawPath.split('/').filter(Boolean);
   if (!parts.length) {
-    updatePageMeta("TalentPulse — Toutes les offres d'emploi France Travail et Adzuna", 'Toutes les offres France Travail (alternance incluse) et Adzuna en une seule recherche. Gratuit, sans inscription, avec lien direct vers l’annonce d’origine.', '/');
+    updatePageMeta("TalentPulse — Toutes les offres d'emploi France Travail, Adzuna et Service Public", 'Toutes les offres France Travail (alternance incluse), Adzuna et Choisir le Service Public en une seule recherche. Gratuit, sans inscription, avec lien direct vers l’annonce d’origine.', '/');
     showPage('home');
     return;
   }
@@ -642,6 +653,8 @@ function handleRoute() {
   }
   if (parts[0] === 'offre' && parts[1]) {
     const id = decodeURIComponent(parts[1]);
+    const ssr = getSsr();
+    if (ssr && ssr.unavailable && ssr.id === id) { showUnavailableOffer(id); return; }
     if (State.jobs.some(j => j.id === id)) { openDetail(id, { push: false }); return; }
     showPage('jobs', { load: false });
     openOfferById(id);
@@ -713,14 +726,47 @@ async function openOfferById(id) {
     if (!State.jobs.some(j => j.id === job.id)) State.jobs.unshift(job);
     renderJobs();
     openDetail(job.id, { push: false });
-  } catch {
-    toast("Cette offre n'est plus disponible.", 'err');
-    updatePageMeta('Offre indisponible — TalentPulse', 'Cette offre n’est plus disponible.', '/offres/emploi');
-    window.history.replaceState({ talentpulse: true }, '', '/offres/emploi');
-    loadJobs({});
+  } catch (err) {
+    if (err && err.status === 404) showUnavailableOffer(id);
+    else {
+      showPage('jobs', { load: false });
+      State.jobs = [];
+      State.total = 0;
+      State.loadError = (err && err.message) || 'Impossible de charger cette offre.';
+      $('#jobsHeader').textContent = 'Offre';
+      renderJobs();
+    }
   } finally {
     routeHandling = false;
   }
+}
+
+function showUnavailableOffer(id) {
+  showPage('jobs', { load: false });
+  State.jobs = [];
+  State.total = 0;
+  State.hasMore = false;
+  State.loadError = null;
+  State.resolvedLocation = null;
+  updatePageMeta('Offre indisponible — TalentPulse', 'Cette offre n’est plus disponible ou a expiré.', '/offre/' + encodeURIComponent(id));
+  const robots = document.querySelector('meta[name="robots"]');
+  if (robots) robots.setAttribute('content', 'noindex, nofollow');
+  const header = $('#jobsHeader');
+  if (header) header.textContent = 'Offre indisponible';
+  const count = $('#jobsCount');
+  if (count) count.textContent = '';
+  const notice = $('#jobsNotice');
+  if (notice) notice.innerHTML = '';
+  const more = $('#jobsMore');
+  if (more) more.innerHTML = '';
+  toggleSeoBlocks(false);
+  const list = $('#jobsList');
+  if (list) list.innerHTML = `<div class="empty" role="status">
+    <div class="empty-icon">${ICONS.alert}</div>
+    <div class="empty-title">Cette offre n’est plus disponible</div>
+    <p>Le lien est incorrect, ou l’annonce a expiré et a été retirée par sa source. La liste nationale n’est pas affichée à la place.</p>
+    <div class="empty-actions"><a class="btn btn-primary" href="/offres/emploi">Voir les offres d’emploi</a></div>
+  </div>`;
 }
 
 /** Espaces insécables avant : ; ? ! » et après « (texte uniquement, pas les balises) */
@@ -810,6 +856,11 @@ function refreshAuthForms() {
   $('#authSoon')?.classList.toggle('hide', enabled);
   $('#forgotWrap')?.classList.toggle('hide', !(enabled && FEATURES.accountEmails));
   ['#fsIn', '#fsUp'].forEach(sel => { const fs = $(sel); if (fs) fs.disabled = !enabled; });
+  if ((window.location.pathname.replace(/\/+$/, '') || '/') === '/connexion') {
+    updatePageMeta('Connexion — TalentPulse', enabled
+      ? 'Connectez-vous ou créez un compte gratuit pour synchroniser favoris, suivi et alertes.'
+      : 'Les comptes TalentPulse arrivent bientôt. Vous pouvez utiliser TalentPulse sans compte.', '/connexion');
+  }
 }
 
 function showAuthErr(msg) {
@@ -944,12 +995,12 @@ function apiErrorMessage(data, fallback) {
   return fallback;
 }
 
-async function authRequest(path, payload) {
+async function authRequest(path, payload, { timeout = API_TIMEOUT } = {}) {
   // Sur login/register, un 401 = "mauvais identifiants", PAS une session
   // expirée : on court-circuite donc handleSessionExpired().
   if (navigator.onLine === false) throw new ApiError('Vous êtes hors ligne. Vérifiez votre connexion.', 'offline');
   const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), API_TIMEOUT);
+  const timer = setTimeout(() => ctrl.abort(), timeout);
   let res;
   try {
     res = await fetch(path, {
@@ -977,9 +1028,13 @@ async function authRequest(path, payload) {
 async function afterAuth(user, isNew) {
   writeSession(user);
   refreshAuthUI();
-  const imported = await syncAfterLogin();
+  // Navigation tout de suite : la synchro ne doit pas laisser le bouton sur « Création… ».
   navigate('/mon-espace');
-  toast(`Bienvenue ${State.user.prenom || ''}`.trim() + (imported ? ` : ${imported} élément(s) de cet appareil ajoutés à votre compte.` : isNew ? ' : votre compte est prêt.' : '.'), 'ok');
+  const prenom = user?.prenom || State.user?.prenom || '';
+  toast(isNew ? (prenom ? `Compte créé. Bienvenue ${prenom}.` : 'Compte créé.') : (prenom ? `Bienvenue ${prenom}.` : 'Bienvenue.'), 'ok');
+  syncAfterLogin({ quiet: true }).then(imported => {
+    if (imported) toast(`${imported} élément(s) de cet appareil ajoutés à votre compte.`, 'ok');
+  }).catch(() => {});
 }
 
 async function doSignIn(e) {
@@ -1019,16 +1074,21 @@ async function doSignUp(e) {
   const btn = $('#formUp button[type="submit"]');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner" aria-hidden="true"></span> Création…';
+  let created = false;
   try {
-    const data = await authRequest('/api/auth/register', { prenom, email, password: pass, consent: true });
+    const data = await authRequest('/api/auth/register', { prenom, email, password: pass, consent: true }, { timeout: 8000 });
     if (!data.user || !data.user.email) throw new Error('Réponse serveur invalide.');
     $('#upPass').value = '';
+    created = true;
     await afterAuth(data.user, true);
   } catch (err) {
-    showAuthErr(typeof err.message === 'string' && err.message ? err.message : 'Inscription indisponible.');
+    const slow = err && err.kind === 'timeout';
+    showAuthErr(slow ? 'La création prend trop de temps. Réessayez dans un instant.' : (typeof err.message === 'string' && err.message ? err.message : 'Inscription indisponible.'));
   } finally {
-    btn.disabled = false;
-    btn.textContent = 'Créer mon compte';
+    if (!created) {
+      btn.disabled = false;
+      btn.textContent = 'Créer mon compte';
+    }
   }
 }
 
@@ -1306,7 +1366,11 @@ async function loadJobs(params = {}, { append = false } = {}) {
     State.sourceNotes = data.notes || null;
     // Lieu reconnu : on affiche son nom officiel (« saint denis 93 » -> « Saint-Denis (93) »)
     const disp = data.location && !data.location.approx && data.location.type !== 'unknown' ? data.location.display : '';
-    if (!append && disp && params.city && disp !== params.city) {
+    if (!append && data.location && data.location.type === 'unknown' && params.city) {
+      const header = $('#jobsHeader');
+      const kw = params.kw ? `Offres «\u00a0${params.kw}\u00a0»` : 'Offres';
+      if (header) header.textContent = `${kw} — lieu non reconnu, toute la France`;
+    } else if (!append && disp && params.city && disp !== params.city) {
       params.city = disp;
       State.lastSearch.city = disp;
       const header = $('#jobsHeader');
@@ -1331,7 +1395,10 @@ function renderJobsNotice(params) {
   const notes = [];
   const loc = State.resolvedLocation;
   if (params.city && loc) {
-    if (loc.type === 'unknown') notes.push(`Lieu « ${esc(params.city)} » non reconnu : les offres France Travail affichées concernent toute la France. Essayez un nom de ville, un code postal ou un département.`);
+    if (loc.type === 'unknown') {
+      const sugg = (loc.suggestions || []).slice(0, 3).map(s => esc(s)).filter(Boolean);
+      notes.push(`Lieu « ${esc(params.city)} » non reconnu. Les résultats couvrent toute la France (ou sont vides) : ce n’est pas une recherche locale.${sugg.length ? ` Peut-être : ${sugg.join(', ')}.` : ' Essayez un nom de ville, un code postal ou un département.'}`);
+    }
     else if (loc.approx) notes.push(`Résultats pour <strong>${esc(loc.label)}</strong> (lieu le plus proche de « ${esc(params.city)} »).`);
     else if (loc.type === 'commune') notes.push(`Offres à <strong>${esc(loc.display || loc.label)}</strong> et dans un rayon de 10\u00a0km.`);
     else if (loc.type === 'arrondissement') notes.push(`Offres dans le <strong>${esc(loc.label)}</strong> et les arrondissements voisins.`);
@@ -1341,7 +1408,7 @@ function renderJobsNotice(params) {
   if (State.sourceNotes && State.sourceNotes.adzuna && /France Travail/.test(State.sourceNotes.adzuna)) {
     notes.push('Filtres avancés actifs : seules les offres France Travail sont affichées.');
   }
-  box.innerHTML = notes.map(n => `<div class="jobs-notice">${ICONS.info}<span>${n}</span></div>`).join('');
+  box.innerHTML = notes.map(n => `<div class="jobs-notice" role="status">${ICONS.info}<span>${n}</span></div>`).join('');
 }
 
 // Mappe le format normalisé renvoyé par /api/jobs
@@ -1510,15 +1577,18 @@ function jobCard(j) {
   const saved = State.saved.has(j.id);
   const tracked = State.applied.has(j.id);
   const viewed = State.viewed.has(j.id);
-  const loc = j.city ? `${j.city}${j.dept && !String(j.city).includes(j.dept) ? ' (' + j.dept + ')' : ''}` : '';
-  const when = relativeDate(j.posted);
+  const loc = placeLine(j);
+  const whenRaw = j.posted || j.updated;
+  const when = relativeDate(whenRaw);
+  const days = ageDays(whenRaw);
   const name = j.company || j.title || '?';
   const fresh = when === "Aujourd'hui" || when === 'Il y a 1 jour';
+  const stale = days !== null && days > 30;
   const sal = j.salary ? salaryParts(j.salary) : null;
   const app = State.applications[j.id];
   const status = app ? `<span class="tracked-badge">${ICONS.check}${app.status === 'sent' ? 'Envoyée' : 'Prête'}</span>` : tracked ? `<span class="tracked-badge">${ICONS.check}Suivie</span>` : viewed ? '<span class="job-viewed">Consultée</span>' : '';
   const pills = [
-    j.contract ? `<span class="pill pill-contract ${CONTRACT_TONE[j.contract] || ''}">${esc(j.contract)}</span>` : '',
+    `<span class="pill pill-contract ${j.contract ? (CONTRACT_TONE[j.contract] || '') : 'is-unknown'}">${esc(contractLabel(j))}</span>`,
     j.publicSector && j.categoriePublique ? `<span class="pill">Catégorie ${esc(j.categoriePublique)}</span>` : '',
     j.experience ? `<span class="pill">${esc(j.experience)}</span>` : '',
     j.tempsPlein === 'Temps partiel' ? '<span class="pill">Temps partiel</span>' : '',
@@ -1541,8 +1611,8 @@ function jobCard(j) {
     ${pills ? `<div class="job-pills">${pills}</div>` : ''}
     <div class="job-foot">
       <div class="job-foot-left">
-        ${sal ? `<div class="job-amount" title="${esc(j.salary)}"><span class="amt">${esc(sal.amount)}</span>${sal.unit ? `<span class="unit">${esc(sal.unit)}</span>` : ''}${sal.note ? `<span class="note">${esc(sal.note)}</span>` : ''}</div>` : `<div class="job-amount is-empty">${j.publicSector ? 'Grille de la fonction publique' : 'Salaire non précisé'}</div>`}
-        <div class="job-src">${source}${when ? `<span class="job-time${fresh ? ' fresh' : ''}">${fresh ? '<span class="fresh-dot" aria-hidden="true"></span>' : ''}${esc(when)}</span>` : ''}${status}</div>
+        ${sal ? `<div class="job-amount" title="${esc(j.salary)}"><span class="amt">${esc(sal.amount)}</span>${sal.unit ? `<span class="unit">${esc(sal.unit)}</span>` : ''}${sal.note ? `<span class="note">${esc(sal.note)}</span>` : ''}</div>` : `<div class="job-amount is-empty">${esc(salaryLabel(j))}</div>`}
+        <div class="job-src">${source}${when ? `<span class="job-time${fresh ? ' fresh' : ''}${stale ? ' stale' : ''}">${fresh ? '<span class="fresh-dot" aria-hidden="true"></span>' : ''}${esc(when)}</span>` : ''}${status}</div>
       </div>
       <button class="btn btn-primary job-apply" type="button" data-apply="${esc(j.id)}" aria-haspopup="dialog" aria-label="${app ? 'Voir ma candidature' : 'Postuler'} : ${esc(j.title)}">${app ? 'Ma candidature' : `Postuler${ICONS.arrowUpRight.replace('class="i"', 'class="i apply-arrow"')}`}</button>
     </div>
@@ -1602,12 +1672,14 @@ function openDetail(id, { push = true } = {}) {
   const tracked = State.applied.has(id);
   const site = j.sourceSite || j.source || 'le site d’origine';
   const name = j.company || j.title || '?';
-  const when = relativeDate(j.posted);
+  const whenRaw = j.posted || j.updated;
+  const when = relativeDate(whenRaw);
+  const stale = (ageDays(whenRaw) || 0) > 30;
 
   const facts = [
-    ['Lieu', j.city ? j.city + (j.dept && !String(j.city).includes(j.dept) ? ' (' + j.dept + ')' : '') : ''],
-    ['Type de contrat', [j.contract, j.contractDetail && j.contractDetail !== j.contract ? j.contractDetail : ''].filter(Boolean).join(' — ')],
-    ['Salaire', j.salary],
+    ['Lieu', placeLine(j)],
+    ['Type de contrat', [contractLabel(j), j.contract && j.contractDetail && j.contractDetail !== j.contract ? j.contractDetail : ''].filter(Boolean).join(' — ')],
+    ['Salaire', salaryLabel(j)],
     ['Temps de travail', j.tempsPlein],
     ['Horaires', j.horaires],
     ['Expérience demandée', j.experience],
@@ -1627,10 +1699,10 @@ function openDetail(id, { push = true } = {}) {
       </div>
     </div>
     <div class="badge-row">
-      ${j.contract ? `<span class="tag tag-brand">${esc(j.contract)}</span>` : ''}
-      ${j.salary ? `<span class="tag job-sal">${icon('salary')}${esc(j.salary)}</span>` : ''}
+      <span class="tag tag-brand${j.contract ? '' : ' is-unknown'}">${esc(contractLabel(j))}</span>
+      <span class="tag job-sal">${j.salary ? icon('salary') : ''}${esc(salaryLabel(j))}</span>
       ${j.source && j.source !== 'Adzuna' ? `<span class="tag"><span class="src ${sourceClass(j.source)}">${sourceIcon(j.source)}Source : ${esc(j.source)}</span></span>` : ''}
-      ${when ? `<span class="tag">${icon('clock')}${esc(when)}</span>` : ''}
+      ${when ? `<span class="tag${stale ? ' is-stale' : ''}">${icon('clock')}${esc(when)}</span>` : ''}
       ${j.otherLocations ? `<span class="tag">Aussi publiée dans ${j.otherLocations} autre${j.otherLocations > 1 ? 's' : ''} lieu${j.otherLocations > 1 ? 'x' : ''}</span>` : ''}
       ${matchBadge(matchScore(j))}
     </div>
@@ -1650,6 +1722,7 @@ function openDetail(id, { push = true } = {}) {
 
   const panel = $('#detail');
   lastFocusBeforeDetail = document.activeElement;
+  panel.removeAttribute('hidden');
   panel.classList.add('open');
   panel.removeAttribute('inert');
   $('#detailOverlay').classList.add('open');
@@ -1666,6 +1739,7 @@ function closeDetail({ syncRoute = true, restoreFocus = true } = {}) {
   const panel = $('#detail');
   const wasOpen = panel.classList.contains('open');
   panel.classList.remove('open');
+  panel.setAttribute('hidden', '');
   panel.setAttribute('inert', '');
   $('#detailOverlay')?.classList.remove('open');
   document.body.classList.remove('no-scroll');
@@ -1673,7 +1747,7 @@ function closeDetail({ syncRoute = true, restoreFocus = true } = {}) {
   if (syncRoute && window.location.pathname.startsWith('/offre/')) {
     const fallback = State.lastSearch && (State.lastSearch.kw || State.lastSearch.city) ? searchPath(State.lastSearch) : '/offres/emploi';
     window.history.replaceState({ talentpulse: true }, '', fallback);
-    updatePageMeta('Offres d’emploi — TalentPulse', 'Recherchez parmi les offres France Travail et Adzuna avec TalentPulse.', fallback);
+    updatePageMeta('Offres d’emploi — TalentPulse', 'Recherchez parmi les offres France Travail, Adzuna et Choisir le Service Public avec TalentPulse.', fallback);
   }
   if (wasOpen && restoreFocus && lastFocusBeforeDetail && document.contains(lastFocusBeforeDetail)) lastFocusBeforeDetail.focus();
 }
@@ -2182,7 +2256,7 @@ function renderTicker() {
   if (!track) return;
   if (!Ticker.tips) Ticker.tips = [...track.children].filter(li => !li.hasAttribute('aria-hidden') && !li.dataset.live).map(li => li.outerHTML);
   const items = [];
-  if (Ticker.count) items.push(`<li data-live="1"><svg class="i" aria-hidden="true"><use href="#i-trending-up"/></svg><span><span class="tk-num">${fmtCount(Ticker.count)}</span> offres agrégées en ce moment (France Travail, Adzuna, fonction publique)</span></li>`);
+  if (Ticker.count) items.push(`<li data-live="1"><svg class="i" aria-hidden="true"><use href="#i-trending-up"/></svg><span><span class="tk-num">${fmtCount(Ticker.count)}</span> offres agrégées en ce moment (France Travail, Adzuna et Choisir le Service Public)</span></li>`);
   const tips = Ticker.tips.slice();
   Ticker.offers.slice(0, 6).forEach((o, i) => {
     items.push(`<li data-live="1"><svg class="i" aria-hidden="true"><use href="#i-briefcase-business"/></svg><span><b>Nouvelle offre</b> · ${esc(o.title)}${o.city ? ` <span class="tk-mut">· ${esc(o.city)}</span>` : ''}</span></li>`);

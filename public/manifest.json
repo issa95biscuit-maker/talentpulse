@@ -1,7 +1,7 @@
 {
   "name": "TalentPulse",
   "short_name": "TalentPulse",
-  "description": "Toutes les offres d’emploi France Travail et Adzuna, alternance comprise, en une seule recherche.",
+  "description": "Toutes les offres d’emploi France Travail, Adzuna et Choisir le Service Public, alternance comprise, en une seule recherche.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F7F8FB",

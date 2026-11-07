@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TalentPulse — Toutes les offres d’emploi en une seule recherche</title>
-<meta name="description" content="Toutes les offres d’emploi France Travail et Adzuna, alternance comprise, en une seule recherche. Filtrez par ville, contrat et salaire. Gratuit, sans inscription.">
+<meta name="description" content="Toutes les offres d’emploi France Travail, Adzuna et Choisir le Service Public, alternance comprise, en une seule recherche. Filtrez par ville, contrat et salaire. Gratuit, sans inscription.">
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#07090F" media="(prefers-color-scheme: dark)">
 <meta name="color-scheme" content="light dark">
@@ -15,15 +15,15 @@
 <meta property="og:locale" content="fr_FR">
 <meta property="og:type" content="website">
 <meta property="og:title" content="TalentPulse — Toutes les offres d’emploi en une seule recherche">
-<meta property="og:description" content="Toutes les offres d’emploi France Travail et Adzuna, alternance comprise, en une seule recherche. Filtrez par ville, contrat et salaire. Gratuit, sans inscription.">
+<meta property="og:description" content="Toutes les offres d’emploi France Travail, Adzuna et Choisir le Service Public, alternance comprise, en une seule recherche. Filtrez par ville, contrat et salaire. Gratuit, sans inscription.">
 <meta property="og:url" content="https://talentpulse-topaz.vercel.app/">
 <meta property="og:image" content="https://talentpulse-topaz.vercel.app/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="TalentPulse : toutes les offres France Travail, Adzuna et alternance en une seule recherche">
+<meta property="og:image:alt" content="TalentPulse : offres France Travail, Adzuna, Choisir le Service Public et alternance en une seule recherche">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="TalentPulse — Toutes les offres d’emploi en une seule recherche">
-<meta name="twitter:description" content="Toutes les offres d’emploi France Travail et Adzuna, alternance comprise, en une seule recherche. Filtrez par ville, contrat et salaire. Gratuit, sans inscription.">
+<meta name="twitter:description" content="Toutes les offres d’emploi France Travail, Adzuna et Choisir le Service Public, alternance comprise, en une seule recherche. Filtrez par ville, contrat et salaire. Gratuit, sans inscription.">
 <meta name="twitter:image" content="https://talentpulse-topaz.vercel.app/og-image.png">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -531,6 +531,7 @@ legend.filter-label+*,legend.form-label+*{clear:both}
 
 /* 11. DÉTAIL — panneau latéral (desktop) / plein écran (mobile) */
 .detail{position:fixed;top:0;right:0;bottom:0;z-index:500;width:min(760px,100%);display:flex;flex-direction:column;background:var(--surface);box-shadow:var(--sh-3);transform:translateX(100%);visibility:hidden;transition:transform var(--dur-3) var(--ease),visibility 0s linear var(--dur-3)}
+.detail[hidden]{display:none !important}
 .detail.open{transform:none;visibility:visible;transition:transform var(--dur-3) var(--ease)}
 .detail-head{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-2);height:var(--nav-h);padding:0 var(--sp-3) 0 var(--sp-2);border-bottom:1px solid var(--border);flex-shrink:0}
 .detail-back{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 12px;border-radius:var(--r-sm);font-weight:var(--fw-semi);font-size:var(--fs-sm);color:var(--text-2)}
@@ -986,6 +987,7 @@ body.dark .co-avatar:not(.co-logo){background:color-mix(in srgb,var(--av-bg,#FFE
 .job-foot{margin-top:14px;padding-top:12px;border-top:1px solid var(--divider);color:var(--text-3);font-size:.75rem}
 .job-time{display:inline-flex;align-items:center;gap:6px}
 .job-time.fresh{color:var(--ok);font-weight:600}
+.job-time.stale,.tag.is-stale{color:var(--warn);font-weight:600}
 .fresh-dot{width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 0 3px color-mix(in srgb,currentColor 20%,transparent)}
 .job-actions{margin:-8px -12px 0 0;gap:2px}
 .save-btn,.share-btn{width:40px;height:40px;border-radius:10px;color:var(--text-3)}
@@ -1292,6 +1294,7 @@ body.dark .job{-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter
 .pill-contract.c-cdd{background:var(--c-cdd-bg);color:var(--c-cdd)}
 .pill-contract.c-int{background:var(--c-int-bg);color:var(--c-int)}
 .pill-contract.c-alt{background:var(--c-alt-bg);color:var(--c-alt)}
+.pill-contract.is-unknown,.tag.is-unknown{background:var(--surface-2);color:var(--text-2);font-weight:550}
 .pill-ok{background:var(--c-cdi-bg);color:var(--c-cdi)}
 .job-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:2px 0 0;padding:12px 0 0 56px;border-top:0;position:relative;font-size:.75rem;color:var(--muted-2)}
 .job-foot::before{content:"";position:absolute;left:56px;right:0;top:0;height:1px;background:var(--divider)}
@@ -1306,6 +1309,7 @@ body.dark .job{-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter
 .job-src .adz-attr{transform:scale(.92);transform-origin:left center}
 .job-time{display:inline-flex;align-items:center;gap:5px}
 .job-time.fresh{color:var(--ok);font-weight:600}
+.job-time.stale,.tag.is-stale{color:var(--warn);font-weight:600}
 .job-src .tracked-badge,.job-src .job-viewed{font-size:.75rem}
 .src-csp{color:#4F46E5}body.dark .src-csp{color:#A5B4FC}
 .job-apply{flex-shrink:0;min-height:44px;padding:0 16px 0 18px;border-radius:999px;font-size:.9375rem;font-weight:650;gap:6px;
@@ -1430,7 +1434,7 @@ body.dark .job{-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter
     <div class="container hero-inner">
       <span class="hero-badge"><span class="dot" aria-hidden="true"></span>Offres mises à jour en continu<span class="hb-extra">&nbsp;· 100&nbsp;% gratuit</span></span>
       <h1 class="hero-title" id="homeTitle">Toutes les offres d’emploi en France, <em>en une seule recherche</em></h1>
-      <p class="hero-sub">TalentPulse réunit les annonces de France Travail (alternance incluse) et d’Adzuna. Doublons supprimés, salaires lisibles, lien direct vers l’annonce d’origine pour postuler.</p>
+      <p class="hero-sub">TalentPulse réunit les annonces de France Travail (alternance incluse), d’Adzuna et de Choisir le Service Public. Salaires lisibles, lien direct vers l’annonce d’origine pour postuler.</p>
       <form class="search" id="searchForm" role="search" action="/offres/emploi" aria-label="Rechercher une offre">
         <div class="search-field">
           <svg class="i" aria-hidden="true"><use href="#i-search"/></svg>
@@ -1482,7 +1486,7 @@ body.dark .job{-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter
   <div class="section container" aria-labelledby="howTitle">
     <div class="section-head"><div><span class="eyebrow">Comment ça marche</span><h2 class="section-title" id="howTitle">Trouvez, suivez, postulez</h2></div></div>
     <ol class="steps" role="list">
-      <li class="step"><div class="step-top"><span class="step-ic" aria-hidden="true"><svg class="i"><use href="#i-search"/></svg></span><div class="step-num" aria-hidden="true">01</div></div><h3>Une seule recherche</h3><p>Métier et ville : nous interrogeons France Travail, Adzuna et la fonction publique en même temps, puis supprimons les doublons.</p></li>
+      <li class="step"><div class="step-top"><span class="step-ic" aria-hidden="true"><svg class="i"><use href="#i-search"/></svg></span><div class="step-num" aria-hidden="true">01</div></div><h3>Une seule recherche</h3><p>Métier et ville : nous interrogeons France Travail, Adzuna et Choisir le Service Public en même temps.</p></li>
       <li class="step"><div class="step-top"><span class="step-ic" aria-hidden="true"><svg class="i"><use href="#i-list-checks"/></svg></span><div class="step-num" aria-hidden="true">02</div></div><h3>Comparez en un coup d’œil</h3><p>Contrat, salaire, date de publication et source sont affichés sur chaque offre. Filtrez sans recharger la page.</p></li>
       <li class="step"><div class="step-top"><span class="step-ic" aria-hidden="true"><svg class="i"><use href="#i-kanban"/></svg></span><div class="step-num" aria-hidden="true">03</div></div><h3>Postulez et suivez</h3><p>Postulez sur le site d’origine, puis suivez vos candidatures dans un tableau simple : à postuler, entretien, offre.</p></li>
     </ol>
@@ -1666,7 +1670,7 @@ body.dark .job{-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter
       <div class="jobs-main">
         <div id="jobsNotice"></div>
         <div class="jobs-toolbar">
-          <span class="muted" style="font-size:var(--fs-sm)" id="jobsSourcesLine">Sources : France Travail · Adzuna</span>
+          <span class="muted" style="font-size:var(--fs-sm)" id="jobsSourcesLine">Sources : France Travail · Adzuna · Choisir le Service Public</span>
           <div class="sort-wrap">
             <label for="sortSelect">Trier par</label>
             <select class="form-input sort-select" id="sortSelect">
@@ -1891,7 +1895,7 @@ body.dark .job{-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter
     </div>
     <div class="auth-card">
       <h1 class="auth-title" id="authTitle">Connexion</h1>
-      <div class="notice notice-brand" id="authSoon" style="margin-bottom:var(--sp-5)"><span><span class="soon-badge">Bientôt disponible</span><br>Les comptes TalentPulse arrivent prochainement. Vous pouvez déjà tout utiliser sans compte : favoris, suivi et CV sont enregistrés sur cet appareil. <a href="/mon-espace" data-nav="profile" style="color:var(--brand-ink);font-weight:600;text-decoration:underline">Accéder à mon espace</a></span></div>
+      <div class="notice notice-brand hide" id="authSoon" style="margin-bottom:var(--sp-5)"><span><span class="soon-badge">Bientôt disponible</span><br>Les comptes TalentPulse arrivent prochainement. Vous pouvez déjà tout utiliser sans compte : favoris, suivi et CV sont enregistrés sur cet appareil. <a href="/mon-espace" data-nav="profile" style="color:var(--brand-ink);font-weight:600;text-decoration:underline">Accéder à mon espace</a></span></div>
       <div class="auth-tabs" role="tablist" aria-label="Connexion ou inscription">
         <button class="auth-tab active" type="button" role="tab" id="authTabIn" aria-selected="true" aria-controls="panelIn" data-tab="in">Connexion</button>
         <button class="auth-tab" type="button" role="tab" id="authTabUp" aria-selected="false" aria-controls="panelUp" data-tab="up">Inscription</button>
@@ -1936,7 +1940,7 @@ body.dark .job{-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter
 
 <!-- ═══ FICHE OFFRE ═══ -->
 <div class="detail-overlay" id="detailOverlay"></div>
-<div class="detail" id="detail" role="dialog" aria-modal="true" aria-labelledby="detailTitle" inert>
+<div class="detail" id="detail" role="dialog" aria-modal="true" aria-labelledby="detailTitle" hidden inert>
   <div class="detail-head">
     <button class="detail-back" id="detailBack" type="button">
       <svg class="i i-bold" aria-hidden="true"><use href="#i-chevron-left"/></svg>
@@ -1957,7 +1961,7 @@ body.dark .job{-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter
     <div class="footer-grid">
       <div>
         <div class="footer-brand"><span class="logo-icon" aria-hidden="true"><svg class="i i-bold" aria-hidden="true"><use href="#i-zap"/></svg></span><span class="logo-text"><span>Talent<b>Pulse</b></span></span></div>
-        <p class="footer-copy">Agrégateur gratuit d’offres d’emploi issues de France Travail et d’Adzuna. TalentPulse n’est pas l’employeur et ne transmet pas de candidature : vous postulez sur le site d’origine de l’annonce.</p>
+        <p class="footer-copy">Agrégateur gratuit d’offres d’emploi issues de France Travail, d’Adzuna et de Choisir le Service Public. TalentPulse n’est pas l’employeur et ne transmet pas de candidature : vous postulez sur le site d’origine de l’annonce.</p>
       </div>
       <div>
         <h2 class="footer-title">Candidats</h2>
@@ -1988,7 +1992,7 @@ body.dark .job{-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter
     </div>
     <div class="footer-bottom">
       <span>© 2026 TalentPulse</span>
-      <span>Offres France Travail réutilisées selon la <a href="https://francetravail.io/produits-partages/catalogue/offres-emploi" target="_blank" rel="noopener" class="footer-inline">licence de réutilisation des offres d’emploi</a>, mises à jour en continu. Offres Adzuna : <a href="https://www.adzuna.fr" target="_blank" rel="noopener" class="footer-inline">Jobs by Adzuna</a>.</span>
+      <span>Offres France Travail réutilisées selon la <a href="https://francetravail.io/produits-partages/catalogue/offres-emploi" target="_blank" rel="noopener" class="footer-inline">licence de réutilisation des offres d’emploi</a>, mises à jour en continu. Offres Adzuna : <a href="https://www.adzuna.fr" target="_blank" rel="noopener" class="footer-inline">Jobs by Adzuna</a>. Fonction publique : <a href="https://www.data.gouv.fr/datasets/les-offres-diffusees-sur-choisir-le-service-public" target="_blank" rel="noopener" class="footer-inline">Choisir le Service Public</a>.</span>
     </div>
   </div>
 </footer>
@@ -2013,6 +2017,6 @@ body.dark .job{-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter
 
 <script src="/assets/geo-fr.js?v=10" defer></script>
 <script src="/assets/metiers-fr.js?v=10" defer></script>
-<script src="/assets/app.js?v=10" defer></script>
+<script src="/assets/app.js?v=11" defer></script>
 </body>
 </html>
