@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Page introuvable — TalentPulse</title>
+<meta name="robots" content="noindex,follow">
+<meta name="theme-color" content="#FF6A00">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<style>
+@font-face{font-family:Inter;src:url(/fonts/inter-latin-var.woff2) format("woff2");font-weight:100 900;font-display:swap}
+:root{color-scheme:light dark;--bg:#F6F7F9;--card:#fff;--ink:#0F172A;--muted:#475569;--line:#E2E8F0;--btn:#C2410C;--btn-h:#9A3412}
+@media (prefers-color-scheme:dark){:root{--bg:#0B1020;--card:#121A2E;--ink:#F1F5F9;--muted:#CBD5E1;--line:#1E293B;--btn:#C2410C;--btn-h:#EA580C}}
+*{box-sizing:border-box;margin:0}
+body{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+main{background:var(--card);border:1px solid var(--line);border-radius:20px;max-width:440px;width:100%;padding:32px 24px;text-align:center}
+.logo{display:inline-flex;align-items:center;gap:10px;font-weight:800;font-size:20px;color:var(--ink);text-decoration:none;margin-bottom:24px}
+.logo span{color:#C2410C}
+.code{font-size:14px;font-weight:600;color:var(--muted);letter-spacing:.04em;margin-bottom:8px}
+h1{font-size:24px;line-height:1.25;margin-bottom:12px}
+p{color:var(--muted);line-height:1.55;margin-bottom:24px}
+.actions{display:flex;flex-direction:column;gap:12px}
+a.btn{display:block;padding:14px 20px;border-radius:12px;font-weight:600;text-decoration:none;min-height:48px}
+a.primary{background:var(--btn);color:#fff}
+a.primary:hover,a.primary:focus-visible{background:var(--btn-h)}
+a.secondary{border:1px solid var(--line);color:var(--ink)}
+a.secondary:hover,a.secondary:focus-visible{border-color:var(--muted)}
+a:focus-visible{outline:3px solid #FF6A00;outline-offset:2px}
+</style>
+</head>
+<body>
+<main>
+  <a class="logo" href="/" aria-label="TalentPulse, accueil"><img src="/favicon.svg" width="32" height="32" alt="">Talent<span>Pulse</span></a>
+  <p class="code">Erreur 404</p>
+  <h1>Cette page n’existe pas</h1>
+  <p>L’adresse est peut-être mal saisie ou la page a été déplacée. Les offres d’emploi restent accessibles depuis la recherche.</p>
+  <div class="actions">
+    <a class="btn primary" href="/offres/emploi">Voir les offres d’emploi</a>
+    <a class="btn secondary" href="/">Retour à l’accueil</a>
+  </div>
+</main>
+</body>
+</html>
