@@ -145,3 +145,27 @@ test('villes : casse, article, département homonyme, nom INSEE', async () => {
     assert.equal(c.dept, '93');
   }
 });
+
+test('contrat : un stage annoncé dans le titre est classé Stage (Adzuna « contract » / FT CDD ou CDI)', async () => {
+  const { _test } = await import('../lib/jobs.js');
+  const c = (title, contract) => _test.classifyContract({ contract, title, desc: '' });
+  assert.equal(c('Stage Ressources Humaines et formation (H/F)', 'CDD'), 'Stage');
+  assert.equal(c('Consultante/Consultant Transformation - Stage (Stage) (H/F)', 'CDD'), 'Stage');
+  assert.equal(c('Stage – Ingénieur(e) Quantique', 'CDD'), 'Stage');
+  assert.equal(c('Internship/Stage - VC Analyst', 'CDD'), 'Stage');
+  assert.equal(c('Attaché(e) relation client STAGE 6mois (H/F)', 'CDD'), 'Stage');
+  assert.equal(c('Stage Business Developer (H/F)', 'CDI'), 'Stage');
+  assert.equal(c('Stag. juriste corporate (Stage) (H/F)', 'CDD'), 'Stage');
+  assert.equal(c('Chef.fe de projet Branding e-commerce Habitat - Stage (H/F)', 'CDD'), 'Stage');
+  // Titre « Stage » prioritaire sur une alternance citée seulement dans le texte
+  assert.equal(_test.classifyContract({ contract: '', title: 'Stage - assistant chef de projet communication', desc: 'Stage ou alternance possible' }), 'Stage');
+  // « Stage DEC » (expertise comptable) : contrat salarié conservé
+  assert.equal(c('Collaborateur Comptable Confirmé Stage DEC possible (H/F)', 'CDI'), 'CDI');
+  assert.equal(c('Collaborateur comptable (stage DEC) (H/F)', 'CDI'), 'CDI');
+  // Pas un stage : formateurs / coordinateurs de stages
+  assert.equal(c('Coordinateur/Coordinatrice de stages de formation professionnelle', 'CDD'), 'CDD');
+  assert.equal(c('FORMATEURS/TRICES stage BAFA et BAFD (H/F)', 'CDD'), 'CDD');
+  assert.equal(c('Serveur (H/F)', 'CDI'), 'CDI');
+  // L’alternance reste prioritaire
+  assert.equal(c('Alternance - Stage RH', 'CDD'), 'Alternance');
+});
