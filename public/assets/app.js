@@ -22,8 +22,17 @@ const SITE = 'https://talentpulse-topaz.vercel.app';
 // Drapeaux de fonctionnalités : tout est désactivé par défaut, puis lu sur /api/health.
 // Chaque fonctionnalité s'active côté serveur uniquement si ses variables d'environnement existent :
 // sans clés, le site fonctionne exactement comme avant (tout en local).
-// Informations légales de l'éditeur (variables LEGAL_* / CONTACT_EMAIL côté Vercel, lues sur /api/health)
-const LEGAL = {};
+// Informations légales de l'éditeur (défauts publics ; surcharge possible via LEGAL_* / CONTACT_EMAIL lus sur /api/health).
+// Pas d'e-mail ni de téléphone personnels : contactEmail ne se remplit que si CONTACT_EMAIL est défini.
+const LEGAL = {
+  editor: 'Ryadh Issa Klaa',
+  status: 'entrepreneur individuel (micro-entreprise)',
+  address: '26 Domaine de la Côte Noire, 92500 Rueil-Malmaison',
+  siren: '851054155',
+  siret: '85105415500029',
+  director: 'Ryadh Issa Klaa',
+  vat: 'TVA non applicable, art. 293 B du CGI',
+};
 const FEATURES = { auth: false, sync: false, savedSearches: false, aiLetter: false, emailAlerts: false, whatsappAlerts: false, accountEmails: false, applyEmail: false };
 let featuresPromise = null;
 function loadFeatures() { return (featuresPromise ||= fetchFeatures()); }
@@ -122,14 +131,16 @@ const LEGAL_PAGES = {
 <p>Le site TalentPulse (talentpulse-topaz.vercel.app) est édité par ${LV('editor', 'nom et prénom de l’éditeur ou raison sociale')}, ${LV('status', 'statut : particulier, micro-entreprise, SAS…')}.</p>
 <ul>
 ${isParticulier() && !LEGAL.address ? '<li>Adresse : conservée par l’hébergeur, conformément à l’article 6-III-2 de la loi n° 2004-575 du 21 juin 2004 (LCEN) pour les éditeurs non professionnels</li>' : `<li>Adresse : ${LV('address', 'adresse postale')}</li>`}
-${isParticulier() && !LEGAL.siren ? '' : `<li>SIREN / RCS : ${LV('siren', 'numéro, si société ou entrepreneur')}</li>`}
+${isParticulier() && !LEGAL.siren ? '' : `<li>SIREN : ${LV('siren', 'numéro SIREN')}</li>`}
+${LEGAL.siret ? `<li>SIRET : ${esc(LEGAL.siret)}</li>` : ''}
+${LEGAL.vat ? `<li>${esc(LEGAL.vat)}</li>` : ''}
 <li>Email : ${contactMail()}</li>
 <li>Directeur de la publication : ${LV('director', 'nom du directeur de la publication')}</li>
 </ul>
 <h2>Hébergeur</h2>
 <p>Vercel Inc., 440 N Barranca Ave #4133, Covina, CA 91723, États-Unis — <a href="https://vercel.com" rel="noopener" target="_blank" style="text-decoration:underline">vercel.com</a>.</p>
 <h2>Sources des offres</h2>
-<p>Les offres d’emploi affichées proviennent de l’API Offres d’emploi de France Travail, de l’API Adzuna et des données ouvertes « Choisir le Service Public » (fonction publique). Elles restent la propriété et la responsabilité de leurs émetteurs. TalentPulse n’est pas l’employeur. Il ne transmet une candidature que sur demande expresse du candidat, uniquement à l’adresse e-mail publiée dans une offre France Travail ; sinon, vous postulez sur le site d’origine de chaque annonce.</p>
+<p>Les offres d’emploi affichées proviennent de l’API Offres d’emploi de France Travail, de l’API Adzuna et des données ouvertes « Choisir le Service Public » (fonction publique). Elles restent la propriété et la responsabilité de leurs émetteurs. TalentPulse n’est pas l’employeur et n’envoie pas les candidatures à votre place : vous postulez sur le site d’origine de chaque annonce, ou depuis votre messagerie lorsque l’offre publie une adresse e-mail de candidature.</p>
 <h2>Réutilisation des offres et traitements appliqués</h2>
 <p>Les offres France Travail proviennent de l’API Offres d’emploi et sont réutilisées conformément à la <a href="https://francetravail.io/produits-partages/catalogue/offres-emploi" rel="noopener" target="_blank" style="text-decoration:underline">licence de réutilisation des offres d’emploi de France Travail</a>. Elles sont interrogées en temps réel à chaque recherche ; la date de publication et de dernière mise à jour figure sur chaque offre. Les offres de la fonction publique proviennent du jeu de données « Les offres diffusées sur Choisir le Service Public » (Direction générale de l’administration et de la fonction publique), publié sur <a href="https://www.data.gouv.fr/datasets/les-offres-diffusees-sur-choisir-le-service-public" rel="noopener" target="_blank" style="text-decoration:underline">data.gouv.fr</a> sous Licence Ouverte 2.0 et actualisé régulièrement ; seules les offres dont la date de fin de publication n’est pas passée sont affichées. Les offres Adzuna sont affichées avec la mention « Jobs by Adzuna » exigée par les <a href="https://developer.adzuna.com/docs/terms_of_service" rel="noopener" target="_blank" style="text-decoration:underline">conditions de l’API Adzuna</a>.</p>
 <p>Traitements appliqués, sans modifier le fond des annonces : intitulés et noms d’entreprise écrits en MAJUSCULES remis en casse normale, mention « (H/F) » dédoublonnée, noms de communes rapprochés du référentiel INSEE lorsque c’est possible, libellés d’expérience reformulés (« 2 An(s) » → « 2 ans d’expérience »), salaires convertis dans un format lisible. Les annonces strictement identiques (même intitulé, même entreprise et même ville) sont regroupées quand elles sont détectées ; une même offre peut toutefois rester visible sur plusieurs lieux.</p>
@@ -152,7 +163,7 @@ ${isParticulier() && !LEGAL.siren ? '' : `<li>SIREN / RCS : ${LV('siren', 'numé
     description: 'TalentPulse, agrégateur gratuit d’offres d’emploi France Travail, Adzuna et Choisir le Service Public.',
     body: () => `<h1 id="legalPageTitle">À propos de TalentPulse</h1>
 <p>TalentPulse est un agrégateur gratuit : il rassemble en une seule recherche les offres de France Travail, d’Adzuna et de la fonction publique (Choisir le Service Public), et affiche un lien direct vers l’annonce d’origine.</p>
-<p>TalentPulse n’est pas l’employeur des offres affichées et ne transmet pas de candidature, sauf demande expresse du candidat vers une adresse e-mail publiée dans une offre France Travail. Les informations peuvent évoluer ou disparaître selon les sources d’origine.</p>
+<p>TalentPulse n’est pas l’employeur des offres affichées et n’envoie pas les candidatures à votre place. Les informations peuvent évoluer ou disparaître selon les sources d’origine.</p>
 <p>Éditeur : ${LV('editor', 'nom et prénom de l’éditeur ou raison sociale')}. Contact : ${contactMail()}.</p>`
   },
   '/contact': {
@@ -167,13 +178,13 @@ ${isParticulier() && !LEGAL.siren ? '' : `<li>SIREN / RCS : ${LV('siren', 'numé
     title: 'Conditions générales d’utilisation',
     description: 'Conditions d’utilisation du service gratuit TalentPulse : offres tierces, candidatures, compte, données et droit applicable.',
     body: () => `<h1 id="legalPageTitle">Conditions Générales d’Utilisation</h1>
-<p class="legal-meta">Dernière mise à jour : 6 novembre 2026</p>
+<p class="legal-meta">Dernière mise à jour : 10 novembre 2026</p>
 <h2>1. Objet</h2>
 <p>Les présentes conditions encadrent l’utilisation du service gratuit TalentPulse.</p>
 <h2>2. Offres tierces</h2>
 <p>TalentPulse affiche des annonces provenant de France Travail, d’Adzuna et de Choisir le Service Public. Leur contenu, leur disponibilité et les modalités de candidature relèvent de leurs sources d’origine.</p>
 <h2>3. Candidatures</h2>
-<p>TalentPulse ne transmet aucune candidature par défaut. « Postuler » prépare votre candidature (coordonnées, lettre, CV) et l’ajoute à votre suivi, enregistré sur votre appareil ou dans votre compte. Lorsque l’offre France Travail publie une adresse e-mail de candidature et que vous le demandez expressément, TalentPulse envoie votre lettre et votre CV à cette adresse, en votre nom, avec votre e-mail en adresse de réponse. Dans tous les autres cas, l’envoi final se fait sur le site d’origine ou depuis votre messagerie. TalentPulse n’est ni l’employeur ni un intermédiaire de recrutement.</p>
+<p>« Postuler » prépare votre candidature (coordonnées, lettre, CV) et l’ajoute à votre suivi, enregistré sur votre appareil ou dans votre compte. TalentPulse n’envoie pas lui-même votre lettre ni votre CV au recruteur. Si l’offre publie une adresse e-mail de candidature, le site prépare un e-mail prêt à envoyer depuis votre messagerie. Dans les autres cas, vous copiez la lettre générée et vous postulez directement sur le site d’origine de l’annonce. TalentPulse n’est ni l’employeur ni un intermédiaire de recrutement.</p>
 <h2>4. Données</h2>
 <p>Voir la <a href="/confidentialite" data-route="/confidentialite" style="text-decoration:underline">politique de confidentialité</a>.</p>
 <h2>5. Compte utilisateur</h2>
