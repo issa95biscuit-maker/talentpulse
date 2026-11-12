@@ -169,3 +169,29 @@ test('contrat : un stage annoncé dans le titre est classé Stage (Adzuna « con
   // L’alternance reste prioritaire
   assert.equal(c('Alternance - Stage RH', 'CDD'), 'Alternance');
 });
+
+test('fiche Adzuna : lien de candidature si l’offre n’est plus en mémoire, fiche complète si récemment servie', async () => {
+  const { searchJobs, _test } = await import('../lib/jobs.js');
+  _test._resetJobMemo();
+  const missing = await searchJobs({ id: 'adz_5414123798' });
+  assert.equal(missing.status, 200);
+  assert.equal(missing.body.offre.id, 'adz_5414123798');
+  assert.equal(missing.body.offre.source, 'Adzuna');
+  assert.equal(missing.body.offre.url, 'https://www.adzuna.fr/details/5414123798');
+  assert.ok(/^https:\/\//.test(missing.body.offre.url), 'URL de candidature présente');
+
+  const bad = await searchJobs({ id: 'adz_nope' });
+  assert.equal(bad.status, 404);
+
+  const full = _test.mapAdzuna({
+    id: 5414123798, title: 'Serveur en terrasse', company: { display_name: 'Café du Port' },
+    location: { display_name: 'Lyon, Rhône' }, redirect_url: 'https://www.adzuna.fr/land/ad/5414123798?se=abc',
+    description: 'Service en salle',
+  });
+  _test.memoJobs([full]);
+  const hit = await searchJobs({ id: 'adz_5414123798' });
+  assert.equal(hit.body.offre.title, 'Serveur en terrasse');
+  assert.equal(hit.body.offre.company, 'Café du Port');
+  assert.equal(hit.body.offre.url, 'https://www.adzuna.fr/land/ad/5414123798?se=abc');
+  _test._resetJobMemo();
+});
