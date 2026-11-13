@@ -70,6 +70,47 @@ test('recherche : ville -> INSEE, Adzuna localisé, dédoublonnage, salaires, pa
   ok(JSON.stringify(r.body).indexOf('x') === -1 || r.body.env.FT_CLIENT_ID === true, 'debug sans fuite de valeur');
 });
 
+test('recherche : where et city sont des alias de lieu (comme q pour motsCles)', { skip: !online && 'geo.api.gouv.fr injoignable' }, async () => {
+  const expectLyon = (r, label) => {
+    const ft = calls.find(u => u.includes('offres/search'));
+    const adz = calls.find(u => u.includes('adzuna'));
+    assert.ok(ft && ft.includes('commune=69123') && ft.includes('distance=10'), label + ' FT : ' + (ft || ''));
+    assert.ok(adz && decodeURIComponent(adz).includes('where=Lyon'), label + ' Adzuna : ' + (adz || ''));
+    assert.equal(r.body.location?.label, 'Lyon', label + ' location.label');
+    assert.equal(r.body.location?.code, '69123', label + ' location.code');
+  };
+
+  calls.length = 0;
+  let r = await call({ q: 'serveur', where: 'Lyon' });
+  expectLyon(r, 'q+where');
+
+  calls.length = 0;
+  r = await call({ q: 'serveur', city: 'Lyon' });
+  expectLyon(r, 'q+city');
+
+  // Arrondissements : référentiel local, sans appel à geo.api.gouv.fr
+  calls.length = 0;
+  r = await call({ q: 'serveur', where: '75015' });
+  assert.equal(r.body.location?.type, 'arrondissement');
+  assert.equal(r.body.location?.label, 'Paris 15e');
+  assert.equal(r.body.location?.code, '75115');
+  const ftArr = calls.find(u => u.includes('offres/search'));
+  assert.ok(ftArr && ftArr.includes('commune=75115') && ftArr.includes('distance=3'), 'FT 75015 : ' + ftArr);
+
+  calls.length = 0;
+  r = await call({ q: 'serveur', where: 'Lyon 3e' });
+  assert.equal(r.body.location?.type, 'arrondissement');
+  assert.equal(r.body.location?.label, 'Lyon 3e');
+  assert.equal(r.body.location?.code, '69383');
+  const ftLyon3 = calls.find(u => u.includes('offres/search'));
+  assert.ok(ftLyon3 && ftLyon3.includes('commune=69383'), 'FT Lyon 3e : ' + ftLyon3);
+
+  // lieu reste prioritaire si where est aussi fourni
+  calls.length = 0;
+  r = await call({ q: 'serveur', lieu: 'Lyon', where: 'Paris' });
+  expectLyon(r, 'lieu prioritaire');
+});
+
 test('contrat : alternance, ALTERNANCE et intérim valent le filtre canonique', async () => {
   calls.length = 0;
   await call({ motsCles: 'serveur', contrat: 'alternance', source: 'ft' });
