@@ -389,7 +389,7 @@ body.dark .theme-icon-light{display:none}
   .results-top{position:static}
   .jobs-page{padding-top:var(--sp-4)}
   .jobs-head{margin-bottom:var(--sp-2);gap:0}
-  .jobs-head h1{font-size:var(--fs-xl)}
+  .jobs-head :is(h1,h2){font-size:var(--fs-xl)}
   .save-search-btn{margin-left:-12px}
   #jobsSourcesLine{display:none}
   .jobs-toolbar{justify-content:flex-end;margin-top:0}
@@ -403,11 +403,15 @@ body.dark .theme-icon-light{display:none}
 }
 .jobs-page{padding-block:var(--sp-6) var(--sp-16)}
 .jobs-head{display:flex;align-items:flex-end;justify-content:space-between;gap:var(--sp-4);flex-wrap:wrap;margin-bottom:var(--sp-4)}
-.jobs-head h1{font-size:var(--fs-2xl);font-weight:var(--fw-black);letter-spacing:-.025em;text-wrap:balance}
-.jobs-head h1::first-letter{text-transform:uppercase}
+.jobs-head :is(h1,h2){font-size:var(--fs-2xl);font-weight:var(--fw-black);letter-spacing:-.025em;text-wrap:balance}
+.jobs-head :is(h1,h2)::first-letter{text-transform:uppercase}
 .jobs-count{display:block;margin-top:2px;color:var(--text-3);font-size:var(--fs-sm);font-variant-numeric:tabular-nums}
 .jobs-bar{display:flex;gap:var(--sp-2);overflow-x:auto;scrollbar-width:none;padding:2px 2px var(--sp-1);margin:0 -2px}
 .jobs-bar::-webkit-scrollbar{display:none}
+@media(max-width:599px){
+  .jobs-bar{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent)}
+  .jobs-bar::after{content:"";flex:0 0 20px}
+}
 .filter-bar{display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap;margin:var(--sp-3) 0}
 .filter-btn{position:relative}
 .filter-count{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:var(--brand-btn);color:#fff;font-size:11px;font-weight:var(--fw-bold)}
@@ -429,8 +433,14 @@ body.dark .theme-icon-light{display:none}
 }
 .jobs-main{min-width:0}
 .jobs-toolbar{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-3);margin:var(--sp-3) 0;flex-wrap:wrap}
-.sort-wrap{display:flex;align-items:center;gap:var(--sp-2);font-size:var(--fs-sm);color:var(--text-3)}
-.sort-select{width:auto;min-height:44px;font-size:var(--fs-sm);padding:6px 36px 6px 12px}
+.sort-wrap{display:flex;align-items:center;gap:var(--sp-2);font-size:var(--fs-sm);color:var(--text-3);max-width:100%;min-width:0}
+.sort-wrap label{white-space:nowrap;flex-shrink:0}
+.sort-select{width:auto;min-width:0;max-width:100%;min-height:44px;font-size:var(--fs-sm);padding:6px 36px 6px 12px}
+@media(max-width:599px){
+  .jobs-toolbar{flex-wrap:nowrap;min-width:0}
+  .sort-wrap{flex:1 1 auto;justify-content:flex-end}
+  .sort-select{flex:0 1 auto;width:auto;max-width:calc(100% - 5.25rem)}
+}
 .jobs-list{display:grid;gap:var(--sp-3)}
 .jobs-notice{margin-bottom:var(--sp-2)}
 .jobs-more{display:grid;justify-items:center;gap:var(--sp-2);margin-top:var(--sp-6)}
@@ -1572,7 +1582,7 @@ body.dark .job{-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter
     <div id="seoCrumbs" hidden></div>
     <div class="jobs-head">
       <div>
-        <h1 id="jobsHeader">Offres d’emploi</h1>
+        <h2 id="jobsHeader">Offres d’emploi</h2>
         <span class="jobs-count" id="jobsCount" aria-live="polite"></span>
       </div>
       <button class="save-search-btn" id="saveSearchBtn" type="button" style="display:none">
@@ -1693,7 +1703,7 @@ body.dark .job{-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter
 <section class="page" id="page-lettre" aria-labelledby="lettreTitle">
   <div class="container page-hero">
     <span class="eyebrow">Outil gratuit</span>
-    <h1 class="section-title" id="lettreTitle">Lettre de motivation</h1>
+    <h2 class="section-title" id="lettreTitle">Lettre de motivation</h2>
     <p class="section-sub">Obtenez une première version en quelques secondes, puis relisez-la et personnalisez-la.</p>
   </div>
   <div class="container lettre-grid">
@@ -1733,7 +1743,7 @@ body.dark .job{-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter
 <section class="page" id="page-conseils" aria-labelledby="conseilsTitle">
   <div class="container page-hero">
     <span class="eyebrow">Ressources</span>
-    <h1 class="section-title" id="conseilsTitle">Conseils carrière</h1>
+    <h2 class="section-title" id="conseilsTitle">Conseils carrière</h2>
     <p class="section-sub">Des repères simples pour chaque étape de votre recherche d’emploi.</p>
   </div>
   <div class="container conseil-grid" id="conseilsGrid"></div>
@@ -1746,7 +1756,7 @@ body.dark .job{-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter
       <div class="profile-id">
         <div class="profile-avatar" id="profAvatar" aria-hidden="true">?</div>
         <div style="min-width:0">
-          <h1 class="profile-name" id="profName">Mon espace</h1>
+          <h2 class="profile-name" id="profName">Mon espace</h2>
           <div class="profile-email"><span id="profEmail">Données enregistrées uniquement sur cet appareil</span><span class="sync-pill" id="syncPill"></span></div>
         </div>
       </div>
@@ -1868,7 +1878,7 @@ body.dark .job{-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter
 <section class="page" id="page-account-link" aria-labelledby="linkTitle">
   <div class="auth-wrap auth-single">
     <div class="auth-card">
-      <h1 class="auth-title" id="linkTitle">Nouveau mot de passe</h1>
+      <h2 class="auth-title" id="linkTitle">Nouveau mot de passe</h2>
       <div class="auth-err" id="linkErr" role="alert"></div>
       <div class="auth-ok" id="linkOk" role="status"></div>
       <form id="formReset" novalidate class="hide">
@@ -1894,7 +1904,7 @@ body.dark .job{-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter
       </ul>
     </div>
     <div class="auth-card">
-      <h1 class="auth-title" id="authTitle">Connexion</h1>
+      <h2 class="auth-title" id="authTitle">Connexion</h2>
       <div class="notice notice-brand hide" id="authSoon" style="margin-bottom:var(--sp-5)"><span><span class="soon-badge">Bientôt disponible</span><br>Les comptes TalentPulse arrivent prochainement. Vous pouvez déjà tout utiliser sans compte : favoris, suivi et CV sont enregistrés sur cet appareil. <a href="/mon-espace" data-nav="profile" style="color:var(--brand-ink);font-weight:600;text-decoration:underline">Accéder à mon espace</a></span></div>
       <div class="auth-tabs" role="tablist" aria-label="Connexion ou inscription">
         <button class="auth-tab active" type="button" role="tab" id="authTabIn" aria-selected="true" aria-controls="panelIn" data-tab="in">Connexion</button>

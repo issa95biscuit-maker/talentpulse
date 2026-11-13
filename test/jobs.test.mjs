@@ -70,6 +70,37 @@ test('recherche : ville -> INSEE, Adzuna localisé, dédoublonnage, salaires, pa
   ok(JSON.stringify(r.body).indexOf('x') === -1 || r.body.env.FT_CLIENT_ID === true, 'debug sans fuite de valeur');
 });
 
+test('contrat : alternance, ALTERNANCE et intérim valent le filtre canonique', async () => {
+  calls.length = 0;
+  await call({ motsCles: 'serveur', contrat: 'alternance', source: 'ft' });
+  let ft = calls.find(u => u.includes('offres/search'));
+  assert.ok(ft.includes('natureContrat=E2%2CFS'), ft);
+  calls.length = 0;
+  await call({ motsCles: 'serveur', contrat: 'ALTERNANCE', source: 'ft' });
+  ft = calls.find(u => u.includes('offres/search'));
+  assert.ok(ft.includes('natureContrat=E2%2CFS'), ft);
+  calls.length = 0;
+  await call({ motsCles: 'serveur', contrat: 'intérim', source: 'ft' });
+  ft = calls.find(u => u.includes('offres/search'));
+  assert.ok(ft.includes('typeContrat=MIS'), ft);
+  calls.length = 0;
+  await call({ motsCles: 'serveur', contrat: 'inconnu', source: 'ft' });
+  ft = calls.find(u => u.includes('offres/search'));
+  assert.ok(!/natureContrat|typeContrat/.test(ft), ft);
+});
+
+test('Adzuna : préfixe de contrat dupliqué retiré du titre', async () => {
+  const { _test } = await import('../lib/jobs.js');
+  const t = title => _test.mapAdzuna({ id: 1, title, redirect_url: 'https://www.adzuna.fr/x' }).title;
+  assert.equal(t('Alternance : Alternance commercial'), 'Alternance commercial');
+  assert.equal(t('ALTERNANCE : ALTERNANCE COMMERCIAL H/F'), 'Alternance commercial (H/F)');
+  assert.equal(t('Stage : stage marketing'), 'Stage marketing');
+  assert.equal(t('cdi : cdi vendeur'), 'CDI vendeur');
+  assert.equal(t('CDI : Développeur web'), 'CDI : Développeur web');
+  assert.equal(t('Alternance - serveur (H/F)'), 'Alternance - serveur (H/F)');
+  assert.equal(t('Intérim : Intérim magasinier'), 'Intérim magasinier');
+});
+
 test('Adzuna : arrondissement seul reconstruit avec la ville', async () => {
   const { _test } = await import('../lib/jobs.js');
   const base = { id: 1, title: 'Serveur', redirect_url: 'https://www.adzuna.fr/x' };
