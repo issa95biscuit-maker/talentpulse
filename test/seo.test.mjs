@@ -166,6 +166,44 @@ test('offre inconnue ou expirée : 410, message, noindex, pas de liste nationale
   assert.equal(r.status, 410);
 });
 
+test('pages statiques : title, description et canonical propres ; connexion et mon espace en noindex', async () => {
+  const homeTitle = 'TalentPulse — Toutes les offres d’emploi en une seule recherche';
+  const homeDesc = 'Toutes les offres d’emploi France Travail, Adzuna et Choisir le Service Public, alternance comprise, en une seule recherche. Filtrez par ville, contrat et salaire. Gratuit, sans inscription.';
+  const pages = {
+    cgu: ['Conditions générales d’utilisation — TalentPulse', 'Conditions d’utilisation du service gratuit TalentPulse : offres tierces, candidatures, compte, données et droit applicable.', '/cgu', 'index,follow', null],
+    contact: ['Contact — TalentPulse', 'Contacter l’éditeur de TalentPulse pour une question, une suggestion ou un problème technique.', '/contact', 'index,follow', null],
+    'a-propos': ['À propos — TalentPulse', 'TalentPulse, agrégateur gratuit d’offres d’emploi France Travail, Adzuna et Choisir le Service Public.', '/a-propos', 'index,follow', null],
+    'mentions-legales': ['Mentions légales — TalentPulse', 'Mentions légales du site TalentPulse : éditeur, hébergeur et contact.', '/mentions-legales', 'index,follow', null],
+    confidentialite: ['Politique de confidentialité — TalentPulse', 'Comment TalentPulse traite vos données : stockage local, compte optionnel, sous-traitants, durées de conservation et droits.', '/confidentialite', 'index,follow', null],
+    connexion: ['Connexion — TalentPulse', 'Connectez-vous ou créez un compte gratuit pour synchroniser favoris, suivi et alertes.', '/connexion', 'noindex, nofollow', 'page-login'],
+    'mon-espace': ['Mon espace — TalentPulse', 'Vos favoris, votre suivi de candidatures et vos alertes, sur cet appareil ou synchronisés avec votre compte.', '/mon-espace', 'noindex, nofollow', 'page-profile'],
+  };
+  for (const [page, [title, description, path, robots, section]] of Object.entries(pages)) {
+    const r = await call({ page });
+    assert.equal(r.status, 200, page);
+    assert.equal(meta(r.body, /<title>([^<]*)<\/title>/), title, page);
+    assert.notEqual(meta(r.body, /<title>([^<]*)<\/title>/), homeTitle, page);
+    assert.equal(meta(r.body, /<meta name="description" content="([^"]*)"/), description, page);
+    assert.notEqual(description, homeDesc);
+    assert.equal(meta(r.body, /<link rel="canonical" href="([^"]*)"/), 'https://talentpulse-topaz.vercel.app' + path, page);
+    assert.equal(meta(r.body, /<meta name="robots" content="([^"]*)"/), robots, page);
+    assert.equal(meta(r.body, /<meta property="og:url" content="([^"]*)"/), 'https://talentpulse-topaz.vercel.app' + path, page);
+    if (section) {
+      assert.match(r.body, new RegExp(`<section class="page active" id="${section}"`), page);
+      assert.match(r.body, /<section class="page" id="page-home"/, page);
+    } else {
+      assert.match(r.body, /<section class="page active" id="page-home"/, page);
+    }
+    assert.equal(r.headers['x-robots-tag'], robots.replace(/,\s*/g, ', '), page);
+  }
+  const priv = await call({ page: 'connexion' });
+  assert.equal(priv.headers['cache-control'], 'no-store');
+  assert.match(priv.body, /<meta name="robots" content="noindex, nofollow">/);
+  const pub = await call({ page: 'cgu' });
+  assert.match(pub.headers['cache-control'], /s-maxage=/);
+  assert.equal((await call({ page: 'inconnue' })).status, 404);
+});
+
 test('données curées cohérentes avec la recherche du site (slugs, lieux reconnus, textes)', () => {
   const G = globalThis.TP_GEO;
   assert.equal(new Set(PLACES.map(p => p.slug)).size, PLACES.length);

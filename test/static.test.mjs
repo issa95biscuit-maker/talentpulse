@@ -30,6 +30,17 @@ test('dev-server : réécritures SPA, en-têtes de sécurité, compression, poli
     assert.match(r.headers.get('content-security-policy'), /default-src 'self'/);
     assert.equal(r.headers.get('x-content-type-options'), 'nosniff');
     assert.match(await r.text(), /<h1/);
+    const cgu = await fetch(base + '/cgu');
+    const cguHtml = await cgu.text();
+    assert.equal(cgu.status, 200);
+    assert.match(cguHtml, /<title>Conditions générales d’utilisation — TalentPulse<\/title>/);
+    assert.match(cguHtml, /<link rel="canonical" href="https:\/\/talentpulse-topaz\.vercel\.app\/cgu">/);
+    assert.doesNotMatch(cguHtml, /<title>TalentPulse — Toutes les offres/);
+    const login = await fetch(base + '/connexion');
+    const loginHtml = await login.text();
+    assert.match(loginHtml, /<meta name="robots" content="noindex, nofollow">/);
+    assert.match(loginHtml, /<link rel="canonical" href="https:\/\/talentpulse-topaz\.vercel\.app\/connexion">/);
+    assert.equal(login.headers.get('x-robots-tag'), 'noindex, nofollow');
     const f = await fetch(base + '/fonts/inter-latin-var.woff2');
     assert.equal(f.status, 200);
     assert.match(f.headers.get('cache-control'), /immutable/);
@@ -53,6 +64,29 @@ test('pied de page et fiche : sources citées, pas de promesse de doublons, dét
   assert.match(app, /lieu non reconnu/);
   assert.ok(!/Les comptes TalentPulse arrivent bientôt\.' \}/.test(app), 'meta connexion ne promet plus les comptes');
   assert.ok(vercel.rewrites.some(r => r.source === '/offre/:id' && r.destination.includes('offre=:id')));
+});
+
+test('accueil : un seul h1, les vues masquées sont en h2', () => {
+  assert.equal((html.match(/<h1[\s>]/g) || []).length, 1);
+  assert.match(html, /<h1 class="hero-title" id="homeTitle">/);
+  for (const id of ['jobsHeader', 'lettreTitle', 'conseilsTitle', 'profName', 'linkTitle', 'authTitle']) {
+    assert.match(html, new RegExp(`<h2[^>]*\\bid="${id}"`), id);
+    assert.ok(!new RegExp(`<h1[^>]*\\bid="${id}"`).test(html), id);
+  }
+});
+
+test('fonctions en fra1, pages SEO routées vers le rendu serveur', () => {
+  assert.deepEqual(vercel.regions, ['fra1']);
+  assert.equal(vercel.functions['api/cron/alerts.js'].maxDuration, 60);
+  assert.equal(vercel.functions['api/cron/alerts.js'].includeFiles, 'lib/data/**');
+  assert.equal(vercel.functions['api/lettre.js'].maxDuration, 30);
+  assert.equal(vercel.functions['api/seo.js'].includeFiles, 'public/index.html');
+  assert.equal(vercel.functions['api/jobs.js'].includeFiles, 'lib/data/**');
+  assert.equal(vercel.functions['api/jobs.js'].maxDuration, 15);
+  for (const path of ['/cgu', '/contact', '/a-propos', '/mentions-legales', '/confidentialite', '/connexion', '/mon-espace']) {
+    const rw = vercel.rewrites.find(r => r.source === path);
+    assert.equal(rw && rw.destination, '/api/seo?page=' + path.slice(1), path);
+  }
 });
 
 test('footer et drawer : À propos, Contact et CGU pointent vers de vraies pages', () => {

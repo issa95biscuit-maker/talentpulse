@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "regions": ["fra1"],
   "outputDirectory": "public",
   "rewrites": [
     {
@@ -48,11 +49,11 @@
     },
     {
       "source": "/mon-espace",
-      "destination": "/index.html"
+      "destination": "/api/seo?page=mon-espace"
     },
     {
       "source": "/connexion",
-      "destination": "/index.html"
+      "destination": "/api/seo?page=connexion"
     },
     {
       "source": "/nouveau-mot-de-passe",
@@ -64,23 +65,23 @@
     },
     {
       "source": "/mentions-legales",
-      "destination": "/index.html"
+      "destination": "/api/seo?page=mentions-legales"
     },
     {
       "source": "/confidentialite",
-      "destination": "/index.html"
+      "destination": "/api/seo?page=confidentialite"
     },
     {
       "source": "/a-propos",
-      "destination": "/index.html"
+      "destination": "/api/seo?page=a-propos"
     },
     {
       "source": "/contact",
-      "destination": "/index.html"
+      "destination": "/api/seo?page=contact"
     },
     {
       "source": "/cgu",
-      "destination": "/index.html"
+      "destination": "/api/seo?page=cgu"
     }
   ],
   "headers": [
