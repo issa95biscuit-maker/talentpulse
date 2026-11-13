@@ -614,6 +614,10 @@ function searchHref(params) {
   if (!p.city || d === DEFAULT_DISTANCE) return path;
   return path + '?distance=' + d;
 }
+function isLandingSsr(params) {
+  const ssr = getSsr();
+  return !!ssr && searchPath(params) === ssr.path && parseDistance(params.distance) === DEFAULT_DISTANCE;
+}
 function setDistanceControls(value, hasCity) {
   const d = String(parseDistance(value));
   const enabled = !!hasCity;
@@ -1399,7 +1403,7 @@ async function loadJobs(params = {}, { append = false } = {}) {
     $('#jobsNotice').innerHTML = '';
     const header = $('#jobsHeader');
     const ssr = getSsr();
-    const onSsr = !!ssr && searchPath(params) === ssr.path && parseDistance(params.distance) === DEFAULT_DISTANCE;
+    const onSsr = isLandingSsr(params);
     toggleSeoBlocks(onSsr);
     header.textContent = onSsr ? ssr.h1 : (params.kw || params.city) ? `${params.kw ? 'Offres «\u00a0' + params.kw + '\u00a0»' : 'Offres'}${params.city ? ' à ' + params.city : ''}` : 'Offres d’emploi en France';
     const rk = $('#rsKw'), rc = $('#rsCity');
@@ -1444,7 +1448,7 @@ async function loadJobs(params = {}, { append = false } = {}) {
       params.city = disp;
       State.lastSearch.city = disp;
       const header = $('#jobsHeader');
-      if (!(getSsr() && searchPath(params) === getSsr().path)) header.textContent = `${params.kw ? 'Offres «\u00a0' + params.kw + '\u00a0»' : 'Offres'} à ${disp}`;
+      if (!isLandingSsr(params)) header.textContent = `${params.kw ? 'Offres «\u00a0' + params.kw + '\u00a0»' : 'Offres'} à ${disp}`;
       for (const id of ['rsCity', 'searchCity', 'filterLocation']) { const el = $('#' + id); if (el && document.activeElement !== el) el.value = disp; }
       syncSearchRoute({ kw: params.kw || '', city: disp, distance: State.lastSearch.distance }, true);
     }
