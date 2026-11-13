@@ -80,7 +80,7 @@ test('fonctions en fra1, pages SEO routées vers le rendu serveur', () => {
   assert.equal(vercel.functions['api/cron/alerts.js'].maxDuration, 60);
   assert.equal(vercel.functions['api/cron/alerts.js'].includeFiles, 'lib/data/**');
   assert.equal(vercel.functions['api/lettre.js'].maxDuration, 30);
-  assert.equal(vercel.functions['api/seo.js'].includeFiles, 'public/index.html');
+  assert.equal(vercel.functions['api/seo.js'].includeFiles, 'public/index.html,lib/data/**');
   assert.equal(vercel.functions['api/jobs.js'].includeFiles, 'lib/data/**');
   assert.equal(vercel.functions['api/jobs.js'].maxDuration, 15);
   for (const path of ['/cgu', '/contact', '/a-propos', '/mentions-legales', '/confidentialite', '/connexion', '/mon-espace']) {

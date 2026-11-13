@@ -2,7 +2,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import handler from '../api/seo.js';
-import { _clearCache } from '../lib/seo.js';
+import { _clearCache, activeOfferEntries } from '../lib/seo.js';
+import { _test as jobsApi } from '../lib/jobs.js';
 import { JOBS, PLACES, isCurated, curatedPaths, slugify, nearbyPlaces, relatedJobs } from '../lib/seo-data.js';
 import '../public/assets/geo-fr.js';
 
@@ -19,6 +20,18 @@ global.fetch = async (url) => {
   if (/\/offres\/[^/?]+$/.test(url.split('?')[0]) && !url.includes('/search')) {
     if (mode === 'down') return new Response('boom', { status: 500 });
     if (mode === 'found') return json({ id: 'OK1', intitule: 'Serveur H/F', entreprise: { nom: 'Brasserie' }, lieuTravail: { libelle: '69 - LYON' }, typeContrat: 'CDI', dateCreation: new Date().toISOString(), origineOffre: { urlOrigine: 'https://candidat.francetravail.fr/x' } });
+    if (mode === 'jobposting') return json({
+      id: 'JP1', intitule: 'Serveur H/F', description: 'Service en salle.\n\nAccueil des clients. </script><script>alert(1)</script>',
+      entreprise: { nom: 'Brasserie Bellecour', logo: 'https://entreprise.francetravail.fr/static/logo.png', url: 'https://brasserie-bellecour.example' },
+      lieuTravail: { libelle: '69 - LYON 03', codePostal: '69003' }, typeContrat: 'CDI',
+      dureeTravailLibelleConverti: 'Temps partiel', salaire: { libelle: 'Mensuel de 1800.0 Euros sur 12.0 mois' },
+      dateCreation: '2026-11-01T08:00:00.000Z', origineOffre: { urlOrigine: 'https://candidat.francetravail.fr/offres/recherche/detail/JP1' },
+    });
+    if (mode === 'anon') return json({
+      id: 'AN1', intitule: 'Serveur H/F', description: 'Service en salle, entreprise non citée.',
+      entreprise: { nom: 'Confidentiel' }, lieuTravail: { libelle: '69 - LYON' }, typeContrat: 'CDI',
+      dateCreation: '2026-11-01T08:00:00.000Z', origineOffre: { urlOrigine: 'https://candidat.francetravail.fr/x' },
+    });
     return json({ message: 'absent' }, {}, 404);
   }
   if (url.includes('offres/search')) {
@@ -122,10 +135,17 @@ test('sitemaps : index → pages + offres, uniquement les combinaisons curées',
   assert.match(r.body, /<sitemapindex[\s\S]*sitemap-pages\.xml[\s\S]*sitemap-offres\.xml/);
   r = await call({ sitemap: 'offres' });
   const locs = [...r.body.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1].replace('https://talentpulse-topaz.vercel.app', ''));
+  const lastmods = [...r.body.matchAll(/<url>([\s\S]*?)<\/url>/g)].map(m => m[1]);
   assert.equal(new Set(locs).size, locs.length, 'pas de doublon');
   assert.ok(locs.length > 1000 && locs.length < 50000, locs.length + ' URL');
+  assert.equal(lastmods.length, locs.length);
+  for (const block of lastmods) assert.match(block, /<lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/);
   for (const p of ['/offres/serveur/lyon', '/offres/developpeur/ile-de-france', '/offres/emploi', '/offres/emploi/val-d-oise', '/offres/macon/paris']) assert.ok(locs.includes(p), p);
   assert.ok(!locs.includes('/offres/macon/le-havre'), 'palier 2 hors grandes villes exclu');
+  const fiches = activeOfferEntries();
+  assert.ok(fiches.included > 0, 'fiches Service Public actives');
+  assert.ok(locs.includes(fiches.entries[0].loc), fiches.entries[0].loc);
+  assert.match(r.body, new RegExp('<loc>https://talentpulse-topaz\\.vercel\\.app' + fiches.entries[0].loc.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '</loc><lastmod>' + fiches.entries[0].lastmod + '</lastmod>'));
   r = await call({ sitemap: 'pages' });
   assert.match(r.body, /<loc>https:\/\/talentpulse-topaz\.vercel\.app\/<\/loc>/);
   for (const p of ['/a-propos', '/contact', '/cgu', '/mentions-legales', '/confidentialite']) assert.match(r.body, new RegExp('<loc>https://talentpulse-topaz\\.vercel\\.app' + p.replace('/', '\\/') + '</loc>'));
@@ -154,6 +174,105 @@ test('offre inconnue ou expirée : 410, message, noindex, pas de liste nationale
   r = await call({ offre: 'ft_OK1' });
   assert.equal(r.status, 200);
   assert.match(r.headers['x-robots-tag'], /noindex/);
+  assert.ok(!/JobPosting/.test(r.body), 'sans description : pas de JSON-LD');
+
+  mode = 'anon';
+  r = await call({ offre: 'ft_AN1' });
+  assert.equal(r.status, 200);
+  assert.match(r.headers['x-robots-tag'], /noindex/);
+  assert.ok(!/JobPosting/.test(r.body), 'entreprise anonyme : pas de JSON-LD');
+  assert.match(r.body, /Service en salle/);
+
+  mode = 'jobposting';
+  r = await call({ offre: 'ft_JP1' });
+  assert.equal(r.status, 200);
+  assert.equal(r.headers['x-robots-tag'], 'index, follow');
+  assert.match(r.body, /<h1 id="jobsHeader">Serveur \(H\/F\)<\/h1>/);
+  assert.match(r.body, /<div class="offer-desc">[\s\S]*Service en salle/);
+  assert.ok(!r.body.includes('<script>alert(1)</script>'));
+  const rawLd = (r.body.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/) || [])[1];
+  assert.ok(rawLd && !rawLd.includes('<'), 'JSON-LD sans chevron brut');
+  const ld = JSON.parse(rawLd);
+  assert.equal(ld['@type'], 'JobPosting');
+  assert.equal(ld.directApply, false);
+  assert.equal(ld.hiringOrganization.name, 'Brasserie Bellecour');
+  assert.equal(ld.hiringOrganization.logo, 'https://entreprise.francetravail.fr/static/logo.png');
+  assert.equal(ld.hiringOrganization.sameAs, 'https://brasserie-bellecour.example/');
+  assert.equal(ld.jobLocation.address.addressLocality, 'Lyon 3e');
+  assert.equal(ld.jobLocation.address.addressRegion, 'Rhône');
+  assert.equal(ld.jobLocation.address.postalCode, '69003');
+  assert.equal(ld.jobLocation.address.addressCountry, 'FR');
+  assert.deepEqual(ld.employmentType, ['FULL_TIME', 'PART_TIME']);
+  assert.equal(ld.baseSalary.currency, 'EUR');
+  assert.equal(ld.baseSalary.value.unitText, 'MONTH');
+  assert.equal(ld.baseSalary.value.value, 1800);
+  assert.equal(ld.identifier.value, 'ft_JP1');
+  assert.equal(ld.url, 'https://talentpulse-topaz.vercel.app/offre/ft_JP1');
+  assert.ok(!ld.jobLocationType, 'temps partiel n’est pas du télétravail');
+  assert.match(ld.description, /Service en salle/);
+  assert.doesNotMatch(ld.description, /script|alert/i);
+  assert.equal((r.body.match(/<h1[\s>]/g) || []).length, 1);
+});
+
+test('fiche Adzuna : JSON-LD si la fiche est complète, rien sur un rappel sans données', async () => {
+  jobsApi._resetJobMemo();
+  let r = await call({ offre: 'adz_5414123798' });
+  assert.equal(r.status, 200);
+  assert.match(r.headers['x-robots-tag'], /noindex/);
+  assert.ok(!/JobPosting/.test(r.body));
+
+  jobsApi.memoJobs([jobsApi.mapAdzuna({
+    id: 5414123798, title: 'Serveur en terrasse', company: { display_name: 'Café du Port' },
+    location: { display_name: 'Lyon, Rhône' }, redirect_url: 'https://www.adzuna.fr/land/ad/5414123798',
+    description: 'Service en salle le soir.', created: '2026-11-02T10:00:00Z',
+    contract_type: 'contract', contract_time: 'full_time', salary_min: 2000, salary_max: 2200, salary_is_predicted: '0',
+  })]);
+  r = await call({ offre: 'adz_5414123798' });
+  assert.equal(r.status, 200);
+  assert.equal(r.headers['x-robots-tag'], 'index, follow');
+  const ld = JSON.parse((r.body.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/) || [])[1]);
+  assert.equal(ld.hiringOrganization.name, 'Café du Port');
+  assert.equal(ld.jobLocation.address.addressLocality, 'Lyon');
+  assert.equal(ld.jobLocation.address.addressRegion, 'Rhône');
+  assert.equal(ld.jobLocation.address.postalCode, undefined);
+  assert.equal(ld.employmentType, 'TEMPORARY');
+  assert.equal(ld.baseSalary.value.unitText, 'MONTH');
+  assert.equal(ld.baseSalary.value.minValue, 2000);
+  assert.equal(ld.baseSalary.value.maxValue, 2200);
+  assert.equal(ld.directApply, false);
+  assert.equal(ld.hiringOrganization.sameAs, undefined);
+  jobsApi._resetJobMemo();
+
+  r = await call({ offre: 'adz_nope' });
+  assert.equal(r.status, 410);
+  assert.ok(!/JobPosting/.test(r.body));
+});
+
+test('fiche Service Public réelle : JSON-LD dans le HTML, offre expirée en 410 sans balisage', async () => {
+  const { readFileSync } = await import('node:fs');
+  const entry = activeOfferEntries().entries[0];
+  const id = decodeURIComponent(entry.loc.replace(/^\/offre\//, ''));
+  let r = await call({ offre: id });
+  assert.equal(r.status, 200, id);
+  assert.equal(r.headers['x-robots-tag'], 'index, follow');
+  const ld = JSON.parse((r.body.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/) || [])[1]);
+  assert.equal(ld['@type'], 'JobPosting');
+  assert.equal(ld.directApply, false);
+  assert.equal(ld.jobLocation.address.addressCountry, 'FR');
+  assert.ok(/^\d{4}-\d{2}-\d{2}/.test(ld.validThrough));
+  assert.ok(/^\d{4}-\d{2}-\d{2}/.test(ld.datePosted));
+  assert.equal(ld.baseSalary, undefined);
+  assert.match(r.body, new RegExp('data-id="' + id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '"'));
+
+  const raw = JSON.parse(readFileSync(new URL('../lib/data/csp-offres.json', import.meta.url), 'utf8'));
+  const endAt = raw.fields.indexOf('end');
+  const refAt = raw.fields.indexOf('ref');
+  const today = new Date().toISOString().slice(0, 10);
+  const expired = raw.rows.find(row => row[endAt] < today);
+  assert.ok(expired, 'le fichier contient une offre échue');
+  const expiredId = 'csp_' + String(expired[refAt]).replace(/[^A-Za-z0-9._-]/g, '-').slice(0, 70);
+  r = await call({ offre: expiredId });
+  assert.equal(r.status, 410, expiredId);
   assert.ok(!/JobPosting/.test(r.body));
 
   mode = 'down';
