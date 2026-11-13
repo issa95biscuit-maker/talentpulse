@@ -1399,7 +1399,7 @@ async function loadJobs(params = {}, { append = false } = {}) {
     $('#jobsNotice').innerHTML = '';
     const header = $('#jobsHeader');
     const ssr = getSsr();
-    const onSsr = !!ssr && searchPath(params) === ssr.path;
+    const onSsr = !!ssr && searchPath(params) === ssr.path && parseDistance(params.distance) === DEFAULT_DISTANCE;
     toggleSeoBlocks(onSsr);
     header.textContent = onSsr ? ssr.h1 : (params.kw || params.city) ? `${params.kw ? 'Offres «\u00a0' + params.kw + '\u00a0»' : 'Offres'}${params.city ? ' à ' + params.city : ''}` : 'Offres d’emploi en France';
     const rk = $('#rsKw'), rc = $('#rsCity');
