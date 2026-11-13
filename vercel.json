@@ -176,7 +176,7 @@
       "maxDuration": 30
     },
     "api/seo.js": {
-      "includeFiles": "public/index.html",
+      "includeFiles": "public/index.html,lib/data/**",
       "maxDuration": 15
     },
     "api/jobs.js": {

@@ -666,6 +666,15 @@ function handleRoute() {
     const id = decodeURIComponent(parts[1]);
     const ssr = getSsr();
     if (ssr && ssr.unavailable && ssr.id === id) { showUnavailableOffer(id); return; }
+    if (ssr && ssr.offre && ssr.offre.id === id) {
+      const job = parseAggregatedJob(ssr.offre);
+      if (job) {
+        if (!State.jobs.some(j => j.id === job.id)) State.jobs.unshift(job);
+        showPage('jobs', { load: false });
+        openDetail(id, { push: false });
+        return;
+      }
+    }
     const known = findJob(id);
     if (known) {
       if (!State.jobs.some(j => j.id === id)) {
