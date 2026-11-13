@@ -36,6 +36,9 @@ test('dev-server : réécritures SPA, en-têtes de sécurité, compression, poli
     assert.match(cguHtml, /<title>Conditions générales d’utilisation — TalentPulse<\/title>/);
     assert.match(cguHtml, /<link rel="canonical" href="https:\/\/talentpulse-topaz\.vercel\.app\/cgu">/);
     assert.doesNotMatch(cguHtml, /<title>TalentPulse — Toutes les offres/);
+    assert.doesNotMatch(cguHtml, /<h1 class="hero-title" id="homeTitle">/);
+    assert.match(cguHtml, /<h1 id="legalPageTitle">Conditions Générales d’Utilisation<\/h1>/);
+    assert.match(cguHtml, /<section class="page active" id="page-legal"/);
     const login = await fetch(base + '/connexion');
     const loginHtml = await login.text();
     assert.match(loginHtml, /<meta name="robots" content="noindex, nofollow">/);
@@ -73,6 +76,23 @@ test('accueil : un seul h1, les vues masquées sont en h2', () => {
     assert.match(html, new RegExp(`<h2[^>]*\\bid="${id}"`), id);
     assert.ok(!new RegExp(`<h1[^>]*\\bid="${id}"`).test(html), id);
   }
+});
+
+test('recherche : sélecteur de distance 0/5/10/20/50 km, défaut 10', async () => {
+  for (const id of ['searchDistance', 'rsDistance', 'filterDistance']) {
+    const re = new RegExp(`<select[^>]*\\bid="${id}"[\\s\\S]*?<\\/select>`);
+    const m = html.match(re);
+    assert.ok(m, id + ' présent');
+    const block = m[0];
+    assert.match(block, /<option value="0">Ville exacte<\/option>/);
+    assert.match(block, /<option value="5">5 km<\/option>/);
+    assert.match(block, /<option value="10" selected>10 km<\/option>/);
+    assert.match(block, /<option value="20">20 km<\/option>/);
+    assert.match(block, /<option value="50">50 km<\/option>/);
+  }
+  const app = await readFile(new URL('../public/assets/app.js', import.meta.url), 'utf8');
+  assert.match(app, /qs\.set\('distance', String\(parseDistance\(params\.distance\)\)\)/);
+  assert.match(app, /path \+ '\?distance=' \+ d/);
 });
 
 test('fonctions en fra1, pages SEO routées vers le rendu serveur', () => {

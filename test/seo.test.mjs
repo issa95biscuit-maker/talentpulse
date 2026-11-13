@@ -311,8 +311,14 @@ test('pages statiques : title, description et canonical propres ; connexion et m
       assert.match(r.body, new RegExp(`<section class="page active" id="${section}"`), page);
       assert.match(r.body, /<section class="page" id="page-home"/, page);
     } else {
-      assert.match(r.body, /<section class="page active" id="page-home"/, page);
+      assert.match(r.body, /<section class="page active" id="page-legal"/, page);
+      assert.match(r.body, /<section class="page" id="page-home"/, page);
     }
+    assert.doesNotMatch(r.body, /<h1 class="hero-title" id="homeTitle">/, page);
+    assert.equal((r.body.match(/<h1[\s>]/g) || []).length, 1, 'un seul h1 sur ' + page);
+    if (page === 'connexion') assert.match(r.body, /<h1 class="auth-title" id="authTitle">Connexion<\/h1>/);
+    else if (page === 'mon-espace') assert.match(r.body, /<h1 class="profile-name" id="profName">Mon espace<\/h1>/);
+    else assert.match(r.body, /<h1 id="legalPageTitle">/, page);
     assert.equal(r.headers['x-robots-tag'], robots.replace(/,\s*/g, ', '), page);
   }
   const priv = await call({ page: 'connexion' });

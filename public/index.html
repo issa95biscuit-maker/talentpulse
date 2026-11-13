@@ -315,11 +315,16 @@ body.dark .theme-icon-light{display:none}
 .search-field input::placeholder{color:var(--text-3);opacity:1}
 .search-field+.search-field{border-top:1px solid var(--border)}
 .search-btn{min-height:52px;border-radius:var(--r-md);font-size:var(--fs-base)}
+.search-distance select{flex:1;min-width:0;width:100%;height:100%;min-height:52px;border:0;background-color:transparent;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235B6476' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right center;background-size:16px;font-size:var(--fs-base);color:var(--text);outline:none;appearance:none;-webkit-appearance:none;padding:0 28px 0 0;cursor:pointer}
+.search-distance select:disabled{opacity:.6;cursor:not-allowed;color:var(--text-3)}
+.search-distance select:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:var(--r-xs)}
 @media(min-width:900px){
-  .search{grid-template-columns:1.25fr 1fr auto;align-items:center;border-radius:var(--r-full);padding:var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-2)}
-  .search-field{border-radius:var(--r-full)}
-  .search-field+.search-field{border-top:0;border-left:1px solid var(--border);border-radius:0 var(--r-full) var(--r-full) 0}
+  .search{grid-template-columns:1.2fr 1fr minmax(10rem,auto) auto;align-items:center;border-radius:var(--r-full);padding:var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-2)}
+  .search-field{border-radius:0}
+  .search-field:first-child{border-radius:var(--r-full) 0 0 var(--r-full)}
+  .search-field+.search-field{border-top:0;border-left:1px solid var(--border);border-radius:0}
   .search-btn{border-radius:var(--r-full);padding:0 28px}
+  .search-distance select{font-size:var(--fs-sm);min-height:52px}
 }
 .popular{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:var(--sp-2);margin-top:var(--sp-6)}
 .popular-label{font-size:var(--fs-sm);color:var(--text-3);margin-right:var(--sp-1)}
@@ -372,7 +377,8 @@ body.dark .theme-icon-light{display:none}
 /* 8. RÉSULTATS */
 .results-top{position:sticky;top:var(--nav-h);z-index:150;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
 .results-search{display:grid;grid-template-columns:1fr auto;gap:var(--sp-2);padding-block:var(--sp-3)}
-.results-search .rs-fields{display:grid;grid-template-columns:1fr 1fr;background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--r-md);overflow:visible}
+.results-search .rs-fields{display:grid;grid-template-columns:1fr 1fr minmax(9.5rem,auto);background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--r-md);overflow:visible}
+.results-search .search-distance select{min-height:44px;font-size:var(--fs-sm)}
 .results-search .search-field{min-height:44px;padding:0 var(--sp-3);gap:var(--sp-2)}
 .results-search .search-field input{min-height:44px;font-size:var(--fs-sm)}
 .results-search .search-field>svg{width:18px;height:18px}
@@ -875,6 +881,8 @@ body:not(.dark) .photo-section::before{background:linear-gradient(180deg,var(--v
 .hero.cine .search-field:focus-within{background:rgba(255,255,255,.07)}
 .hero.cine .search-field input{color:#fff}
 .hero.cine .search-field input::placeholder{color:#A3AFC0}
+.hero.cine .search-distance select{color:#fff;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23C5CDD8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")}
+.hero.cine .search-distance select:disabled{color:#A3AFC0}
 .hero.cine .ac-list{background:#0E131D;border-color:rgba(255,255,255,.12)}
 .hero.cine .ac-item:hover,.hero.cine .ac-item.active{background:rgba(255,255,255,.08)}
 .hero.cine .chip{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.16);color:#E2E8F0;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
@@ -1458,6 +1466,16 @@ body.dark .job{-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter
           <input type="text" id="searchCity" name="lieu" placeholder="Ville, département, région…" autocomplete="off" enterkeyhint="search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="acCity">
           <div class="ac-list" id="acCity" role="listbox" aria-label="Suggestions de lieux"></div>
         </div>
+        <div class="search-field search-distance">
+          <label class="sr-only" for="searchDistance">Rayon de recherche</label>
+          <select id="searchDistance" name="distance" aria-label="Rayon de recherche" disabled>
+            <option value="0">Ville exacte</option>
+            <option value="5">5 km</option>
+            <option value="10" selected>10 km</option>
+            <option value="20">20 km</option>
+            <option value="50">50 km</option>
+          </select>
+        </div>
         <button class="btn btn-primary search-btn" type="submit">
           <svg class="i i-bold" aria-hidden="true"><use href="#i-search"/></svg>
           Rechercher
@@ -1572,6 +1590,16 @@ body.dark .job{-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter
             <input type="text" id="rsCity" placeholder="Ville, département, région" autocomplete="off" enterkeyhint="search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="acRsCity">
             <div class="ac-list" id="acRsCity" role="listbox" aria-label="Suggestions de lieux"></div>
           </div>
+          <div class="search-field search-distance">
+            <label class="sr-only" for="rsDistance">Rayon de recherche</label>
+            <select id="rsDistance" aria-label="Rayon de recherche" disabled>
+            <option value="0">Ville exacte</option>
+            <option value="5">5 km</option>
+            <option value="10" selected>10 km</option>
+            <option value="20">20 km</option>
+            <option value="50">50 km</option>
+            </select>
+          </div>
         </div>
         <button class="btn btn-primary rs-btn" type="submit"><svg class="i i-bold" aria-hidden="true"><use href="#i-search"/></svg><span class="rs-btn-lbl">Rechercher</span></button>
       </form>
@@ -1626,6 +1654,16 @@ body.dark .job{-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter
               <input type="text" id="filterLocation" placeholder="Ville, département, région" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="acFilterLoc">
               <div class="ac-list" id="acFilterLoc" role="listbox" aria-label="Suggestions de lieux"></div>
             </div>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label" for="filterDistance">Rayon</label>
+            <select class="form-input" id="filterDistance" disabled>
+            <option value="0">Ville exacte</option>
+            <option value="5">5 km</option>
+            <option value="10" selected>10 km</option>
+            <option value="20">20 km</option>
+            <option value="50">50 km</option>
+            </select>
           </div>
           <fieldset class="filter-group">
             <legend class="filter-label">Type de contrat</legend>
