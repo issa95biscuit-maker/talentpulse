@@ -5,7 +5,7 @@
   "description": "TalentPulse — agrégateur gratuit d'offres d'emploi (France Travail + Adzuna)",
   "engines": { "node": ">=22" },
   "scripts": {
-    "test": "node --test test/",
+    "test": "node --test test/*.mjs",
     "migrate": "node scripts/migrate.mjs",
     "dev": "node scripts/dev-server.mjs"
   },

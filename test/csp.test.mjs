@@ -31,15 +31,19 @@ test('recherche CSP : mots-clés, lieu (commune / département / région), contr
     row('A2', 'Agent de restauration', '75', 'Paris', 'CDI', '2026-09-01'),
     row('A3', "Agent d'entretien", '69', 'Lyon', 'CDD de 1 an', '2026-08-01'),
     row('A4', 'Expirée', '93', 'Gagny', 'CDI', '2026-08-01', { end: '2026-10-01' }),
+    row('A5', 'Agent administratif', '93', 'Montreuil', 'CDI', '2026-09-15'),
   ] });
   const now = new Date('2026-10-12T10:00:00Z');
   const q = (o) => fetchCSP({ page: 1, loc: { type: 'none' }, ...o }, now);
-  assert.equal((await q({})).total, 3, 'offre expirée exclue à la volée');
+  assert.equal((await q({})).total, 4, 'offre expirée exclue à la volée');
   assert.equal((await q({ keyword: 'entretien' })).total, 2);
   assert.equal((await q({ keyword: 'entretien', loc: { type: 'departement', departement: '93' } })).resultats[0].id, 'csp_A1');
-  assert.equal((await q({ loc: { type: 'region', region: '11' } })).total, 2, 'Île-de-France');
+  assert.equal((await q({ loc: { type: 'region', region: '11' } })).total, 3, 'Île-de-France');
   assert.equal((await q({ loc: { type: 'commune', label: 'Paris 15e' } })).total, 1, 'arrondissement → ville');
-  assert.equal((await q({ contrat: 'CDI' })).total, 1);
+  assert.equal((await q({ loc: { type: 'commune', label: 'Gagny', departement: '93', distance: 0 } })).total, 1, 'ville exacte : Gagny seulement');
+  assert.equal((await q({ loc: { type: 'commune', label: 'Gagny', departement: '93', distance: 10 } })).total, 2, 'rayon : Gagny + Montreuil (même département)');
+  assert.equal((await q({ loc: { type: 'commune', label: 'Lyon', departement: '69', distance: 20 } })).total, 1, 'Lyon 20 km : département 69 seulement');
+  assert.equal((await q({ contrat: 'CDI' })).total, 2);
   assert.equal((await q({ contrat: 'CDD' })).total, 2, 'CDD : contractuels inclus');
   assert.ok((await q({ contrat: 'Interim' })).skipped, 'intérim : source non concernée');
   assert.ok((await q({ experience: '1' })).skipped, 'filtre non géré : source exclue plutôt que hors filtre');

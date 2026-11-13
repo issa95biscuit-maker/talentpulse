@@ -593,20 +593,56 @@ function updatePageMeta(title, description, canonicalPath) {
   set('meta[name="twitter:description"]', 'content', description);
 }
 
+const DEFAULT_DISTANCE = 10;
+const DISTANCE_PRESETS = [0, 5, 10, 20, 50];
+function parseDistance(raw, fallback = DEFAULT_DISTANCE) {
+  if (raw == null || raw === '') return fallback;
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.max(0, Math.min(100, Math.round(n)));
+}
 function searchPath(params) {
   const p = params || {};
   const kw = p.kw || 'emploi';
   const city = p.city || '';
   return city ? '/offres/' + slugify(kw) + '/' + slugify(city) : '/offres/' + slugify(kw);
 }
+function searchHref(params) {
+  const p = params || {};
+  const path = searchPath(p);
+  const d = parseDistance(p.distance);
+  if (!p.city || d === DEFAULT_DISTANCE) return path;
+  return path + '?distance=' + d;
+}
+function isLandingSsr(params) {
+  const ssr = getSsr();
+  return !!ssr && searchPath(params) === ssr.path && parseDistance(params.distance) === DEFAULT_DISTANCE;
+}
+function setDistanceControls(value, hasCity) {
+  const d = String(parseDistance(value));
+  const enabled = !!hasCity;
+  for (const id of ['searchDistance', 'rsDistance', 'filterDistance']) {
+    const el = $('#' + id);
+    if (!el) continue;
+    if (![...el.options].some(o => o.value === d)) {
+      const opt = document.createElement('option');
+      opt.value = d;
+      opt.textContent = d === '0' ? 'Ville exacte' : d + ' km';
+      el.appendChild(opt);
+    }
+    if (document.activeElement !== el) el.value = d;
+    el.disabled = !enabled;
+  }
+}
 
 function syncSearchRoute(params, replace) {
   const p = params || {};
-  const path = searchPath(p);
+  const href = searchHref(p);
   const title = (p.kw || p.city) ? (p.kw || 'Offres') + (p.city ? ' à ' + p.city : '') + ' — TalentPulse' : 'Offres d’emploi — TalentPulse';
   const description = (p.kw || p.city) ? 'Offres de ' + (p.kw || 'emploi') + (p.city ? ' à ' + p.city : '') + ' issues de France Travail, Adzuna et Choisir le Service Public, réunies sur TalentPulse.' : 'Recherchez parmi les offres France Travail, Adzuna et Choisir le Service Public avec TalentPulse.';
-  updatePageMeta(title, description, path);
-  if (window.location.pathname !== path) window.history[replace ? 'replaceState' : 'pushState']({ talentpulse: true, kw: p.kw || '', city: p.city || '' }, '', path);
+  updatePageMeta(title, description, searchPath(p));
+  const cur = window.location.pathname + window.location.search;
+  if (cur !== href) window.history[replace ? 'replaceState' : 'pushState']({ talentpulse: true, kw: p.kw || '', city: p.city || '', distance: parseDistance(p.distance) }, '', href);
 }
 
 const STATIC_ROUTES = {
@@ -647,19 +683,21 @@ function handleRoute() {
   if (parts[0] === 'offres') {
     const kw = parts[1] && parts[1] !== 'emploi' ? humanizeSlug(parts[1]) : '';
     const city = parts[2] ? humanizeSlug(parts[2]) : '';
+    const distance = parseDistance(new URLSearchParams(window.location.search).get('distance'));
     // Retour depuis une offre : la liste est intacte sous le panneau, on la garde telle quelle (position comprise)
     if ($('#page-jobs').classList.contains('active') && State.jobs.length && rawPath === searchPath(State.lastSearch || {})) {
       closeDetail({ syncRoute: false });
       return;
     }
     const savedY = window.history.state && window.history.state.y;
-    if (hydrateSsr(rawPath)) return;
+    if (hydrateSsr(rawPath, { kw, city, distance })) return;
     $('#searchKw').value = kw;
     $('#searchCity').value = city;
+    setDistanceControls(distance, !!city);
     const sb = $('#saveSearchBtn'); if (sb) sb.style.display = (kw || city) ? 'inline-flex' : 'none';
-    syncSearchRoute({ kw, city }, true);
+    syncSearchRoute({ kw, city, distance }, true);
     showPage('jobs', { load: false });
-    loadJobs({ kw, city }).then(() => { if (savedY) requestAnimationFrame(() => window.scrollTo(0, savedY)); });
+    loadJobs({ kw, city, distance }).then(() => { if (savedY) requestAnimationFrame(() => window.scrollTo(0, savedY)); });
     return;
   }
   if (parts[0] === 'offre' && parts[1]) {
@@ -705,13 +743,16 @@ function getSsr() {
 function toggleSeoBlocks(show) {
   ['#seoCrumbs', '#seoIntro', '#seoMore'].forEach(sel => { const el = $(sel); if (el && el.children.length) el.hidden = !show; });
 }
-function hydrateSsr(rawPath) {
+function hydrateSsr(rawPath, params = {}) {
   const ssr = getSsr();
   if (!ssr || ssr.used || ssr.path !== rawPath) return false;
+  // Le HTML SSR est calculé avec le rayon par défaut : un rayon choisi dans l’URL doit relancer la recherche.
+  if (parseDistance(params.distance) !== DEFAULT_DISTANCE) return false;
   ssr.used = true;
-  State.lastSearch = { kw: ssr.kw, city: ssr.city };
+  State.lastSearch = { kw: ssr.kw, city: ssr.city, distance: DEFAULT_DISTANCE };
   for (const id of ['searchKw', 'rsKw']) { const el = $('#' + id); if (el) el.value = ssr.kw; }
   for (const id of ['searchCity', 'rsCity', 'filterLocation']) { const el = $('#' + id); if (el) el.value = ssr.city; }
+  setDistanceControls(DEFAULT_DISTANCE, !!ssr.city);
   const sb = $('#saveSearchBtn'); if (sb) sb.style.display = 'inline-flex';
   State.jobs = (ssr.resultats || []).map(parseAggregatedJob).filter(Boolean);
   State.totalFt = ssr.totalFt ?? ssr.total ?? 0;
@@ -1329,7 +1370,10 @@ function buildJobsQuery(params, page) {
   const f = State.filters;
   const qs = new URLSearchParams();
   if (params.kw) qs.set('motsCles', params.kw);
-  if (params.city) qs.set('lieu', params.city);
+  if (params.city) {
+    qs.set('lieu', params.city);
+    qs.set('distance', String(parseDistance(params.distance)));
+  }
   if (State.filter && State.filter !== 'all') qs.set('contrat', State.filter);
   if (f.datePosted) qs.set('publie', f.datePosted);
   if (f.experience) qs.set('experience', f.experience);
@@ -1349,8 +1393,9 @@ async function loadJobs(params = {}, { append = false } = {}) {
   const list = $('#jobsList');
   const page = append ? (State.apiPage || 1) + 1 : 1;
   if (!append) {
-    State.lastSearch = { kw: params.kw || '', city: params.city || '' };
+    State.lastSearch = { kw: params.kw || '', city: params.city || '', distance: params.city ? parseDistance(params.distance) : DEFAULT_DISTANCE };
     const fl = $('#filterLocation'); if (fl && document.activeElement !== fl) fl.value = State.lastSearch.city;
+    setDistanceControls(State.lastSearch.distance, !!State.lastSearch.city);
     list.innerHTML = '<p class="sr-only">Chargement des offres…</p>' + Array(5).fill('<div class="skel-card" aria-hidden="true"><div class="skel av"></div><div class="skel-lines"><div class="skel" style="width:62%;height:16px"></div><div class="skel" style="width:40%"></div><div class="skel" style="width:30%"></div><div style="display:flex;gap:6px;margin-top:6px"><div class="skel" style="width:56px;height:24px;border-radius:99px"></div><div class="skel" style="width:96px;height:24px;border-radius:99px"></div></div></div></div>').join('');
     $('#jobsCount').textContent = 'Recherche en cours…';
     list.setAttribute('aria-busy', 'true');
@@ -1358,7 +1403,7 @@ async function loadJobs(params = {}, { append = false } = {}) {
     $('#jobsNotice').innerHTML = '';
     const header = $('#jobsHeader');
     const ssr = getSsr();
-    const onSsr = !!ssr && searchPath(params) === ssr.path;
+    const onSsr = isLandingSsr(params);
     toggleSeoBlocks(onSsr);
     header.textContent = onSsr ? ssr.h1 : (params.kw || params.city) ? `${params.kw ? 'Offres «\u00a0' + params.kw + '\u00a0»' : 'Offres'}${params.city ? ' à ' + params.city : ''}` : 'Offres d’emploi en France';
     const rk = $('#rsKw'), rc = $('#rsCity');
@@ -1403,9 +1448,9 @@ async function loadJobs(params = {}, { append = false } = {}) {
       params.city = disp;
       State.lastSearch.city = disp;
       const header = $('#jobsHeader');
-      if (!(getSsr() && searchPath(params) === getSsr().path)) header.textContent = `${params.kw ? 'Offres «\u00a0' + params.kw + '\u00a0»' : 'Offres'} à ${disp}`;
+      if (!isLandingSsr(params)) header.textContent = `${params.kw ? 'Offres «\u00a0' + params.kw + '\u00a0»' : 'Offres'} à ${disp}`;
       for (const id of ['rsCity', 'searchCity', 'filterLocation']) { const el = $('#' + id); if (el && document.activeElement !== el) el.value = disp; }
-      syncSearchRoute({ kw: params.kw || '', city: disp }, true);
+      syncSearchRoute({ kw: params.kw || '', city: disp, distance: State.lastSearch.distance }, true);
     }
   } else if (!append) {
     State.total = 0; State.hasMore = false;
@@ -1429,8 +1474,13 @@ function renderJobsNotice(params) {
       notes.push(`Lieu « ${esc(params.city)} » non reconnu. Les résultats couvrent toute la France (ou sont vides) : ce n’est pas une recherche locale.${sugg.length ? ` Peut-être : ${sugg.join(', ')}.` : ' Essayez un nom de ville, un code postal ou un département.'}`);
     }
     else if (loc.approx) notes.push(`Résultats pour <strong>${esc(loc.label)}</strong> (lieu le plus proche de « ${esc(params.city)} »).`);
-    else if (loc.type === 'commune') notes.push(`Offres à <strong>${esc(loc.display || loc.label)}</strong> et dans un rayon de 10\u00a0km.`);
-    else if (loc.type === 'arrondissement') notes.push(`Offres dans le <strong>${esc(loc.label)}</strong> et les arrondissements voisins.`);
+    else if (loc.type === 'commune' || loc.type === 'arrondissement') {
+      const place = loc.display || loc.label;
+      const d = Number.isFinite(Number(loc.distance)) ? Number(loc.distance) : parseDistance((State.lastSearch || {}).distance);
+      if (d === 0) notes.push(`Offres à <strong>${esc(place)}</strong> uniquement (ville exacte).`);
+      else if (loc.type === 'arrondissement' && d === 3) notes.push(`Offres dans le <strong>${esc(loc.label)}</strong> et les arrondissements voisins.`);
+      else notes.push(`Offres à <strong>${esc(place)}</strong> et dans un rayon de ${d}\u00a0km.`);
+    }
     else if (loc.type === 'departement') notes.push(`Offres dans tout le département <strong>${esc(loc.label)}</strong>${loc.code ? ` (${esc(loc.code)})` : ''}.`);
     else if (loc.type === 'region') notes.push(`Offres dans toute la région <strong>${esc(loc.label)}</strong>.`);
   }
@@ -2577,16 +2627,18 @@ function closeAllAutocomplete() {
   $$('[role="combobox"]').forEach(i => i.setAttribute('aria-expanded', 'false'));
 }
 
-function runSearch(kwArg, cityArg) {
+function runSearch(kwArg, cityArg, distanceArg) {
   closeAllAutocomplete();
   const kw = (kwArg !== undefined ? kwArg : $('#searchKw').value).trim();
   const city = (cityArg !== undefined ? cityArg : $('#searchCity').value).trim();
+  const distance = city ? parseDistance(distanceArg !== undefined ? distanceArg : ($('#searchDistance') || {}).value) : DEFAULT_DISTANCE;
   $('#searchKw').value = kw;
   $('#searchCity').value = city;
-  State.lastSearch = { kw, city };
-  syncSearchRoute({ kw, city });
+  setDistanceControls(distance, !!city);
+  State.lastSearch = { kw, city, distance };
+  syncSearchRoute({ kw, city, distance });
   showPage('jobs', { load: false }); // pas de chargement « générique » : la recherche part juste après
-  loadJobs({ kw, city });
+  loadJobs({ kw, city, distance });
   const btn = $('#saveSearchBtn');
   if (btn) btn.style.display = (kw || city) ? 'inline-flex' : 'none';
 }
@@ -3109,7 +3161,7 @@ function saveCurrentSearch() {
   if (!s || (!s.kw && !s.city)) { toast("Effectuez d'abord une recherche"); return; }
   const label = [s.kw, s.city].filter(Boolean).join(' · ');
   if (State.searches.some(x => x.label === label)) { toast('Recherche déjà enregistrée'); return; }
-  State.searches.unshift({ label, kw: s.kw, city: s.city });
+  State.searches.unshift({ label, kw: s.kw, city: s.city, distance: parseDistance(s.distance) });
   State.searches = State.searches.slice(0, 8);
   safeSet('tp_searches', State.searches);
   renderSavedSearches();
@@ -3134,7 +3186,7 @@ function renderSavedSearches() {
   }));
   $$('#savedSearches [data-i]').forEach(el => on(el, 'click', () => {
     const s = State.searches[+el.dataset.i];
-    runSearch(s.kw || '', s.city || '');
+    runSearch(s.kw || '', s.city || '', s.distance);
   }));
 }
 // ─── FILTRES (appliqués côté serveur) ───────────────────────────────
@@ -3187,6 +3239,7 @@ function fillFilterForm() {
   $('#fTempsPlein').value   = State.filters.tempsPlein || '';
   $('#fSalaire').value      = State.filters.salaireMin || '';
   $('#filterLocation').value = (State.lastSearch && State.lastSearch.city) || '';
+  setDistanceControls((State.lastSearch && State.lastSearch.distance) || DEFAULT_DISTANCE, !!(State.lastSearch && State.lastSearch.city));
   const radio = document.querySelector(`input[name="fDatePostedR"][value="${State.filters.datePosted || ''}"]`);
   if (radio) radio.checked = true;
 }
@@ -3223,11 +3276,12 @@ function applyFiltersFromDrawer() {
   };
   safeSet('tp_filters', State.filters);
   const loc = $('#filterLocation').value.trim();
-  const s = State.lastSearch || { kw: '', city: '' };
+  const s = State.lastSearch || { kw: '', city: '', distance: DEFAULT_DISTANCE };
+  const distance = loc ? parseDistance(($('#filterDistance') || {}).value, s.distance) : DEFAULT_DISTANCE;
   closeFilterDrawer();
   renderActiveFilterChips();
-  if (loc !== (s.city || '')) {
-    runSearch(s.kw || '', loc);
+  if (loc !== (s.city || '') || distance !== parseDistance(s.distance)) {
+    runSearch(s.kw || '', loc, distance);
   } else {
     reloadWithFilters();
   }
@@ -3416,7 +3470,23 @@ function init() {
   setupAutocomplete('filterLocation', 'acFilterLoc', 'lieu');
   setupAutocomplete('rsKw', 'acRsKw', 'metier');
   setupAutocomplete('rsCity', 'acRsCity', 'lieu');
-  on($('#rsForm'), 'submit', e => { e.preventDefault(); runSearch($('#rsKw').value, $('#rsCity').value); });
+  on($('#rsForm'), 'submit', e => { e.preventDefault(); runSearch($('#rsKw').value, $('#rsCity').value, $('#rsDistance').value); });
+  const syncDistanceEnabled = () => {
+    const city = ($('#searchCity')?.value || $('#rsCity')?.value || $('#filterLocation')?.value || '').trim();
+    const d = ($('#searchDistance') || $('#rsDistance') || $('#filterDistance') || {}).value;
+    setDistanceControls(d, !!city);
+  };
+  for (const id of ['searchCity', 'rsCity', 'filterLocation']) {
+    const el = $('#' + id);
+    if (!el) continue;
+    on(el, 'input', syncDistanceEnabled);
+    on(el, 'tp:pick', syncDistanceEnabled);
+  }
+  for (const id of ['searchDistance', 'rsDistance', 'filterDistance']) {
+    const el = $('#' + id);
+    if (el) on(el, 'change', () => setDistanceControls(el.value, !!($('#searchCity')?.value || $('#rsCity')?.value || $('#filterLocation')?.value || '').trim()));
+  }
+  syncDistanceEnabled();
   // Recherches populaires (accueil, pied de page)
   $$('[data-pop-kw]').forEach(a => on(a, 'click', e => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;

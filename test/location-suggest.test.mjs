@@ -127,7 +127,7 @@ test('France Travail / Adzuna : commune + distance, département, région, arron
   calls.length = 0;
   let r = await call(handler, { motsCles: 'vendeur', lieu: 'Argenteuil' });
   let ft = ftUrl().searchParams, adz = adzUrl().searchParams;
-  assert.equal(ft.get('commune'), '95018'); assert.equal(ft.get('distance'), '10'); assert.equal(adz.get('where'), 'Argenteuil');
+  assert.equal(ft.get('commune'), '95018'); assert.equal(ft.get('distance'), '10'); assert.equal(adz.get('where'), 'Argenteuil'); assert.equal(adz.get('distance'), '10');
   assert.equal(r.body.location.type, 'commune');
 
   r = await call(handler, { motsCles: 'vendeur', lieu: '95' });
@@ -144,7 +144,7 @@ test('France Travail / Adzuna : commune + distance, département, région, arron
 
   r = await call(handler, { motsCles: 'vendeur', lieu: '75015' });
   ft = ftUrl().searchParams; adz = adzUrl().searchParams;
-  assert.equal(ft.get('commune'), '75115'); assert.ok(Number(ft.get('distance')) <= 5); assert.equal(adz.get('where'), 'Paris'); assert.ok(!adz.get('distance'));
+  assert.equal(ft.get('commune'), '75115'); assert.ok(Number(ft.get('distance')) <= 5); assert.equal(adz.get('where'), 'Paris'); assert.equal(adz.get('distance'), ft.get('distance'));
   assert.equal(r.body.location.type, 'arrondissement');
 });
 

@@ -111,6 +111,80 @@ test('recherche : where et city sont des alias de lieu (comme q pour motsCles)',
   expectLyon(r, 'lieu prioritaire');
 });
 
+test('recherche : distance bornée de 0 à 100, transmise à FT et Adzuna, défaut 10', { skip: !online && 'geo.api.gouv.fr injoignable' }, async () => {
+  const { _test } = await import('../lib/jobs.js');
+  assert.equal(_test.parseDistanceKm(undefined), null);
+  assert.equal(_test.parseDistanceKm(''), null);
+  assert.equal(_test.parseDistanceKm('abc'), null);
+  assert.equal(_test.parseDistanceKm('0'), 0);
+  assert.equal(_test.parseDistanceKm('5'), 5);
+  assert.equal(_test.parseDistanceKm('7.4'), 7);
+  assert.equal(_test.parseDistanceKm('150'), 100);
+  assert.equal(_test.parseDistanceKm('-3'), 0);
+
+  calls.length = 0;
+  let r = await call({ motsCles: 'serveur', lieu: 'Lyon' });
+  let ft = calls.find(u => u.includes('offres/search'));
+  let adz = calls.find(u => u.includes('adzuna'));
+  assert.ok(ft && ft.includes('distance=10'), 'défaut FT 10 : ' + ft);
+  assert.ok(adz && adz.includes('distance=10'), 'défaut Adzuna 10 : ' + adz);
+  assert.equal(r.body.location.distance, 10);
+  assert.equal(r.body.location.label, 'Lyon');
+  assert.ok(Array.isArray(r.body.resultats) && r.body.totals, 'contrat de réponse inchangé');
+
+  calls.length = 0;
+  r = await call({ motsCles: 'serveur', lieu: 'Lyon', distance: '5' });
+  ft = calls.find(u => u.includes('offres/search'));
+  adz = calls.find(u => u.includes('adzuna'));
+  assert.ok(ft && ft.includes('distance=5') && !ft.includes('distance=10'), 'FT 5 km : ' + ft);
+  assert.ok(adz && adz.includes('distance=5'), 'Adzuna 5 km : ' + adz);
+  assert.equal(r.body.location.distance, 5);
+
+  calls.length = 0;
+  r = await call({ q: 'serveur', where: 'Lyon', distance: '0' });
+  ft = calls.find(u => u.includes('offres/search'));
+  adz = calls.find(u => u.includes('adzuna'));
+  assert.ok(ft && [...new URL(ft).searchParams].filter(([k]) => k === 'distance').map(([, v]) => v).includes('0'), 'FT ville exacte : ' + ft);
+  assert.ok(adz && new URL(adz).searchParams.get('distance') === '0', 'Adzuna ville exacte : ' + adz);
+  assert.equal(r.body.location.distance, 0);
+
+  calls.length = 0;
+  r = await call({ motsCles: 'serveur', lieu: 'Lyon', distance: '20' });
+  ft = calls.find(u => u.includes('offres/search'));
+  assert.ok(ft && ft.includes('distance=20'), 'FT 20 km : ' + ft);
+  assert.equal(r.body.location.distance, 20);
+
+  calls.length = 0;
+  r = await call({ motsCles: 'serveur', lieu: 'Lyon', distance: '200' });
+  ft = calls.find(u => u.includes('offres/search'));
+  assert.ok(ft && ft.includes('distance=100'), 'plafond 100 : ' + ft);
+  assert.equal(r.body.location.distance, 100);
+
+  // Sans ville : le paramètre distance n’est pas envoyé aux sources
+  calls.length = 0;
+  r = await call({ motsCles: 'serveur', distance: '5' });
+  ft = calls.find(u => u.includes('offres/search'));
+  adz = calls.find(u => u.includes('adzuna'));
+  assert.ok(ft && !ft.includes('commune=') && !/distance=/.test(ft), 'sans lieu, pas de distance FT : ' + ft);
+  assert.ok(adz && !adz.includes('where=') && !/distance=/.test(adz), 'sans lieu, pas de distance Adzuna : ' + adz);
+  assert.equal(r.body.location, null);
+
+  // Arrondissement : distance implicite 3, explicite remplace
+  calls.length = 0;
+  r = await call({ q: 'serveur', where: '75015' });
+  ft = calls.find(u => u.includes('offres/search'));
+  assert.ok(ft && ft.includes('distance=3'), 'arrondissement défaut 3 : ' + ft);
+  assert.equal(r.body.location.distance, 3);
+
+  calls.length = 0;
+  r = await call({ q: 'serveur', where: '75015', distance: '5' });
+  ft = calls.find(u => u.includes('offres/search'));
+  adz = calls.find(u => u.includes('adzuna'));
+  assert.ok(ft && ft.includes('distance=5'), 'arrondissement 5 km : ' + ft);
+  assert.ok(adz && adz.includes('distance=5'), 'Adzuna arrondissement 5 km');
+  assert.equal(r.body.location.distance, 5);
+});
+
 test('contrat : alternance, ALTERNANCE et intérim valent le filtre canonique', async () => {
   calls.length = 0;
   await call({ motsCles: 'serveur', contrat: 'alternance', source: 'ft' });
