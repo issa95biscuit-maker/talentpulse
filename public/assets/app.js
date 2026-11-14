@@ -470,8 +470,23 @@ function slugify(value) {
   return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 }
 
-function humanizeSlug(value) {
-  try { return decodeURIComponent(String(value || '')).replace(/-/g, ' ').trim(); } catch { return String(value || '').replace(/-/g, ' '); }
+const KW_DISPLAY = { etudiant: 'Étudiant', teletravail: 'Télétravail', developpement: 'Développement' };
+function humanizeSlug(value, asPlace = false) {
+  let raw;
+  try { raw = decodeURIComponent(String(value || '')).trim(); } catch { raw = String(value || '').trim(); }
+  if (!raw) return '';
+  const slug = slugify(raw);
+  if (asPlace) {
+    const G = globalThis.TP_GEO;
+    const hyphen = raw.split(/[-\s]+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('-');
+    const spaced = hyphen.replace(/-/g, ' ');
+    const found = G?.exactPlace?.(hyphen) || G?.exactPlace?.(spaced) || G?.exactPlace?.(raw);
+    if (found?.label) return found.label;
+    return hyphen;
+  }
+  if (KW_DISPLAY[slug]) return KW_DISPLAY[slug];
+  const spaced = raw.replace(/-/g, ' ');
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 }
 
 function updatePageMeta(title, description, canonicalPath) {
@@ -576,7 +591,7 @@ function handleRoute() {
   }
   if (parts[0] === 'offres') {
     const kw = parts[1] && parts[1] !== 'emploi' ? humanizeSlug(parts[1]) : '';
-    const city = parts[2] ? humanizeSlug(parts[2]) : '';
+    const city = parts[2] ? humanizeSlug(parts[2], true) : '';
     const distance = parseDistance(new URLSearchParams(window.location.search).get('distance'));
     // Retour depuis une offre : la liste est intacte sous le panneau, on la garde telle quelle (position comprise)
     if ($('#page-jobs').classList.contains('active') && State.jobs.length && rawPath === searchPath(State.lastSearch || {})) {
