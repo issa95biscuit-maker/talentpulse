@@ -1385,11 +1385,15 @@ function buildJobsQuery(params, page) {
   return qs;
 }
 
-async function loadJobs(params = {}, { append = false } = {}) {
-  const requestId = ++jobsRequestSeq;
-  if (jobsAbort) jobsAbort.abort();
-  const ctrl = new AbortController();
-  jobsAbort = ctrl;
+const JOBS_AUTO_PAGES = 8;
+
+async function loadJobs(params = {}, { append = false, auto = false, requestId: rid, ctrl: existingCtrl } = {}) {
+  const requestId = auto ? rid : ++jobsRequestSeq;
+  if (!auto) {
+    if (jobsAbort) jobsAbort.abort();
+    jobsAbort = new AbortController();
+  }
+  const ctrl = existingCtrl || jobsAbort;
   const list = $('#jobsList');
   const page = append ? (State.apiPage || 1) + 1 : 1;
   if (!append) {
@@ -1435,7 +1439,8 @@ async function loadJobs(params = {}, { append = false } = {}) {
   if (!netError) {
     State.apiPage = page;
     State.total = data.total || 0;
-    State.hasMore = !!data.hasMore && fresh.length > 0;
+    if (data.totals) State.totals = data.totals;
+    State.hasMore = !!data.hasMore;
     State.resolvedLocation = data.location || null;
     State.sourceNotes = data.notes || null;
     // Lieu reconnu : on affiche son nom officiel (« saint denis 93 » -> « Saint-Denis (93) »)
@@ -1458,7 +1463,11 @@ async function loadJobs(params = {}, { append = false } = {}) {
   State.loadError = netError && !append ? netError.message : null;
   const partial = !!(data && data.errors);
   $('#envBanner')?.classList.toggle('show', !!netError || partial);
-  if (netError && append) toast(netError.message, 'err');
+  if (netError && append && !auto) toast(netError.message, 'err');
+  // Page vidée par le filtre de distance : on enchaîne sur la suivante, sans afficher un total gonflé ni s’arrêter trop tôt.
+  if (!netError && State.hasMore && fresh.length === 0 && page < JOBS_AUTO_PAGES && requestId === jobsRequestSeq) {
+    return loadJobs(params, { append: true, auto: true, requestId, ctrl });
+  }
   renderJobsNotice(params);
   renderJobs();
 }
@@ -1542,6 +1551,61 @@ function getFilteredSorted() {
 
 function fmtCount(n) { return Number(n || 0).toLocaleString('fr-FR').replace(/[\s\u00a0]/g, '\u202f'); }
 
+// --- jobs-count (identique à lib/jobs-count.js) ---
+function jobsCountScope({ location, city, distance } = {}) {
+  const loc = location;
+  if (loc && (loc.type === 'commune' || loc.type === 'arrondissement')) {
+    const place = String(loc.display || loc.label || city || '').trim();
+    const raw = loc.distance != null ? loc.distance : distance;
+    const d = Number.isFinite(Number(raw)) ? Number(raw) : 10;
+    if (!place) return 'en France';
+    if (d === 0) return `à ${place}`;
+    if (loc.type === 'arrondissement' && d === 3) {
+      return `dans le ${loc.label || place} et les arrondissements voisins`;
+    }
+    return `à moins de ${d}\u00a0km de ${place}`;
+  }
+  if (loc && loc.type === 'departement') {
+    const name = String(loc.display || loc.label || '').trim();
+    return name ? `dans le département ${name}` : 'en France';
+  }
+  if (loc && loc.type === 'region') {
+    const name = String(loc.display || loc.label || '').trim();
+    return name ? `dans la région ${name}` : 'en France';
+  }
+  return 'en France';
+}
+
+function formatJobsCount({
+  shown = 0,
+  hasMore = false,
+  loadError = false,
+  location,
+  city,
+  distance,
+} = {}) {
+  const scope = jobsCountScope({ location, city, distance });
+  const n = Number(shown) || 0;
+  if (!n) {
+    if (loadError) return '';
+    return `0 offre ${scope}`;
+  }
+  const head = hasMore
+    ? (n === 1 ? 'Plus d’une offre' : `${fmtCount(n)} premières offres`)
+    : `${fmtCount(n)} ${n === 1 ? 'offre' : 'offres'}`;
+  return `${head} ${scope}`;
+}
+
+function formatJobsMoreMeta({ shown = 0, hasMore = false } = {}) {
+  if (!hasMore) {
+    return shown ? 'Vous avez vu toutes les offres disponibles pour cette recherche.' : '';
+  }
+  const n = Number(shown) || 0;
+  if (n === 1) return '1 offre affichée. D’autres peuvent correspondre.';
+  return `${fmtCount(n)} offres affichées. D’autres peuvent correspondre.`;
+}
+// --- fin jobs-count ---
+
 function hasActiveFilters() {
   return State.filter !== 'all' || Object.values(State.filters).some(Boolean);
 }
@@ -1551,15 +1615,15 @@ function renderJobs() {
   const all = getFilteredSorted();
   const count = $('#jobsCount');
   if (count) {
-    const partners = (State.totals?.adzuna || 0) + (State.totals?.csp || 0);
-    const ftOnly = State.totalFt != null && partners === 0 && getSsr()?.path === searchPath(State.lastSearch || {});
-    count.textContent = all.length
-      ? (State.total > all.length
-          ? (ftOnly
-              ? `${fmtCount(State.total)} offres France Travail · ${fmtCount(all.length)} affichées`
-              : `${fmtCount(State.total)} offres · ${fmtCount(all.length)} affichées`)
-          : `${fmtCount(all.length)} offre${all.length > 1 ? 's' : ''}`)
-      : (State.loadError ? '' : '0 offre');
+    const search = State.lastSearch || {};
+    count.textContent = formatJobsCount({
+      shown: all.length,
+      hasMore: State.hasMore,
+      loadError: State.loadError,
+      location: State.resolvedLocation,
+      city: search.city,
+      distance: search.distance,
+    });
   }
 
   if (!all.length) {
@@ -1627,13 +1691,12 @@ function bindJobCards(root, { onSave } = {}) {
 function renderLoadMore(shown) {
   const wrap = $('#jobsMore');
   if (!wrap) return;
-  const pct = State.total ? Math.min(100, Math.round(shown / State.total * 100)) : 100;
+  const meta = formatJobsMoreMeta({ shown, hasMore: State.hasMore });
   if (!State.hasMore) {
-    wrap.innerHTML = shown && State.total ? `<div class="jobs-more-meta">Vous avez vu toutes les offres disponibles pour cette recherche.</div>` : '';
+    wrap.innerHTML = meta ? `<div class="jobs-more-meta">${meta}</div>` : '';
     return;
   }
-  wrap.innerHTML = `<div class="jobs-more-meta">${fmtCount(shown)} offres affichées sur ${fmtCount(State.total)}</div>
-    <div class="progress" aria-hidden="true"><span style="width:${pct}%"></span></div>
+  wrap.innerHTML = `<div class="jobs-more-meta">${meta}</div>
     <button class="btn btn-outline btn-lg" id="jobsMoreBtn" type="button">Charger plus d’offres</button>`;
   on($('#jobsMoreBtn'), 'click', () => loadJobs(State.lastSearch || {}, { append: true }));
 }
