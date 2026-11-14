@@ -97,3 +97,12 @@ test('fiche et parcours Postuler : texte non tronqué, boutons et grille lisible
   assert.ok(compact.includes('.detail-cta.btn{white-space:normal;min-width:0}'), 'libellés des boutons non coupés');
   assert.ok(compact.includes('@media(max-width:379px)') && compact.includes('.detail-grid{grid-template-columns:1fr}'), 'faits de l’offre en une colonne à 320 px');
 });
+
+test('jobs-count : pas de troncature à petit écran', () => {
+  const compact = html.replace(/\s+/g, '');
+  assert.match(html, /\.jobs-count\{[^}]*overflow-wrap:\s*anywhere/);
+  assert.doesNotMatch(html, /\.jobs-count\{[^}]*text-overflow:\s*ellipsis/);
+  assert.doesNotMatch(html, /\.jobs-count\{[^}]*white-space:\s*nowrap/);
+  assert.ok(compact.includes('.jobs-head>div{min-width:0;max-width:100%}'), 'le titre et le compteur peuvent passer à la ligne');
+  assert.match(html, /\.jobs-more-meta\{[^}]*overflow-wrap:\s*anywhere/);
+});

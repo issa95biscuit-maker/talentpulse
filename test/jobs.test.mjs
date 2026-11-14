@@ -384,6 +384,7 @@ test('recherche : post-filtre haversine (Rueil 5 km) et ville exacte, contrat in
     assert.equal(r.body.location?.label, 'Rueil-Malmaison');
     assert.equal(r.body.location?.distance, 5);
     assert.ok('resultats' in r.body && 'total' in r.body && 'totals' in r.body && 'page' in r.body && 'hasMore' in r.body, 'contrat de réponse inchangé');
+    assert.equal(r.body.listed, r.body.resultats.length, 'listed = longueur de la liste filtrée');
     const cities = r.body.resultats.map(j => j.city);
     const ids = r.body.resultats.map(j => j.id);
     assert.ok(ids.includes('ft_RUEIL1') && ids.includes('ft_NANT1'), 'Rueil et Nanterre conservés : ' + ids.join(','));
