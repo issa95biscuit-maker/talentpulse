@@ -494,6 +494,14 @@ const $ = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => [...c.querySelectorAll(s)];
 const on = (el, evt, fn) => el && el.addEventListener(evt, fn);
 function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+function shownTitle(j) {
+  const t = j && typeof j === 'object' ? (j.title || '') : (j || '');
+  return globalThis.TP_DISPLAY ? globalThis.TP_DISPLAY.displayTitle(t) : t;
+}
+function shownCompany(j) {
+  const t = j && typeof j === 'object' ? (j.company || '') : (j || '');
+  return globalThis.TP_DISPLAY ? globalThis.TP_DISPLAY.displayCompany(t) : t;
+}
 function sourceClass(s) { return s === 'France Travail' ? 'src-ft' : s === 'Adzuna' ? 'src-adz' : s === 'Choisir le Service Public' ? 'src-csp' : ''; }
 const CSP_DATA_URL = 'https://www.data.gouv.fr/datasets/les-offres-diffusees-sur-choisir-le-service-public';
 const FT_LICENCE_URL = 'https://francetravail.io/produits-partages/catalogue/offres-emploi';
@@ -703,7 +711,7 @@ function handleRoute() {
   if (parts[0] === 'offre' && parts[1]) {
     const id = decodeURIComponent(parts[1]);
     const ssr = getSsr();
-    if (ssr && ssr.unavailable && ssr.id === id) { showUnavailableOffer(id); return; }
+    if (ssr && ssr.unavailable && ssr.id === id) { showUnavailableOffer(id, { adzunaUrl: ssr.adzunaUrl }); return; }
     if (ssr && ssr.offre && ssr.offre.id === id) {
       const job = parseAggregatedJob(ssr.offre);
       if (job) {
@@ -797,7 +805,7 @@ async function openOfferById(id) {
     renderJobs();
     openDetail(job.id, { push: false });
   } catch (err) {
-    if (err && err.status === 404) showUnavailableOffer(id);
+    if (err && (err.status === 404 || err.status === 410)) showUnavailableOffer(id, { adzunaUrl: err.body && err.body.adzunaUrl });
     else {
       showPage('jobs', { load: false });
       State.jobs = [];
@@ -811,7 +819,7 @@ async function openOfferById(id) {
   }
 }
 
-function showUnavailableOffer(id) {
+function showUnavailableOffer(id, opts = {}) {
   showPage('jobs', { load: false });
   State.jobs = [];
   State.total = 0;
@@ -830,12 +838,17 @@ function showUnavailableOffer(id) {
   const more = $('#jobsMore');
   if (more) more.innerHTML = '';
   toggleSeoBlocks(false);
+  const adzUrl = opts.adzunaUrl || (/^adz_\d{4,20}$/.test(String(id || '')) ? 'https://www.adzuna.fr/details/' + String(id).slice(4) : '');
+  const explain = adzUrl
+    ? 'Le lien est incorrect, ou l’annonce n’est plus en mémoire sur TalentPulse. Vous pouvez encore ouvrir la fiche d’origine sur Adzuna, si elle est en ligne. La liste nationale n’est pas affichée à la place.'
+    : 'Le lien est incorrect, ou l’annonce a expiré et a été retirée par sa source. La liste nationale n’est pas affichée à la place.';
+  const adzBtn = adzUrl ? `<a class="btn btn-outline" href="${esc(adzUrl)}" target="_blank" rel="noopener noreferrer">Voir sur Adzuna<span class="sr-only"> (nouvel onglet)</span></a>` : '';
   const list = $('#jobsList');
   if (list) list.innerHTML = `<div class="empty" role="status">
     <div class="empty-icon">${ICONS.alert}</div>
     <div class="empty-title">Cette offre n’est plus disponible</div>
-    <p>Le lien est incorrect, ou l’annonce a expiré et a été retirée par sa source. La liste nationale n’est pas affichée à la place.</p>
-    <div class="empty-actions"><a class="btn btn-primary" href="/offres/emploi">Voir les offres d’emploi</a></div>
+    <p>${explain}</p>
+    <div class="empty-actions"><a class="btn btn-primary" href="/offres/emploi">Voir les offres d’emploi</a>${adzBtn}</div>
   </div>`;
 }
 
@@ -1002,11 +1015,12 @@ function setupLiveValidation() {
 const API_TIMEOUT = 12000;
 
 class ApiError extends Error {
-  constructor(message, kind, status) {
+  constructor(message, kind, status, body) {
     super(message);
     this.name = 'ApiError';
     this.kind = kind;
     this.status = status || 0;
+    this.body = body || null;
   }
 }
 
@@ -1047,13 +1061,13 @@ async function apiFetch(path, { method = 'GET', body, auth = false, timeout = AP
 
   if (res.status === 401 || res.status === 403) {
     handleSessionExpired();
-    throw new ApiError(apiErrorMessage(data, 'Session expirée, reconnectez-vous.'), 'auth', res.status);
+    throw new ApiError(apiErrorMessage(data, 'Session expirée, reconnectez-vous.'), 'auth', res.status, data);
   }
   if (res.status >= 500) {
-    throw new ApiError('Le service est temporairement indisponible. Réessayez plus tard.', 'server', res.status);
+    throw new ApiError('Le service est temporairement indisponible. Réessayez plus tard.', 'server', res.status, data);
   }
   if (!res.ok) {
-    throw new ApiError(apiErrorMessage(data, 'Requête refusée par le serveur.'), 'client', res.status);
+    throw new ApiError(apiErrorMessage(data, 'Requête refusée par le serveur.'), 'client', res.status, data);
   }
   return data;
 }
@@ -1702,7 +1716,8 @@ function renderLoadMore(shown) {
 }
 
 function companyLabel(j) {
-  return j.company ? esc(j.company) : '<span class="muted">Entreprise non communiquée</span>';
+  const company = shownCompany(j);
+  return company ? esc(company) : '<span class="muted">Entreprise non communiquée</span>';
 }
 
 /** « 1 868 – 2 500 €/mois » → { amount: '1 868 – 2 500 €', unit: '/mois', note } (affichage façon montant bancaire) */
@@ -1723,7 +1738,8 @@ function jobCard(j) {
   const whenRaw = j.posted || j.updated;
   const when = relativeDate(whenRaw);
   const days = ageDays(whenRaw);
-  const name = j.company || j.title || '?';
+  const title = shownTitle(j);
+  const name = shownCompany(j) || title || '?';
   const fresh = when === "Aujourd'hui" || when === 'Il y a 1 jour';
   const stale = days !== null && days > 30;
   const sal = j.salary ? salaryParts(j.salary) : null;
@@ -1743,11 +1759,11 @@ function jobCard(j) {
     <div class="job-head">
       ${avatarHtml(j, name)}
       <div class="job-main">
-        <h2 class="job-title"><a class="job-link" href="/offre/${encodeURIComponent(j.id)}" data-id="${esc(j.id)}">${esc(j.title)}</a></h2>
+        <h2 class="job-title"><a class="job-link" href="/offre/${encodeURIComponent(j.id)}" data-id="${esc(j.id)}">${esc(title)}</a></h2>
         <p class="job-sub"><span class="job-company">${companyLabel(j)}</span>${loc ? `<span class="job-loc">${ICONS.location}${esc(loc)}</span>` : ''}</p>
       </div>
       <div class="job-actions">
-        <button class="save-btn ${saved ? 'saved' : ''}" type="button" data-id="${esc(j.id)}" aria-pressed="${saved}" aria-label="${saved ? 'Retirer des favoris' : 'Ajouter aux favoris'} : ${esc(j.title)}">${SVG_BOOKMARK(saved)}</button>
+        <button class="save-btn ${saved ? 'saved' : ''}" type="button" data-id="${esc(j.id)}" aria-pressed="${saved}" aria-label="${saved ? 'Retirer des favoris' : 'Ajouter aux favoris'} : ${esc(title)}">${SVG_BOOKMARK(saved)}</button>
       </div>
     </div>
     ${pills ? `<div class="job-pills">${pills}</div>` : ''}
@@ -1756,7 +1772,7 @@ function jobCard(j) {
         ${sal ? `<div class="job-amount" title="${esc(j.salary)}"><span class="amt">${esc(sal.amount)}</span>${sal.unit ? `<span class="unit">${esc(sal.unit)}</span>` : ''}${sal.note ? `<span class="note">${esc(sal.note)}</span>` : ''}</div>` : `<div class="job-amount is-empty">${esc(salaryLabel(j))}</div>`}
         <div class="job-src">${source}${when ? `<span class="job-time${fresh ? ' fresh' : ''}${stale ? ' stale' : ''}">${fresh ? '<span class="fresh-dot" aria-hidden="true"></span>' : ''}${esc(when)}</span>` : ''}${status}</div>
       </div>
-      <button class="btn btn-primary job-apply" type="button" data-apply="${esc(j.id)}" aria-haspopup="dialog" aria-label="${app ? 'Voir ma candidature' : 'Postuler'} : ${esc(j.title)}">${app ? 'Ma candidature' : `Postuler${ICONS.arrowUpRight.replace('class="i"', 'class="i apply-arrow"')}`}</button>
+      <button class="btn btn-primary job-apply" type="button" data-apply="${esc(j.id)}" aria-haspopup="dialog" aria-label="${app ? 'Voir ma candidature' : 'Postuler'} : ${esc(title)}">${app ? 'Ma candidature' : `Postuler${ICONS.arrowUpRight.replace('class="i"', 'class="i apply-arrow"')}`}</button>
     </div>
   </article>`;
 }
@@ -1804,7 +1820,7 @@ function openDetail(id, { push = true } = {}) {
   if (!j) return;
   if (push && !routeHandling) {
     const path = '/offre/' + encodeURIComponent(j.id);
-    updatePageMeta(j.title + (j.company ? ' — ' + j.company : '') + ' | TalentPulse', j.title + (j.company ? ' chez ' + j.company : '') + (j.city ? ' à ' + j.city : '') + '.', path);
+    updatePageMeta(shownTitle(j) + (shownCompany(j) ? ' — ' + shownCompany(j) : '') + ' | TalentPulse', shownTitle(j) + (shownCompany(j) ? ' chez ' + shownCompany(j) : '') + (j.city ? ' à ' + j.city : '') + '.', path);
     rememberScroll();
     window.history.pushState({ talentpulse: true, offerId: j.id }, '', path);
   }
@@ -1813,7 +1829,7 @@ function openDetail(id, { push = true } = {}) {
   syncState();
   const tracked = State.applied.has(id);
   const site = j.sourceSite || j.source || 'le site d’origine';
-  const name = j.company || j.title || '?';
+  const name = shownCompany(j) || shownTitle(j) || '?';
   const whenRaw = j.posted || j.updated;
   const when = relativeDate(whenRaw);
   const stale = (ageDays(whenRaw) || 0) > 30;
@@ -1836,7 +1852,7 @@ function openDetail(id, { push = true } = {}) {
     <div class="detail-hero">
       ${avatarHtml(j, name)}
       <div style="min-width:0">
-        <h2 class="detail-title" id="detailTitle">${esc(j.title)}</h2>
+        <h2 class="detail-title" id="detailTitle">${esc(shownTitle(j))}</h2>
         <div class="detail-co">${companyLabel(j)}${j.city ? ' · ' + esc(j.city) : ''}</div>
       </div>
     </div>
@@ -1999,7 +2015,7 @@ function renderApply() {
   const j = applyState.job;
   if (!j) return;
   $('#applyTitle').textContent = applyState.step === 'form' ? 'Postuler' : 'Votre candidature';
-  $('#applySub').textContent = [j.title, j.company].filter(Boolean).join(' · ');
+  $('#applySub').textContent = [shownTitle(j), shownCompany(j)].filter(Boolean).join(' · ');
   $('#applyBody').innerHTML = applyState.step === 'form' ? applyFormHtml(j) : applyDoneHtml(j);
   $('#applyBody').scrollTop = 0;
   if (applyState.step === 'form') bindApplyForm(j); else bindApplyDone(j);
@@ -2455,7 +2471,7 @@ function renderTicker() {
   if (Ticker.count) items.push(`<li data-live="1"><svg class="i" aria-hidden="true"><use href="#i-trending-up"/></svg><span><span class="tk-num">${fmtCount(Ticker.count)}</span> offres agrégées en ce moment (France Travail, Adzuna et Choisir le Service Public)</span></li>`);
   const tips = Ticker.tips.slice();
   Ticker.offers.slice(0, 6).forEach((o, i) => {
-    items.push(`<li data-live="1"><svg class="i" aria-hidden="true"><use href="#i-briefcase-business"/></svg><span><b>Nouvelle offre</b> · ${esc(o.title)}${o.city ? ` <span class="tk-mut">· ${esc(o.city)}</span>` : ''}</span></li>`);
+    items.push(`<li data-live="1"><svg class="i" aria-hidden="true"><use href="#i-briefcase-business"/></svg><span><b>Nouvelle offre</b> · ${esc(shownTitle(o))}${o.city ? ` <span class="tk-mut">· ${esc(o.city)}</span>` : ''}</span></li>`);
     if (i % 2 === 1 && tips.length) items.push(tips.shift());
   });
   items.push(...tips);
@@ -2987,8 +3003,8 @@ function kanbanCard(k, col) {
   const idx = KCOLS.findIndex(c => c.key === col);
   const prev = KCOLS[idx - 1], next = KCOLS[idx + 1];
   return `<div class="kcard" draggable="true" data-id="${esc(k.id)}">
-    <div class="kcard-title">${k.url ? `<a href="${esc(k.url)}" target="_blank" rel="noopener noreferrer">${esc(k.title)}<span class="sr-only"> (nouvel onglet)</span></a>` : esc(k.title)}</div>
-    <div class="kcard-co">${esc(k.company || 'Entreprise non communiquée')}</div>
+    <div class="kcard-title">${k.url ? `<a href="${esc(k.url)}" target="_blank" rel="noopener noreferrer">${esc(shownTitle(k))}<span class="sr-only"> (nouvel onglet)</span></a>` : esc(shownTitle(k))}</div>
+    <div class="kcard-co">${esc(shownCompany(k) || 'Entreprise non communiquée')}</div>
     ${State.applications[k.id] ? `<button class="kcard-app${State.applications[k.id].status === 'sent' ? ' sent' : ''}" type="button" data-app="${esc(k.id)}">${State.applications[k.id].status === 'sent' ? ICONS.check + ' Envoyée au recruteur' : ICONS.document + ' Dossier prêt · ouvrir'}</button>` : ''}
     <div class="kcard-actions">
       ${prev ? `<button class="kcard-btn" type="button" data-id="${esc(k.id)}" data-dir="prev" aria-label="Déplacer vers « ${prev.label} »">${ICONS.left}</button>` : ''}
@@ -3035,8 +3051,8 @@ function renderHistory() {
     const d = new Date(h.date).toLocaleDateString('fr-FR');
     return `<div class="hist-item">
       <div class="hist-info">
-        <div class="hist-title">${h.url ? `<a href="${esc(h.url)}" target="_blank" rel="noopener noreferrer">${esc(h.title)}<span class="sr-only"> (nouvel onglet)</span></a>` : esc(h.title)}</div>
-        <div class="hist-co">${esc(h.company || 'Entreprise non communiquée')} · ${d}</div>
+        <div class="hist-title">${h.url ? `<a href="${esc(h.url)}" target="_blank" rel="noopener noreferrer">${esc(shownTitle(h))}<span class="sr-only"> (nouvel onglet)</span></a>` : esc(shownTitle(h))}</div>
+        <div class="hist-co">${esc(shownCompany(h) || 'Entreprise non communiquée')} · ${d}</div>
       </div>
       <label class="sr-only" for="hist-${esc(h.id)}">Statut</label>
       <select class="form-input hist-status ${s.cls}" id="hist-${esc(h.id)}" data-id="${esc(h.id)}">
@@ -3424,7 +3440,7 @@ function exportPDF() {
     <div class="stat"><b>${State.applied.size}</b><br>Offres suivies</div>
     <div class="stat"><b>${State.history.length}</b><br>Suivis</div>
   </div>
-  ${State.history.length ? `<h2>Offres suivies</h2>${State.history.slice(0, 10).map(h => `<p>• <b>${esc(h.title)}</b> — ${esc(h.company)}</p>`).join('')}` : ''}
+  ${State.history.length ? `<h2>Offres suivies</h2>${State.history.slice(0, 10).map(h => `<p>• <b>${esc(shownTitle(h))}</b> — ${esc(shownCompany(h))}</p>`).join('')}` : ''}
   <div class="foot">Dossier généré par TalentPulse · ${new Date().toLocaleDateString('fr-FR')}</div>
   </body></html>`;
   win.document.write(html);
@@ -3437,10 +3453,10 @@ function exportPDF() {
 function shareJob(id) {
   const j = findJob(id);
   if (!j) return;
-  const text = `Offre : ${j.title}${j.company ? ' chez ' + j.company : ''}${j.city ? ' à ' + j.city : ''}`;
+  const text = `Offre : ${shownTitle(j)}${shownCompany(j) ? ' chez ' + shownCompany(j) : ''}${j.city ? ' à ' + j.city : ''}`;
   const url = SITE + '/offre/' + encodeURIComponent(j.id);
   if (navigator.share) {
-    navigator.share({ title: j.title, text, url }).catch(() => {});
+    navigator.share({ title: shownTitle(j), text, url }).catch(() => {});
   } else if (navigator.clipboard) {
     navigator.clipboard.writeText(text + ' — ' + url).then(() => toast('Lien copié', 'ok'), () => window.open(`https://wa.me/?text=${encodeURIComponent(text + ' — ' + url)}`, '_blank', 'noopener'));
   } else {
