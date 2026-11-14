@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import handler from '../api/seo.js';
-import { _clearCache, activeOfferEntries } from '../lib/seo.js';
+import { _clearCache, activeOfferEntries, landingTitle, landingDescription, displaySearchLabel, elisionDe } from '../lib/seo.js';
 import { _test as jobsApi } from '../lib/jobs.js';
 import { JOBS, PLACES, isCurated, curatedPaths, slugify, nearbyPlaces, relatedJobs } from '../lib/seo-data.js';
 import '../public/assets/geo-fr.js';
@@ -59,6 +59,7 @@ test('page curée : title/meta/canonical uniques, H1, 1re page en HTML, fil d’
   const h = r.body;
   assert.equal(meta(h, /<title>([^<]*)<\/title>/), 'Développeur en Île-de-France : 152 offres France Travail | TalentPulse');
   assert.match(meta(h, /<meta name="description" content="([^"]*)"/), /^152 offres de développeur \/ développeuse dans toute la région/);
+  assert.match(meta(h, /<meta name="description" content="([^"]*)"/), /Publiées sur France Travail/);
   assert.equal(meta(h, /<link rel="canonical" href="([^"]*)"/), 'https://talentpulse-topaz.vercel.app/offres/developpeur/ile-de-france');
   assert.equal(meta(h, /<meta name="robots" content="([^"]*)"/), 'index,follow');
   assert.equal(meta(h, /<meta property="og:url" content="([^"]*)"/), 'https://talentpulse-topaz.vercel.app/offres/developpeur/ile-de-france');
@@ -300,6 +301,8 @@ test('pages statiques : title, description et canonical propres ; connexion et m
     confidentialite: ['Politique de confidentialité — TalentPulse', 'Comment TalentPulse traite vos données : stockage local, compte optionnel, sous-traitants, durées de conservation et droits.', '/confidentialite', 'index,follow', null],
     connexion: ['Connexion — TalentPulse', 'Connectez-vous ou créez un compte gratuit pour synchroniser favoris, suivi et alertes.', '/connexion', 'noindex, nofollow', 'page-login'],
     'mon-espace': ['Mon espace — TalentPulse', 'Vos favoris, votre suivi de candidatures et vos alertes, sur cet appareil ou synchronisés avec votre compte.', '/mon-espace', 'noindex, nofollow', 'page-profile'],
+    lettre: ['Lettre de motivation — TalentPulse', 'Générez une trame de lettre de motivation à personnaliser.', '/lettre', 'index,follow', 'page-lettre'],
+    conseils: ['Conseils carrière — TalentPulse', 'Conseils pour réussir votre recherche d’emploi.', '/conseils', 'index,follow', 'page-conseils'],
   };
   for (const [page, [title, description, path, robots, section]] of Object.entries(pages)) {
     const r = await call({ page });
@@ -322,6 +325,8 @@ test('pages statiques : title, description et canonical propres ; connexion et m
     assert.equal((r.body.match(/<h1[\s>]/g) || []).length, 1, 'un seul h1 sur ' + page);
     if (page === 'connexion') assert.match(r.body, /<h1 class="auth-title" id="authTitle">Connexion<\/h1>/);
     else if (page === 'mon-espace') assert.match(r.body, /<h1 class="profile-name" id="profName">Mon espace<\/h1>/);
+    else if (page === 'lettre') assert.match(r.body, /<h1[^>]*\bid="lettreTitle"[^>]*>Lettre de motivation<\/h1>/);
+    else if (page === 'conseils') assert.match(r.body, /<h1[^>]*\bid="conseilsTitle"[^>]*>Conseils carrière<\/h1>/);
     else assert.match(r.body, /<h1 id="legalPageTitle">/, page);
     assert.equal(r.headers['x-robots-tag'], robots.replace(/,\s*/g, ', '), page);
   }
@@ -331,6 +336,43 @@ test('pages statiques : title, description et canonical propres ; connexion et m
   const pub = await call({ page: 'cgu' });
   assert.match(pub.headers['cache-control'], /s-maxage=/);
   assert.equal((await call({ page: 'inconnue' })).status, 404);
+
+  const mentions = await call({ page: 'mentions-legales' });
+  assert.match(mentions.body, /SIREN/);
+  assert.match(mentions.body, /Vercel Inc\./);
+  assert.match(mentions.body, /\[À COMPLÉTER : adresse email de contact vérifiée\]/);
+  const article = mentions.body.split('id="legalPage"')[1] || '';
+  assert.ok(article.length > 500, 'le corps légal est dans le HTML SSR');
+  assert.match((await call({ page: 'cgu' })).body, /\[À COMPLÉTER : tribunal compétent\]/);
+});
+
+test('titre d’atterrissage : 1 offre au singulier, total attribué à France Travail', () => {
+  const job = JOBS.find(j => j.slug === 'developpeur');
+  const place = PLACES.find(p => p.slug === 'nimes');
+  assert.equal(landingTitle(job, place, 1), 'Développeur à Nîmes : 1 offre France Travail | TalentPulse');
+  assert.equal(landingTitle(job, place, 2), 'Développeur à Nîmes : 2 offres France Travail | TalentPulse');
+  const emploi = JOBS.find(j => j.slug === 'emploi');
+  assert.match(landingTitle(emploi, place, 1), /1 annonce France Travail/);
+  const one = landingDescription(job, place, 1, { contracts: [['CDI', 1]] });
+  assert.match(one, /1 offre de développeur/);
+  assert.doesNotMatch(one, /1 offres/);
+  assert.match(one, /Publiée sur France Travail/);
+  assert.match(one, /Adzuna et Choisir le Service Public peuvent s’y ajouter/);
+  const many = landingDescription(job, place, 152, { contracts: [['CDI', 80], ['CDD', 40]] });
+  assert.match(many, /Publiées sur France Travail/);
+  assert.equal(displaySearchLabel('etudiant'), 'Étudiant');
+  assert.equal(displaySearchLabel('teletravail'), 'Télétravail');
+  assert.equal(elisionDe('informatique'), 'd’informatique');
+  assert.equal(elisionDe('serveur'), 'de serveur');
+});
+
+test('page libre : typographie des intitulés noindex (accents, élision, trait d’union)', async () => {
+  const r = await call({ kw: 'informatique', lieu: 'rueil-malmaison' });
+  assert.equal(r.status, 200);
+  assert.equal(meta(r.body, /<title>([^<]*)<\/title>/), 'Informatique à Rueil-Malmaison — TalentPulse');
+  assert.match(meta(r.body, /<meta name="description" content="([^"]*)"/), /Offres d’informatique à Rueil-Malmaison/);
+  const e = await call({ kw: 'etudiant' });
+  assert.equal(meta(e.body, /<title>([^<]*)<\/title>/), 'Étudiant — TalentPulse');
 });
 
 test('données curées cohérentes avec la recherche du site (slugs, lieux reconnus, textes)', () => {
