@@ -341,3 +341,68 @@ test('fiche Adzuna : lien de candidature si l’offre n’est plus en mémoire, 
   assert.equal(hit.body.offre.url, 'https://www.adzuna.fr/land/ad/5414123798?se=abc');
   _test._resetJobMemo();
 });
+
+
+test('recherche : post-filtre haversine (Rueil 5 km) et ville exacte, contrat inchangé', { skip: !online && 'geo.api.gouv.fr injoignable' }, async () => {
+  const { _test } = await import('../lib/jobs.js');
+  // mapFT / mapAdzuna capturent les coordonnées (champs internes)
+  const mapped = _test.mapFT({
+    id: 'GEO1', intitule: 'Comptable', entreprise: { nom: 'X' },
+    lieuTravail: { libelle: '92 - BOULOGNE BILLANCOURT', latitude: 48.8375, longitude: 2.2429, commune: '92012', codePostal: '92100' },
+    typeContrat: 'CDI', dateCreation: '2026-11-01T10:00:00.000Z',
+    origineOffre: { urlOrigine: 'https://candidat.francetravail.fr/offres/recherche/detail/GEO1' },
+  });
+  assert.equal(mapped._lat, 48.8375);
+  assert.equal(mapped._lon, 2.2429);
+  assert.equal(mapped._insee, '92012');
+  assert.equal(mapped.postalCode, '92100');
+  const adz = _test.mapAdzuna({ id: 99, title: 'Serveur', latitude: 48.8976, longitude: 2.2574, location: { display_name: 'Courbevoie, Hauts-de-Seine' }, redirect_url: 'https://adzuna.fr/99' });
+  assert.equal(adz._lat, 48.8976);
+  assert.equal(adz.city, 'Courbevoie');
+
+  const prev = global.fetch;
+  const real = realFetch;
+  const ftJobs = [
+    { id: 'RUEIL1', intitule: 'Comptable Rueil', entreprise: { nom: 'A' }, lieuTravail: { libelle: '92 - RUEIL MALMAISON', latitude: 48.8717, longitude: 2.1806, commune: '92063', codePostal: '92500' }, typeContrat: 'CDI', dateCreation: '2026-11-01T10:00:00.000Z', origineOffre: { urlOrigine: 'https://candidat.francetravail.fr/offres/recherche/detail/RUEIL1' } },
+    { id: 'NANT1', intitule: 'Comptable Nanterre', entreprise: { nom: 'B' }, lieuTravail: { libelle: '92 - NANTERRE', latitude: 48.8974, longitude: 2.2018, commune: '92050', codePostal: '92000' }, typeContrat: 'CDI', dateCreation: '2026-11-01T10:00:00.000Z', origineOffre: { urlOrigine: 'https://candidat.francetravail.fr/offres/recherche/detail/NANT1' } },
+    { id: 'BOUL1', intitule: 'Comptable Boulogne', entreprise: { nom: 'C' }, lieuTravail: { libelle: '92 - BOULOGNE BILLANCOURT', latitude: 48.8375, longitude: 2.2429, commune: '92012', codePostal: '92100' }, typeContrat: 'CDI', dateCreation: '2026-11-01T10:00:00.000Z', origineOffre: { urlOrigine: 'https://candidat.francetravail.fr/offres/recherche/detail/BOUL1' } },
+    { id: 'COUR1', intitule: 'Comptable Courbevoie', entreprise: { nom: 'D' }, lieuTravail: { libelle: '92 - COURBEVOIE', latitude: 48.8976, longitude: 2.2574, commune: '92026', codePostal: '92400' }, typeContrat: 'CDI', dateCreation: '2026-11-01T10:00:00.000Z', origineOffre: { urlOrigine: 'https://candidat.francetravail.fr/offres/recherche/detail/COUR1' } },
+    { id: 'INCONNU', intitule: 'Comptable lieu non précisé', entreprise: { nom: 'E' }, lieuTravail: { libelle: '' }, typeContrat: 'CDI', dateCreation: '2026-11-01T10:00:00.000Z', origineOffre: { urlOrigine: 'https://candidat.francetravail.fr/offres/recherche/detail/INCONNU' } },
+  ];
+  global.fetch = async (url, opts) => {
+    url = String(url);
+    if (url.includes('geo.api.gouv.fr')) return real(url, opts);
+    const json = (obj, headers = {}) => new Response(JSON.stringify(obj), { status: 200, headers: { 'content-type': 'application/json', ...headers } });
+    if (url.includes('access_token')) return json({ access_token: 'tok', expires_in: 1499 });
+    if (url.includes('offresdemploi/v2/offres/search')) return json({ resultats: ftJobs }, { 'Content-Range': 'offres 0-4/5' });
+    if (url.includes('api.adzuna.com')) return json({ count: 0, results: [] });
+    throw new Error('unexpected ' + url);
+  };
+  try {
+    const r = await call({ lieu: 'Rueil-Malmaison', distance: '5', source: 'ft' });
+    assert.equal(r.status, 200);
+    assert.equal(r.body.location?.label, 'Rueil-Malmaison');
+    assert.equal(r.body.location?.distance, 5);
+    assert.ok('resultats' in r.body && 'total' in r.body && 'totals' in r.body && 'page' in r.body && 'hasMore' in r.body, 'contrat de réponse inchangé');
+    const cities = r.body.resultats.map(j => j.city);
+    const ids = r.body.resultats.map(j => j.id);
+    assert.ok(ids.includes('ft_RUEIL1') && ids.includes('ft_NANT1'), 'Rueil et Nanterre conservés : ' + ids.join(','));
+    assert.ok(!ids.includes('ft_BOUL1') && !ids.includes('ft_COUR1'), 'Boulogne et Courbevoie exclus : ' + ids.join(','));
+    assert.ok(ids.includes('ft_INCONNU'), 'offre sans coordonnées conservée');
+    assert.ok(r.body.resultats.every(j => !('_lat' in j) && !('_insee' in j)), 'pas de champs internes dans la réponse');
+    assert.equal(r.body.totals.ft, 3, 'total FT = 3 offres conservées (page complète) : ' + JSON.stringify(r.body.totals));
+    assert.equal(r.body.total, 3);
+    assert.equal(r.body.hasMore, false, 'pagination cohérente : plus rien à charger');
+    assert.ok(!cities.some(c => /boulogne|courbevoie/i.test(c || '')));
+
+    const exact = await call({ lieu: 'Rueil-Malmaison', distance: '0', source: 'ft' });
+    const exactIds = exact.body.resultats.map(j => j.id);
+    assert.ok(exactIds.includes('ft_RUEIL1'), 'ville exacte : Rueil');
+    assert.ok(!exactIds.includes('ft_NANT1') && !exactIds.includes('ft_BOUL1'), 'ville exacte : hors commune exclus');
+    assert.ok(exactIds.includes('ft_INCONNU'), 'ville exacte : offre sans lieu conservée');
+    assert.equal(exact.body.totals.ft, exact.body.resultats.length);
+    assert.equal(exact.body.hasMore, false);
+  } finally {
+    global.fetch = prev;
+  }
+});

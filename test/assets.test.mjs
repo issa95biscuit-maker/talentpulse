@@ -86,3 +86,14 @@ test('sprint 5 : hero cinématique accessible (voile, mouvement réduit, crédit
   assert.ok(/prefers-reduced-motion:reduce\)\{\s*\.hero\.cine \.hero-photo img\{animation:none\}/.test(flat), 'travelling coupé si mouvement réduit');
   assert.ok(/href="\/mentions-legales#credits"/.test(html), 'lien crédits photos');
 });
+
+test('fiche et parcours Postuler : texte non tronqué, boutons et grille lisibles à 320 px', () => {
+  assert.match(html, /\.apply-sub\{[^}]*overflow-wrap:anywhere/);
+  assert.doesNotMatch(html, /\.apply-sub\{[^}]*text-overflow:\s*ellipsis/);
+  const compact = html.replace(/\s+/g, '');
+  assert.ok(compact.includes('.apply-pack-row{flex-wrap:wrap}'), 'rangée lettre/CV : pas de débordement');
+  assert.match(html, /\.apply-actions \.btn\{[^}]*white-space:\s*normal/);
+  assert.ok(compact.includes('@media(max-width:379px){.detail-cta{grid-template-columns:1fr}'), 'CTA empilés sous 380 px');
+  assert.ok(compact.includes('.detail-cta.btn{white-space:normal;min-width:0}'), 'libellés des boutons non coupés');
+  assert.ok(compact.includes('@media(max-width:379px)') && compact.includes('.detail-grid{grid-template-columns:1fr}'), 'faits de l’offre en une colonne à 320 px');
+});
