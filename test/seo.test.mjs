@@ -214,12 +214,16 @@ test('offre inconnue ou expirée : 410, message, noindex, pas de liste nationale
   assert.equal((r.body.match(/<h1[\s>]/g) || []).length, 1);
 });
 
-test('fiche Adzuna : JSON-LD si la fiche est complète, rien sur un rappel sans données', async () => {
+test('fiche Adzuna : JSON-LD si la fiche est complète, 410 propre sans mémoire', async () => {
   jobsApi._resetJobMemo();
   let r = await call({ offre: 'adz_5414123798' });
-  assert.equal(r.status, 200);
+  assert.equal(r.status, 410);
   assert.match(r.headers['x-robots-tag'], /noindex/);
   assert.ok(!/JobPosting/.test(r.body));
+  assert.match(r.body, /Cette offre n’est plus disponible/);
+  assert.match(r.body, /https:\/\/www\.adzuna\.fr\/details\/5414123798/);
+  assert.match(r.body, /<title>Offre indisponible — TalentPulse<\/title>/);
+  assert.ok(!/Offre d[’']emploi/.test(r.body.replace(/Toutes les offres d[’']emploi en France/, '')));
 
   jobsApi.memoJobs([jobsApi.mapAdzuna({
     id: 5414123798, title: 'Serveur en terrasse', company: { display_name: 'Café du Port' },
