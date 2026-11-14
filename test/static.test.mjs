@@ -119,3 +119,14 @@ test('footer et drawer : À propos, Contact et CGU pointent vers de vraies pages
     assert.ok(rewrites.includes(path), 'rewrite Vercel ' + path);
   }
 });
+
+test('SSR lettre/conseils, pages légales partagées, 404 et détails d’affichage', async () => {
+  assert.ok(vercel.rewrites.some(r => r.source === '/lettre' && r.destination.includes('page=lettre')));
+  assert.ok(vercel.rewrites.some(r => r.source === '/conseils' && r.destination.includes('page=conseils')));
+  assert.match(html, /<script src="\/assets\/legal-pages\.js\?v=\d+" defer>/);
+  assert.match(html, /id="liveJobStat"[^>]*\bhide\b|class="trust-item hide" id="liveJobStat"/);
+  assert.match(html, /\.auth-foot a\{[^}]*white-space:nowrap/);
+  assert.match(html, /\.ticker-track\{[^}]*padding:0 0 0 24px/);
+  const notFound = await readFile(new URL('../public/404.html', import.meta.url), 'utf8');
+  assert.match(notFound, /<meta name="description" content="Cette page n’existe pas/);
+});

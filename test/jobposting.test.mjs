@@ -167,3 +167,44 @@ test('mapping source : France Travail (code postal, salaire) et Service Public (
     contrat: 'CDI', metier: 'M', first: '2026-10-01', end: '2026-12-01', teletravail: 0, tempsPlein: 1,
   })), null);
 });
+
+test('France Travail : validThrough seulement si la source fournit une date d’expiration', () => {
+  const without = _test.mapFT({
+    id: 'ABC', intitule: 'SERVEUR H/F', entreprise: { nom: 'BRASSERIE DU PORT' },
+    lieuTravail: { libelle: '69 - LYON 07', codePostal: '69007' }, typeContrat: 'CDD',
+    description: 'Service en terrasse.', dateCreation: '2026-11-03T09:00:00.000Z',
+    origineOffre: { urlOrigine: 'https://candidat.francetravail.fr/offres/recherche/detail/ABC' },
+  });
+  assert.equal(without.expires, undefined);
+  assert.equal(jobPostingLd(without).validThrough, undefined);
+
+  const withDate = _test.mapFT({
+    id: 'ABC', intitule: 'SERVEUR H/F', entreprise: { nom: 'BRASSERIE DU PORT' },
+    lieuTravail: { libelle: '69 - LYON 07', codePostal: '69007' }, typeContrat: 'CDD',
+    description: 'Service en terrasse.', dateCreation: '2026-11-03T09:00:00.000Z',
+    dateExpiration: '2026-12-31',
+    origineOffre: { urlOrigine: 'https://candidat.francetravail.fr/offres/recherche/detail/ABC' },
+  });
+  assert.equal(withDate.expires, '2026-12-31');
+  assert.equal(jobPostingLd(withDate).validThrough, '2026-12-31');
+
+  const fromDateTime = _test.mapFT({
+    id: 'ABC', intitule: 'SERVEUR H/F', entreprise: { nom: 'BRASSERIE DU PORT' },
+    lieuTravail: { libelle: '69 - LYON 07', codePostal: '69007' }, typeContrat: 'CDD',
+    description: 'Service en terrasse.', dateCreation: '2026-11-03T09:00:00.000Z',
+    dateValidite: '2027-01-15T00:00:00+01:00',
+    origineOffre: { urlOrigine: 'https://candidat.francetravail.fr/offres/recherche/detail/ABC' },
+  });
+  assert.equal(fromDateTime.expires, '2027-01-15');
+  assert.equal(jobPostingLd(fromDateTime).validThrough, '2027-01-15');
+
+  const bogus = _test.mapFT({
+    id: 'ABC', intitule: 'SERVEUR H/F', entreprise: { nom: 'BRASSERIE DU PORT' },
+    lieuTravail: { libelle: '69 - LYON 07', codePostal: '69007' }, typeContrat: 'CDD',
+    description: 'Service en terrasse.', dateCreation: '2026-11-03T09:00:00.000Z',
+    dateExpiration: 'fin décembre',
+    origineOffre: { urlOrigine: 'https://candidat.francetravail.fr/offres/recherche/detail/ABC' },
+  });
+  assert.equal(bogus.expires, undefined);
+  assert.equal(jobPostingLd(bogus).validThrough, undefined);
+});
