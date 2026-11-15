@@ -44,7 +44,7 @@
     <ul>
     <li>Photographies d’ambiance : Negley Stockman et Centre for Ageing Better via <a href="https://unsplash.com/license" rel="noopener" target="_blank" style="text-decoration:underline">Unsplash</a> (licence Unsplash) ; Joe deSousa, Christina Morillo, Startup Stock Photos, Burst, Direct Media, Janko Ferlic, Michael Browning, Leeroy et Seb Creativo via <a href="https://stocksnap.io/license" rel="noopener" target="_blank" style="text-decoration:underline">StockSnap</a> (CC0).</li>
     <li>Icônes : <a href="https://lucide.dev" rel="noopener" target="_blank" style="text-decoration:underline">Lucide</a> (licence ISC).</li>
-    <li>Données géographiques : <a href="https://geo.api.gouv.fr" rel="noopener" target="_blank" style="text-decoration:underline">API Découpage administratif</a> (geo.api.gouv.fr, Licence Ouverte Etalab).</li>
+    <li>Données géographiques : <a href="https://geo.api.gouv.fr" rel="noopener" target="_blank" style="text-decoration:underline">API Découpage administratif</a> (geo.api.gouv.fr, Licence Ouverte Etalab 2.0). Le repli local des communes (nom, code INSEE, codes postaux, centre, département et population lorsqu’elle est publiée) est un relevé du 15 novembre 2026 de <a href="https://geo.api.gouv.fr/communes?fields=nom,code,codesPostaux,codeDepartement,population,centre" rel="noopener" target="_blank" style="text-decoration:underline">geo.api.gouv.fr/communes</a>.</li>
     </ul>`
       },
       '/confidentialite': {
