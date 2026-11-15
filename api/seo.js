@@ -3,6 +3,7 @@
  * (via les rewrites de vercel.json). HTML rendu côté serveur, mis en cache sur le CDN.
  */
 import { renderLanding, renderOffer, renderStaticPage, sitemap } from '../lib/seo.js';
+import { applyCacheHeaders } from '../lib/http.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'HEAD') { res.setHeader('Allow', 'GET, HEAD'); return res.status(405).end(); }
@@ -23,7 +24,7 @@ export default async function handler(req, res) {
     return res.status(r.status).end(req.method === 'HEAD' ? '' : r.body);
   } catch (e) {
     console.error('[seo]', e);
-    res.setHeader('Cache-Control', 'no-store');
+    applyCacheHeaders(res, 'no-store');
     return res.status(500).end('Erreur interne');
   }
 }

@@ -3,6 +3,7 @@
  * Toute la logique est dans lib/jobs.js (réutilisée par le cron des alertes).
  */
 import { searchJobs } from '../lib/jobs.js';
+import { applyCacheHeaders } from '../lib/http.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -13,7 +14,7 @@ export default async function handler(req, res) {
 
   // Diagnostic : présence des variables (jamais leur valeur)
   if (q.debug === '1') {
-    res.setHeader('Cache-Control', 'no-store');
+    applyCacheHeaders(res, 'no-store');
     const has = k => !!(process.env[k] || '').trim();
     return res.status(200).json({
       env: {
@@ -24,6 +25,6 @@ export default async function handler(req, res) {
     });
   }
   const r = await searchJobs(q);
-  if (r.cache) res.setHeader('Cache-Control', r.cache);
+  if (r.cache) applyCacheHeaders(res, r.cache);
   return res.status(r.status).json(r.body);
 }
