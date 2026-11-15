@@ -138,20 +138,20 @@ test('timeout puis succès : la commune est résolue, le cache public est inchan
   assert.equal(new URL(ftUrl()).searchParams.get('commune'), '95018');
 });
 
-test('5xx persistant : lieu inconnu honnête, pas de cache partagé, contrat de type inchangé', async () => {
+test('5xx persistant : lieu absent du référentiel, pas de cache partagé, contrat de type inchangé', async () => {
   mode = 'http503';
-  const r = await call({ lieu: 'Argenteuil', source: 'ft' });
+  const r = await call({ lieu: 'Zzzyville', source: 'ft' });
   assert.equal(geoCalls, 2, 'pas de troisième essai');
   assert.equal(r.body.location.type, 'unknown');
   assert.equal(r.body.location.reason, 'geocoding_unavailable');
   assert.equal(r.body.location.code, '');
-  assert.equal(r.body.location.label, 'Argenteuil');
+  assert.equal(r.body.location.label, 'Zzzyville');
   assert.ok(Array.isArray(r.body.location.suggestions));
   assert.equal(new URL(ftUrl()).searchParams.get('commune'), null);
   assert.equal(new URL(ftUrl()).searchParams.get('departement'), null);
   assert.equal(new URL(ftUrl()).searchParams.get('region'), null);
   assertPrivate(r);
-  const count = await call({ lieu: 'Argenteuil', source: 'ft', count: '1' });
+  const count = await call({ lieu: 'Zzzyville', source: 'ft', count: '1' });
   assertPrivate(count);
   assert.equal(count.body.location, undefined);
 });
@@ -159,9 +159,11 @@ test('5xx persistant : lieu inconnu honnête, pas de cache partagé, contrat de 
 test('échec non mémorisé : la requête suivante interroge à nouveau le géocodage', async () => {
   mode = 'http503';
   const failed = await J.resolveLocation({ lieu: 'Argenteuil' });
-  assert.equal(failed.type, 'unknown');
-  assert.equal(failed.reason, 'geocoding_unavailable');
+  assert.equal(failed.type, 'commune', 'Argenteuil est dans le relevé local');
+  assert.equal(failed.insee, '95018');
+  assert.equal(failed.reason, undefined);
   const afterFail = geoCalls;
+  assert.equal(afterFail, 2, 'deux essais API avant le relevé');
   mode = 'ok';
   const ok = await J.resolveLocation({ lieu: 'Argenteuil' });
   assert.equal(ok.type, 'commune');
