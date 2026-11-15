@@ -1363,7 +1363,9 @@ async function loadJobs(params = {}, { append = false, auto = false, requestId: 
     if (!append && data.location && data.location.type === 'unknown' && params.city) {
       const header = $('#jobsHeader');
       const kw = params.kw ? `Offres «\u00a0${params.kw}\u00a0»` : 'Offres';
-      if (header) header.textContent = `${kw} — lieu non reconnu, toute la France`;
+      if (header) header.textContent = data.location.reason === 'geocoding_unavailable'
+        ? `${kw} — localisation momentanément indisponible`
+        : `${kw} — lieu non reconnu, toute la France`;
     } else if (!append && disp && params.city && disp !== params.city) {
       params.city = disp;
       State.lastSearch.city = disp;
@@ -1394,8 +1396,12 @@ function renderJobsNotice(params) {
   const loc = State.resolvedLocation;
   if (params.city && loc) {
     if (loc.type === 'unknown') {
-      const sugg = (loc.suggestions || []).slice(0, 3).map(s => esc(s)).filter(Boolean);
-      notes.push(`Lieu « ${esc(params.city)} » non reconnu. Les résultats couvrent toute la France (ou sont vides) : ce n’est pas une recherche locale.${sugg.length ? ` Peut-être : ${sugg.join(', ')}.` : ' Essayez un nom de ville, un code postal ou un département.'}`);
+      if (loc.reason === 'geocoding_unavailable') {
+        notes.push(`Localisation momentanément indisponible pour « ${esc(params.city)} ». Les résultats couvrent toute la France, sans rayon autour de ce lieu.`);
+      } else {
+        const sugg = (loc.suggestions || []).slice(0, 3).map(s => esc(s)).filter(Boolean);
+        notes.push(`Lieu « ${esc(params.city)} » non reconnu. Les résultats couvrent toute la France (ou sont vides) : ce n’est pas une recherche locale.${sugg.length ? ` Peut-être : ${sugg.join(', ')}.` : ' Essayez un nom de ville, un code postal ou un département.'}`);
+      }
     }
     else if (loc.approx) notes.push(`Résultats pour <strong>${esc(loc.label)}</strong> (lieu le plus proche de « ${esc(params.city)} »).`);
     else if (loc.type === 'commune' || loc.type === 'arrondissement') {
