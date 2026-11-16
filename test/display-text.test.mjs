@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import '../public/assets/display-text.js';
 
-const { typoTitle, displayTitle, displayCompany, CSP_EMPLOYER_MAX } = globalThis.TP_DISPLAY;
+const { typoTitle, displayTitle, displayContract, displayCompany, CSP_EMPLOYER_MAX } = globalThis.TP_DISPLAY;
 
 test('typoTitle : H/F en doublon, majuscules, compactage typographique', () => {
   assert.equal(typoTitle('VENDEUR CONSEIL EN MAGASIN H/F (H/F)'), 'Vendeur conseil en magasin (H/F)');
@@ -29,6 +29,67 @@ test('displayTitle : écriture inclusive développée, données typographiques c
   assert.equal(displayTitle('Manager(e) commercial (H/F)'), 'Manager(e) commercial (H/F)');
   // typoTitle ne développe pas les doublets
   assert.equal(typoTitle('Vendeur(se) expo menuiseries (H/F)'), 'Vendeur(se) expo menuiseries (H/F)');
+});
+
+test('displayTitle : suffixe abrégé après une barre, sans inventer un mot douteux', () => {
+  assert.equal(displayTitle('Vendeur/euse en boulangerie (H/F)'), 'Vendeur / Vendeuse en boulangerie (H/F)');
+  assert.equal(displayTitle('Vendeur/Vendeuse Showroom (H/F)'), 'Vendeur / Vendeuse Showroom (H/F)');
+  assert.equal(displayTitle('Vendeur/ Vendeuse en parapharmacie (H/F)'), 'Vendeur / Vendeuse en parapharmacie (H/F)');
+  assert.equal(displayTitle('Vendeur / Vendeuse Showroom (H/F)'), 'Vendeur / Vendeuse Showroom (H/F)');
+  assert.equal(displayTitle('FORMATEURS/TRICES stage BAFA et BAFD (H/F)'), 'Formateurs / Formatrices stage BAFA et BAFD (H/F)');
+  assert.equal(displayTitle('Préparateur/trice'), 'Préparateur / Préparatrice');
+  assert.equal(displayTitle('Coach/Formateur/trice'), 'Coach / Formateur / Formatrice');
+  assert.equal(displayTitle('Boulanger/ère (H/F)'), 'Boulanger / Boulangère (H/F)');
+  assert.equal(displayTitle('Infirmier/ère'), 'Infirmier / Infirmière');
+  assert.equal(displayTitle('Pâtissier/ière'), 'Pâtissier / Pâtissière');
+  assert.equal(displayTitle('Technicien/ne'), 'Technicien / Technicienne');
+  assert.equal(displayTitle('Musicien/ienne'), 'Musicien / Musicienne');
+  assert.equal(displayTitle('Chargé/e de mission'), 'Chargé / Chargée de mission');
+  assert.equal(displayTitle('Agent/e d’entretien'), 'Agent / Agente d’entretien');
+  assert.equal(displayTitle('Serveur/se'), 'Serveur / Serveuse');
+  assert.equal(displayTitle('Vendeurs/euses'), 'Vendeurs / Vendeuses');
+  assert.equal(displayTitle('Pharmacie/Parapharmacie'), 'Pharmacie / Parapharmacie');
+  assert.equal(displayTitle('Barman/barmaid'), 'Barman / barmaid');
+  assert.equal(displayTitle('Manager/e commercial (H/F)'), 'Manager/e commercial (H/F)');
+  assert.equal(displayTitle('Foo/euse'), 'Foo/euse');
+  assert.equal(displayTitle('Foo/ienne'), 'Foo/ienne');
+  assert.equal(displayTitle('agent/ne'), 'Agent/ne');
+  // le titre source (API, JSON-LD) ne développe pas la barre
+  assert.equal(typoTitle('Vendeur/euse en boulangerie (H/F)'), 'Vendeur/euse en boulangerie (H/F)');
+});
+
+test('displayContract : durée France Travail lisible, libellé non reconnu intact', () => {
+  assert.equal(displayContract('Intérim - 3 Jour(s)'), 'Intérim · 3 jours');
+  assert.equal(displayContract('CDD - 6 Mois'), 'CDD · 6 mois');
+  assert.equal(displayContract('Saisonnier - 1 Mois'), 'Saisonnier · 1 mois');
+  assert.equal(displayContract('Intérim - 1 Jour(s)'), 'Intérim · 1 jour');
+  assert.equal(displayContract('CDD - 15 Jour(s)'), 'CDD · 15 jours');
+  assert.equal(displayContract('1 Jour'), '1 jour');
+  assert.equal(displayContract('1 Jours'), '1 jour');
+  assert.equal(displayContract('3 Jour(s)'), '3 jours');
+  assert.equal(displayContract('CDD - 1 An(s)'), 'CDD · 1 an');
+  assert.equal(displayContract('CDD - 2 An(s)'), 'CDD · 2 ans');
+  assert.equal(displayContract('CDD - 1 Année(s)'), 'CDD · 1 année');
+  assert.equal(displayContract('CDD - 3 Année(s)'), 'CDD · 3 années');
+  assert.equal(displayContract('CDD - 1 Annee(s)'), 'CDD · 1 année');
+  assert.equal(displayContract('Intérim - 1 Semaine(s)'), 'Intérim · 1 semaine');
+  assert.equal(displayContract('Intérim - 2 Semaine(s)'), 'Intérim · 2 semaines');
+  assert.equal(displayContract('Intérim - 1 Heure(s)'), 'Intérim · 1 heure');
+  assert.equal(displayContract('Intérim - 8 Heure(s)'), 'Intérim · 8 heures');
+  assert.equal(displayContract('Intérim - 1 Minute(s)'), 'Intérim · 1 minute');
+  assert.equal(displayContract('CDD - 1,5 Mois'), 'CDD · 1,5 mois');
+  assert.equal(displayContract('  CDD - 6 Mois  '), 'CDD · 6 mois');
+  assert.equal(displayContract('CDI'), 'CDI');
+  assert.equal(displayContract('CDI Intérimaire'), 'CDI Intérimaire');
+  assert.equal(displayContract('Profession libérale'), 'Profession libérale');
+  assert.equal(displayContract('Profession  libérale'), 'Profession  libérale');
+  assert.equal(displayContract("Reprise d'entreprise"), "Reprise d'entreprise");
+  assert.equal(displayContract('CDD de 3 ans'), 'CDD de 3 ans');
+  assert.equal(displayContract('CDD - 6 Mois renouvelable'), 'CDD - 6 Mois renouvelable');
+  assert.equal(displayContract('Intérim - temps plein'), 'Intérim - temps plein');
+  assert.equal(displayContract('Fonction publique de l’État, catégorie A'), 'Fonction publique de l’État, catégorie A');
+  assert.equal(displayContract(''), '');
+  assert.equal(displayContract(null), '');
 });
 
 test('displayCompany : ellipse au dernier mot complet, sans inventer la suite', () => {

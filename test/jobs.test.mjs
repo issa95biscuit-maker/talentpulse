@@ -251,6 +251,30 @@ test('parseFTSalary : corrige les périodes incohérentes (mensuel/annuel/horair
   assert.equal(horaire.annualMin, Math.round(12.31 * 1607));
 });
 
+test('API : contractDetail et le titre restent la valeur source', async () => {
+  const { _test } = await import('../lib/jobs.js');
+  const job = _test.mapFT({
+    id: '216KQLJ',
+    intitule: 'Vendeur/euse en boulangerie (H/F)',
+    typeContrat: 'MIS',
+    typeContratLibelle: 'Intérim - 3 Jour(s)',
+    dateCreation: '2026-11-16T00:00:00.000Z',
+    lieuTravail: { libelle: '94 - IVRY SUR SEINE' },
+  });
+  assert.equal(job.contract, 'Intérim');
+  assert.equal(job.contractDetail, 'Intérim - 3 Jour(s)');
+  assert.equal(job.title, 'Vendeur/euse en boulangerie (H/F)');
+  const cdd = _test.mapFT({
+    id: '216JDKZ',
+    intitule: 'Vendeur en boulangerie (H/F)',
+    typeContrat: 'CDD',
+    typeContratLibelle: 'CDD - 6 Mois',
+    dateCreation: '2026-11-16T00:00:00.000Z',
+  });
+  assert.equal(cdd.contractDetail, 'CDD - 6 Mois');
+  assert.equal(cdd.title, 'Vendeur en boulangerie (H/F)');
+});
+
 test('contrat : alternance prioritaire, déduction si vide, pastille non inventée côté API', async () => {
   const { _test } = await import('../lib/jobs.js');
   const alt = _test.mapFT({ id: '1', intitule: 'Alternance - serveur (H/F)', typeContrat: 'CDD', alternance: false, description: 'Contrat de professionnalisation', dateCreation: '2026-10-01T00:00:00Z' });

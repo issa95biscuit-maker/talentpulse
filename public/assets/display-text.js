@@ -6,6 +6,8 @@
  * typoTitle : nettoyage typographique (casse, H/F en doublon, accents manquants).
  *             Appliqué aux données et, le cas échéant, au JSON-LD.
  * displayTitle : typoTitle + écriture inclusive développée, pour l'affichage uniquement.
+ * displayContract : durée France Travail (« Intérim - 3 Jour(s) ») rendue lisible.
+ *             Affichage seulement : contractDetail de l'API reste la valeur source.
  * displayCompany : ellipse propre si le nom Service Public a été coupé à la source (90 car.).
  */
 (function () {
@@ -77,6 +79,50 @@
     return '';
   }
 
+  // Suffixe court après une barre (« vendeur/euse »), pas un second mot (« Vendeur/Vendeuse »).
+  const SLASH_SUF = 'iennes|ienne|euses|euse|trices|trice|ières|ière|ieres|iere|ères|ère|eres|ere|rices|rice|ives|ive|ses|se|nes|ne|es|e';
+  const BARE_SUF = new RegExp('^(?:' + SLASH_SUF + ')$', 'i');
+  const STEM_ACCENT = { charge: 'chargé', employe: 'employé', delegue: 'délégué', attache: 'attaché' };
+
+  function canonicalSuffix(suf) {
+    const s = String(suf || '').toLowerCase();
+    const bare = s.normalize('NFD').replace(/\p{M}/gu, '');
+    if (bare === 'iere' || bare === 'ere') return 'ère';
+    if (bare === 'ieres' || bare === 'eres') return 'ères';
+    return s;
+  }
+
+  function accentStem(masc) {
+    const bare = masc.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+    const fix = STEM_ACCENT[bare];
+    return fix ? sameCap(masc, fix) : masc;
+  }
+
+  /** Féminin d'un suffixe abrégé. Chaîne vide si la forme n'est pas sûre : on n'invente pas le mot. */
+  function feminineSlash(masc, suf) {
+    const s = canonicalSuffix(suf);
+    if (s === 'ienne') return /ien$/i.test(masc) ? masc.slice(0, -3) + 'ienne' : '';
+    if (s === 'ne') return /(ien|on)$/i.test(masc) ? masc + 'ne' : '';
+    return feminineOf(masc, s);
+  }
+
+  function expandSlashPair(masc, sufRaw) {
+    let suf = canonicalSuffix(sufRaw);
+    let stem = masc;
+    let plural = false;
+    if (/s$/i.test(suf) && /s$/i.test(stem) && stem.length > 2 && suf.length > 1) {
+      plural = true;
+      stem = stem.slice(0, -1);
+      suf = canonicalSuffix(suf.slice(0, -1));
+    }
+    stem = accentStem(stem);
+    const fem = feminineSlash(stem, suf);
+    if (!fem) return '';
+    const mascOut = plural ? stem + 's' : stem;
+    const femOut = plural ? fem + 's' : fem;
+    return mascOut + ' / ' + sameCap(mascOut, femOut);
+  }
+
   function expandInclusive(s) {
     let out = String(s);
     out = out.replace(/(\p{L}[\p{L}'’.-]*)\((e|ne|se|euse|ère|rice|trice|ive)\)/gu, (all, masc, suf) => {
@@ -88,19 +134,57 @@
       if (/^chef$/i.test(masc)) return masc + ' / ' + sameCap(masc, 'cheffe');
       return all;
     });
+    out = out.replace(new RegExp('(\\p{L}[\\p{L}\'’.-]*)\\s*\\/\\s*(' + SLASH_SUF + ')\\b', 'giu'), (all, masc, suf) => expandSlashPair(masc, suf) || all);
     out = out.replace(/\b(\p{L}*t)eurs?\/trices?\b/giu, (all, stem) => {
       const masc = all.split('/')[0];
       const plural = /s$/i.test(masc);
       const fem = stem + 'rice' + (plural ? 's' : '');
       return masc + ' / ' + sameCap(masc, fem);
     });
-    out = out.replace(/(\p{L}{2,})\/(\p{L}{2,})/gu, '$1 / $2');
+    // Barre collée (« Pharmacie/Parapharmacie ») ou espace d'un seul côté (« Vendeur/ Vendeuse »).
+    // On ne réécrit pas une barre déjà entourée d'espaces : sinon « Préparatrice/vendeur »
+    // qui suit « Préparateur / » resterait collé. Un suffixe non développé (« Foo/euse ») reste source.
+    const spaceSlash = (all, a, b) => (BARE_SUF.test(b) ? all : a + ' / ' + b);
+    out = out.replace(/(\p{L}{2,})\/(\p{L}{2,})/gu, spaceSlash);
+    out = out.replace(/(\p{L}{2,})\/\s+(\p{L}{2,})/gu, spaceSlash);
+    out = out.replace(/(\p{L}{2,})\s+\/(\p{L}{2,})/gu, spaceSlash);
     return out.replace(/\s+/g, ' ').trim();
   }
 
   function displayTitle(t) {
     const s = typoTitle(t);
     return s ? expandInclusive(s) : s;
+  }
+
+  const CONTRACT_UNIT = {
+    jour: ['jour', 'jours'], jours: ['jour', 'jours'],
+    mois: ['mois', 'mois'],
+    an: ['an', 'ans'], ans: ['an', 'ans'],
+    année: ['année', 'années'], années: ['année', 'années'],
+    annee: ['année', 'années'], annees: ['année', 'années'],
+    semaine: ['semaine', 'semaines'], semaines: ['semaine', 'semaines'],
+    heure: ['heure', 'heures'], heures: ['heure', 'heures'],
+    minute: ['minute', 'minutes'], minutes: ['minute', 'minutes'],
+  };
+
+  /**
+   * « Intérim - 3 Jour(s) » → « Intérim · 3 jours », « CDD - 6 Mois » → « CDD · 6 mois ».
+   * Un libellé qui n'est pas « [type -] nombre unité » repart tel quel.
+   */
+  function displayContract(value) {
+    const raw = value == null ? '' : String(value);
+    const s = raw.replace(/[\u00a0\u202f]/g, ' ').replace(/[ \t]+/g, ' ').trim();
+    if (!s) return '';
+    const m = s.match(/^(?:(.+?)\s+[-–—‑]\s+)?(\d+(?:[.,]\d+)?)\s+(années|annees|année|annee|semaines|semaine|heures|heure|minutes|minute|jours|jour|mois|ans|an)(?:\(s\))?\s*$/i);
+    if (!m) return raw.trim();
+    const n = Number(m[2].replace(',', '.'));
+    if (!Number.isFinite(n)) return raw.trim();
+    const forms = CONTRACT_UNIT[m[3].toLowerCase()];
+    if (!forms) return raw.trim();
+    const qty = Number.isInteger(n) ? String(n) : m[2].replace('.', ',');
+    const duration = qty + ' ' + forms[n === 1 ? 0 : 1];
+    const prefix = (m[1] || '').trim();
+    return prefix ? prefix + ' · ' + duration : duration;
   }
 
   /**
@@ -118,5 +202,5 @@
     return (base || cut) + '…';
   }
 
-  globalThis.TP_DISPLAY = { typoTitle, displayTitle, displayCompany, dedupeTitlePrefix, CSP_EMPLOYER_MAX };
+  globalThis.TP_DISPLAY = { typoTitle, displayTitle, displayContract, displayCompany, dedupeTitlePrefix, CSP_EMPLOYER_MAX };
 })();
