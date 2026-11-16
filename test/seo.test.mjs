@@ -520,3 +520,17 @@ test('page ville : canonical, fil d’Ariane, faits réels et communes voisines 
   assert.ok(hits.every(h => h.km <= 30 && h.row.code !== '75056'));
   assert.ok(hits.every(h => !/^Paris \d/i.test(h.row.nom)));
 });
+
+test('liste vide : hauteur réservée pour que le pied de page ne se décale pas', async () => {
+  mode = 'ok';
+  const { readFileSync } = await import('node:fs');
+  const css = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
+  assert.match(css, /#jobsList:empty\{min-height:360px\}/);
+  assert.match(css, /#jobsNotice\.reserve-notice\{min-height:48px\}/);
+  const shell = await call({ kw: 'emploi', lieu: 'chatou' });
+  assert.match(shell.body, /<div id="jobsNotice" class="reserve-notice"><\/div>/);
+  assert.match(shell.body, /<div class="jobs-list" id="jobsList" aria-busy="false"><\/div>/);
+  const withOffers = await call({ kw: 'developpeur', lieu: 'nimes' });
+  assert.doesNotMatch(withOffers.body, /id="jobsNotice" class="reserve-notice"/);
+  assert.match(withOffers.body, /<div class="jobs-list" id="jobsList" aria-busy="false"><article class="job"/);
+});

@@ -448,6 +448,11 @@ body.dark .theme-icon-light{display:none}
   .sort-select{flex:0 1 auto;width:auto;max-width:calc(100% - 5.25rem)}
 }
 .jobs-list{display:grid;gap:var(--sp-3)}
+/* Liste vide : sans cette réserve le pied de page est dans l’écran (412×823)
+   et descend quand les offres arrivent. 360 px le place sous la ligne de flottaison. */
+#jobsList:empty{min-height:360px}
+/* Bandeau de localisation : 48 px sur une ligne, réservé dès le HTML des recherches libres. */
+#jobsNotice.reserve-notice{min-height:48px}
 .jobs-notice{margin-bottom:var(--sp-2)}
 .jobs-more{display:grid;justify-items:center;gap:var(--sp-2);margin-top:var(--sp-6)}
 .jobs-more .btn{min-width:240px}
