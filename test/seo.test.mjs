@@ -436,6 +436,13 @@ test('introduction : effectif listé, contrats et employeurs seulement s’ils e
   const empty = introHtml(job, nice, 0, stats([]));
   assert.match(empty, /Aucune offre de serveur \/ serveuse n’est publiée/);
   assert.doesNotMatch(empty, /listée|contrat|Employeur|0 offre/);
+
+  const one = introHtml(job, nice, 1, stats([{ contract: 'CDI', company: 'Groupama' }]));
+  assert.match(one, /<strong>1 offre de serveur \/ serveuse<\/strong> publiée sur France Travail/);
+  assert.match(one, /complétée ensuite/);
+  assert.doesNotMatch(one, /complétées|publiées/);
+  assert.match(one, /1 offre est listée sur cette page/);
+  assert.match(one, /Employeur indiqué\u00a0: Groupama\./);
 });
 
 test('page ville : canonical, fil d’Ariane, faits réels et communes voisines ; page vide en noindex', async () => {
