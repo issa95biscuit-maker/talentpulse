@@ -9,6 +9,8 @@
  * displayContract : durée France Travail (« Intérim - 3 Jour(s) ») rendue lisible.
  *             Affichage seulement : contractDetail de l'API reste la valeur source.
  * displayCompany : ellipse propre si le nom Service Public a été coupé à la source (90 car.).
+ * searchKeywordLabel : libellé d’un slug de recherche libre (sigles de contrat, accents).
+ *             Affichage seulement : le filtre contrat de l’API n’est pas concerné.
  */
 (function () {
   const ACRONYMS = new Set(['CDI', 'CDD', 'BTP', 'RH', 'IT', 'SAV', 'VTC', 'ASH', 'AES', 'AESH', 'ATSEM', 'DRH', 'CAP', 'BEP', 'BTS', 'BAC', 'BAFA', 'BAFD', 'SNCF', 'RATP', 'PL', 'SPL', 'VL', 'CACES', 'SSIAP', 'ADV', 'QHSE', 'HSE', 'IDE', 'AS', 'DAF', 'PME', 'TPE', 'B2B', 'B2C', 'SEO', 'UX', 'UI', 'QA', 'SAP', 'ERP', 'CRM', 'IA', 'BIM', 'CVC', 'GMS', 'ETAM', 'EHPAD', 'SMS', 'CHU']);
@@ -202,5 +204,39 @@
     return (base || cut) + '…';
   }
 
-  globalThis.TP_DISPLAY = { typoTitle, displayTitle, displayContract, displayCompany, dedupeTitlePrefix, CSP_EMPLOYER_MAX };
+  /**
+   * Slug de recherche libre → libellé affiché.
+   * Les sigles restent en capitales (« cdd », « CDD », « Cdd » → « CDD »)
+   * et les accents connus sont rétablis (« interim », « intérim » → « Intérim »).
+   * Chaîne vide si le mot n’est pas dans la table : l’appelant capitalise alors sans inventer.
+   */
+  const SEARCH_LABELS = {
+    etudiant: 'Étudiant',
+    teletravail: 'Télétravail',
+    developpement: 'Développement',
+    cdi: 'CDI',
+    cdd: 'CDD',
+    interim: 'Intérim',
+    'cdi-interimaire': 'CDI intérimaire',
+    independant: 'Indépendant',
+    saisonnier: 'Saisonnier',
+    alternance: 'Alternance',
+    stage: 'Stage',
+    apprentissage: 'Apprentissage',
+    'temps-partiel': 'Temps partiel',
+    freelance: 'Freelance',
+    'contrat-pro': 'Contrat pro',
+    'contrat-de-professionnalisation': 'Contrat de professionnalisation',
+    franchise: 'Franchise',
+    'contrat-chantier': 'Contrat chantier',
+    'reprise-d-entreprise': 'Reprise d’entreprise',
+  };
+  function searchSlug(value) {
+    return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  }
+  function searchKeywordLabel(value) {
+    return SEARCH_LABELS[searchSlug(value)] || '';
+  }
+
+  globalThis.TP_DISPLAY = { typoTitle, displayTitle, displayContract, displayCompany, dedupeTitlePrefix, searchKeywordLabel, CSP_EMPLOYER_MAX };
 })();

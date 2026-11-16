@@ -1,8 +1,9 @@
 // Pages d'atterrissage SEO (api/seo.js + lib/seo.js) : France Travail simulé, geo.api.gouv.fr coupé (repli local).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import handler from '../api/seo.js';
-import { _clearCache, activeOfferEntries, landingTitle, landingDescription, displaySearchLabel, elisionDe, shellJobsHeading, shellPlaceName, introHtml, stats, nearbyCommuneNav } from '../lib/seo.js';
+import { _clearCache, activeOfferEntries, landingTitle, landingDescription, displaySearchLabel, elisionDe, keywordOf, shellJobsHeading, shellPlaceName, introHtml, stats, nearbyCommuneNav } from '../lib/seo.js';
 import { nearestCommunes, communeByInsee } from '../lib/communes-fr.js';
 import { haversineKm } from '../lib/distance.js';
 import { _test as jobsApi } from '../lib/jobs.js';
@@ -369,6 +370,75 @@ test('titre d’atterrissage : 1 offre au singulier, total attribué à France T
   assert.equal(displaySearchLabel('teletravail'), 'Télétravail');
   assert.equal(elisionDe('informatique'), 'd’informatique');
   assert.equal(elisionDe('serveur'), 'de serveur');
+});
+
+function clientHumanizeSlug() {
+  const app = readFileSync(new URL('../public/assets/app.js', import.meta.url), 'utf8');
+  const start = app.indexOf('function slugify(');
+  const end = app.indexOf('function updatePageMeta(');
+  assert.ok(start >= 0 && end > start, 'humanizeSlug est dans app.js');
+  return new Function(`${app.slice(start, end)}\nreturn humanizeSlug;`)();
+}
+
+test('types de contrat : CDD, CDI, Intérim (variantes) ; Étudiant et Rueil-Malmaison inchangés', async () => {
+  const humanizeSlug = clientHumanizeSlug();
+  const cases = [
+    ['cdd', 'CDD'], ['CDD', 'CDD'], ['Cdd', 'CDD'],
+    ['cdi', 'CDI'], ['CDI', 'CDI'],
+    ['interim', 'Intérim'], ['intérim', 'Intérim'], ['Interim', 'Intérim'], ['INTERIM', 'Intérim'],
+    ['freelance', 'Freelance'], ['FREELANCE', 'Freelance'],
+    ['contrat-pro', 'Contrat pro'], ['Contrat pro', 'Contrat pro'],
+    ['contrat-de-professionnalisation', 'Contrat de professionnalisation'],
+    ['CONTRAT DE PROFESSIONNALISATION', 'Contrat de professionnalisation'],
+    ['cdi-interimaire', 'CDI intérimaire'], ['CDI intérimaire', 'CDI intérimaire'],
+    ['etudiant', 'Étudiant'],
+    ['alternance', 'Alternance'], ['stage', 'Stage'], ['temps-partiel', 'Temps partiel'],
+  ];
+  for (const [raw, label] of cases) {
+    assert.equal(globalThis.TP_DISPLAY.searchKeywordLabel(raw), label, 'table ' + raw);
+    assert.equal(displaySearchLabel(raw), label, 'SSR ' + raw);
+    assert.equal(humanizeSlug(raw), label, 'hydratation ' + raw);
+  }
+  assert.equal(displaySearchLabel('react-native'), 'React native', 'un mot hors table garde la capitale simple');
+  assert.equal(humanizeSlug('react-native'), 'React native');
+  assert.equal(humanizeSlug('rueil-malmaison', true), 'Rueil-Malmaison');
+  assert.equal(shellPlaceName('rueil-malmaison', 'rueil-malmaison'), 'Rueil-Malmaison');
+  assert.equal(keywordOf('CDD'), 'de CDD');
+  assert.equal(keywordOf('CDI intérimaire'), 'de CDI intérimaire');
+  assert.equal(keywordOf('Intérim'), 'd’intérim');
+  assert.equal(keywordOf('Étudiant'), 'd’étudiant');
+  assert.equal(keywordOf(''), 'd’emploi');
+
+  for (const [slug, label, ofPhrase] of [['cdd', 'CDD', 'de CDD'], ['cdi', 'CDI', 'de CDI'], ['interim', 'Intérim', 'd’intérim']]) {
+    const r = await call({ kw: slug });
+    assert.equal(r.status, 200, slug);
+    assert.equal(meta(r.body, /<title>([^<]*)<\/title>/), `${label} — TalentPulse`, slug);
+    assert.equal(meta(r.body, /<meta property="og:title" content="([^"]*)"/), `${label} — TalentPulse`, slug);
+    assert.equal(meta(r.body, /<h1 id="jobsHeader">([^<]*)<\/h1>/), `Offres «\u00a0${label}\u00a0»`, slug);
+    assert.match(r.body, new RegExp(`id="rsKw" value="${label}"`), slug);
+    assert.match(meta(r.body, /<meta name="description" content="([^"]*)"/), new RegExp('Offres ' + ofPhrase), slug);
+    assert.equal(meta(r.body, /<meta name="robots" content="([^"]*)"/), 'noindex,follow', slug);
+    assert.equal(r.headers['x-robots-tag'], 'noindex, follow', slug);
+    assert.equal(meta(r.body, /<link rel="canonical" href="([^"]*)"/), `https://talentpulse-topaz.vercel.app/offres/${slug}`, slug);
+    assert.doesNotMatch(r.body, /JobPosting/, slug);
+    assert.doesNotMatch(r.body, /"contrat"\s*:/, slug);
+  }
+  const etu = await call({ kw: 'etudiant' });
+  assert.equal(meta(etu.body, /<title>([^<]*)<\/title>/), 'Étudiant — TalentPulse');
+  assert.equal(meta(etu.body, /<h1 id="jobsHeader">([^<]*)<\/h1>/), 'Offres «\u00a0Étudiant\u00a0»');
+  assert.match(etu.body, /id="rsKw" value="Étudiant"/);
+  const ville = await call({ kw: 'emploi', lieu: 'rueil-malmaison' });
+  assert.equal(meta(ville.body, /<title>([^<]*)<\/title>/), 'Offres d’emploi à Rueil-Malmaison — TalentPulse');
+  assert.equal(meta(ville.body, /<h1 id="jobsHeader">([^<]*)<\/h1>/), 'Offres à Rueil-Malmaison');
+  for (const [slug, label] of [['alternance', 'Alternance'], ['stage', 'Stage'], ['temps-partiel', 'Temps partiel']]) {
+    const r = await call({ kw: slug });
+    assert.equal(meta(r.body, /<title>([^<]*)<\/title>/), `${label} — TalentPulse`, slug);
+    assert.equal(meta(r.body, /<h1 id="jobsHeader">([^<]*)<\/h1>/), `Offres «\u00a0${label}\u00a0»`, slug);
+    assert.equal(meta(r.body, /<meta name="robots" content="([^"]*)"/), 'noindex,follow', slug);
+  }
+  const upper = await call({ kw: 'CDD' });
+  assert.equal(upper.status, 301);
+  assert.equal(upper.headers.location, '/offres/cdd');
 });
 
 test('page libre : typographie des intitulés noindex (accents, élision, trait d’union)', async () => {
