@@ -783,7 +783,14 @@ legend.filter-label+*,legend.form-label+*{clear:both}
 .footer-link{display:inline-flex;align-items:center;min-height:44px;font-size:var(--fs-sm);color:#E2E8F0;width:fit-content}
 @media(min-width:1024px){.footer-link{min-height:36px}}
 .footer-link:hover{color:#fff;text-decoration:underline}
-.footer-bottom{display:flex;flex-wrap:wrap;justify-content:space-between;gap:var(--sp-3);margin-top:var(--sp-10);padding-top:var(--sp-6);border-top:1px solid #1E293B;font-size:var(--fs-xs);color:#A3B1C6}
+.footer-credit{margin-top:var(--sp-8)}
+.footer-credit a{display:inline-block;max-width:100%;min-height:48px;padding:12px 0;color:#E2E8F0;font-size:var(--fs-sm);font-weight:var(--fw-semi);line-height:1.5;text-decoration:underline;text-underline-offset:3px;overflow-wrap:break-word}
+.footer-credit a:hover,.footer-credit a:active{color:#fff}
+.maker-note{padding:0}
+.maker-box{border:1px solid var(--border);border-radius:var(--r-lg);background:var(--surface);padding:var(--sp-4) var(--sp-5)}
+.maker-box a{display:block;min-height:48px;padding:12px 0;color:var(--text);font-size:var(--fs-sm);font-weight:var(--fw-semi);line-height:1.5;text-decoration:underline;text-decoration-color:var(--brand-ink);text-underline-offset:3px;overflow-wrap:break-word}
+.maker-box a:hover,.maker-box a:active{color:var(--brand-ink);text-decoration-thickness:2px}
+.footer-bottom{display:flex;flex-wrap:wrap;justify-content:space-between;gap:var(--sp-3);margin-top:var(--sp-6);padding-top:var(--sp-6);border-top:1px solid #1E293B;font-size:var(--fs-xs);color:#A3B1C6}
 .footer-inline{color:#E2E8F0;text-decoration:underline;text-underline-offset:2px}
 .site-footer :focus-visible{outline-color:#FF9A57}
 
@@ -1582,6 +1589,13 @@ body.dark .job{-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter
       </div>
     </div>
   </div>
+  <aside class="maker-note" id="makerNote" aria-label="Création du site">
+    <div class="container">
+      <div class="maker-box">
+        <p><a href="/sites-pro">Créé par Ryadh Issa Klaa — besoin d’un site pro pour votre commerce&nbsp;?</a></p>
+      </div>
+    </div>
+  </aside>
 </section>
 
 <!-- ═══ RÉSULTATS ═══ -->
@@ -2050,6 +2064,7 @@ body.dark .job{-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter
         </div>
       </div>
     </div>
+    <p class="footer-credit"><a href="/sites-pro">Créé par Ryadh Issa Klaa — besoin d’un site pro pour votre commerce&nbsp;?</a></p>
     <div class="footer-bottom">
       <span>© 2026 TalentPulse</span>
       <span>Offres France Travail réutilisées selon la <a href="https://francetravail.io/produits-partages/catalogue/offres-emploi" target="_blank" rel="noopener" class="footer-inline">licence de réutilisation des offres d’emploi</a>, mises à jour en continu. Offres Adzuna : <a href="https://www.adzuna.fr" target="_blank" rel="noopener" class="footer-inline">Jobs by Adzuna</a>. Fonction publique : <a href="https://www.data.gouv.fr/datasets/les-offres-diffusees-sur-choisir-le-service-public" target="_blank" rel="noopener" class="footer-inline">Choisir le Service Public</a>.</span>

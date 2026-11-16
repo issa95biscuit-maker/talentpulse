@@ -126,3 +126,16 @@ create table if not exists applications (
   primary key (user_id, job_id)
 );
 insert into schema_migrations (version) values ('2026-10-12-applications') on conflict do nothing;
+
+-- Demandes « site pro » (formulaire public). Aucun e-mail n'est envoyé : la ligne est seulement enregistrée.
+create table if not exists site_leads (
+  id         uuid primary key default gen_random_uuid(),
+  name       text not null,
+  email      text not null,
+  activity   text not null,
+  message    text not null,
+  plan       text not null default '' check (plan in ('', 'essentiel', 'pro', 'premium')),
+  created_at timestamptz not null default now()
+);
+create index if not exists site_leads_created_idx on site_leads (created_at);
+insert into schema_migrations (version) values ('2026-11-16-site-leads') on conflict do nothing;
