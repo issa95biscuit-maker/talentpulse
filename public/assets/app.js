@@ -472,12 +472,10 @@ function slugify(value) {
   return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 }
 
-const KW_DISPLAY = { etudiant: 'Étudiant', teletravail: 'Télétravail', developpement: 'Développement' };
 function humanizeSlug(value, asPlace = false) {
   let raw;
   try { raw = decodeURIComponent(String(value || '')).trim(); } catch { raw = String(value || '').trim(); }
   if (!raw) return '';
-  const slug = slugify(raw);
   if (asPlace) {
     const G = globalThis.TP_GEO;
     const hyphen = raw.split(/[-\s]+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('-');
@@ -486,7 +484,8 @@ function humanizeSlug(value, asPlace = false) {
     if (found?.label) return found.label;
     return hyphen;
   }
-  if (KW_DISPLAY[slug]) return KW_DISPLAY[slug];
+  const known = globalThis.TP_DISPLAY && globalThis.TP_DISPLAY.searchKeywordLabel(raw);
+  if (known) return known;
   const spaced = raw.replace(/-/g, ' ');
   return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 }
