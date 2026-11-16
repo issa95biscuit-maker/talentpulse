@@ -112,6 +112,16 @@ test('télétravail total seulement, sameAs et logo seulement s’ils existent, 
   assert.equal(jobPostingLd(base({ logo: 'javascript:alert(1)' })).hiringOrganization.logo, undefined);
 });
 
+test('JSON-LD : le titre source reste brut, le doublet abrégé n’est pas développé', () => {
+  const ld = jobPostingLd(base({
+    title: 'Vendeur/euse en boulangerie (H/F)',
+    contract: 'Intérim',
+    contractDetail: 'Intérim - 3 Jour(s)',
+  }));
+  assert.equal(ld.title, 'Vendeur/euse en boulangerie (H/F)');
+  assert.equal(ld.employmentType, 'TEMPORARY');
+});
+
 test('le JSON échappe </script> et retire le HTML dangereux de la description', () => {
   const script = jobPostingScript(base({ desc: 'Avant </script><script>alert(1)</script> après' }), { pageUrl: 'https://talentpulse-topaz.vercel.app/offre/ft_1' });
   const json = script.slice(script.indexOf('>') + 1, script.lastIndexOf('</script>'));

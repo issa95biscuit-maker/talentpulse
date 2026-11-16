@@ -431,9 +431,11 @@ const SALARY_UNKNOWN = 'Salaire non communiqué';
 function contractLabel(j) { return j.contract || CONTRACT_UNKNOWN; }
 function contractLine(j) {
   const label = contractLabel(j);
-  const detail = String(j.contractDetail || '').trim();
+  const raw = String(j.contractDetail || '').trim();
+  const detail = globalThis.TP_DISPLAY && globalThis.TP_DISPLAY.displayContract ? globalThis.TP_DISPLAY.displayContract(raw) : raw;
   if (!detail || detail === label) return label;
   if (label && detail.toLowerCase().startsWith(label.toLowerCase())) return detail;
+  if (label !== CONTRACT_UNKNOWN && /^\d+(?:[.,]\d+)?\s+(?:jours?|mois|ans?|années?|annees?|semaines?|heures?|minutes?)$/i.test(detail)) return label + ' · ' + detail;
   return label + ' — ' + detail;
 }
 function salaryLabel(j) { return j.salary || (j.publicSector ? 'Grille de la fonction publique' : SALARY_UNKNOWN); }

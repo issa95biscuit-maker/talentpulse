@@ -98,6 +98,12 @@ test('fiche et parcours Postuler : texte non tronqué, boutons et grille lisible
   assert.ok(compact.includes('@media(max-width:379px)') && compact.includes('.detail-grid{grid-template-columns:1fr}'), 'faits de l’offre en une colonne à 320 px');
 });
 
+test('fiche : la durée de contrat passe par le libellé partagé, pas par l’API', () => {
+  assert.match(app, /function contractLine\(j\) \{[\s\S]*?TP_DISPLAY\.displayContract\(raw\)/);
+  assert.match(app, /contractDetail: j\.contractDetail \|\| ''/);
+  assert.doesNotMatch(readFileSync(new URL('../lib/jobs.js', import.meta.url), 'utf8'), /displayContract/);
+});
+
 test('jobs-count : pas de troncature à petit écran', () => {
   const compact = html.replace(/\s+/g, '');
   assert.match(html, /\.jobs-count\{[^}]*overflow-wrap:\s*anywhere/);
