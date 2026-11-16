@@ -2,7 +2,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import handler from '../api/seo.js';
-import { _clearCache, activeOfferEntries, landingTitle, landingDescription, displaySearchLabel, elisionDe, shellJobsHeading, shellPlaceName } from '../lib/seo.js';
+import { _clearCache, activeOfferEntries, landingTitle, landingDescription, displaySearchLabel, elisionDe, shellJobsHeading, shellPlaceName, introHtml, stats, nearbyCommuneNav } from '../lib/seo.js';
+import { nearestCommunes, communeByInsee } from '../lib/communes-fr.js';
+import { haversineKm } from '../lib/distance.js';
 import { _test as jobsApi } from '../lib/jobs.js';
 import { JOBS, PLACES, isCurated, curatedPaths, slugify, nearbyPlaces, relatedJobs } from '../lib/seo-data.js';
 import '../public/assets/geo-fr.js';
@@ -400,4 +402,121 @@ test('données curées cohérentes avec la recherche du site (slugs, lieux recon
   for (const p of PLACES) assert.ok(nearbyPlaces(p, JOBS[1]).length >= 2, 'voisins pour ' + p.slug);
   assert.ok(relatedJobs(JOBS.find(j => j.slug === 'serveur'), PLACES[0]).slice(0, 2).every(j => j.family === 'restauration'));
   assert.ok(isCurated(JOBS.find(j => j.slug === 'macon'), PLACES.find(p => p.slug === 'bretagne')));
+  const nimes = PLACES.find(p => p.slug === 'nimes');
+  const curatedNear = nearbyPlaces(nimes, JOBS[1]).filter(p => p.type === 'commune');
+  assert.equal(curatedNear[0].slug, 'montpellier', 'ville curée la plus proche selon le relevé');
+});
+
+test('introduction : effectif listé, contrats et employeurs seulement s’ils existent', () => {
+  const job = JOBS.find(j => j.slug === 'serveur');
+  const nice = PLACES.find(p => p.slug === 'nice');
+  const listed = stats([
+    { contract: 'CDI', company: 'Brasserie Bellecour' },
+    { contract: 'CDI', company: 'Brasserie Bellecour' },
+    { contract: 'CDD', company: 'Hôtel du Parc' },
+  ]);
+  const html = introHtml(job, nice, 152, listed);
+  assert.match(html, /<strong>152 offres de serveur \/ serveuse<\/strong>/);
+  assert.match(html, /3 offres sont listées sur cette page/);
+  assert.match(html, /Types de contrat présents\u00a0: CDI et CDD/);
+  assert.match(html, /Employeurs les plus fréquents\u00a0: Brasserie Bellecour \(2\) et Hôtel du Parc \(1\)/);
+  assert.doesNotMatch(html, /médiane|€/);
+
+  const alone = stats([{ contract: 'CDI', company: 'A <script> & Co' }, { contract: 'CDI', company: 'A <script> & Co' }]);
+  const safe = introHtml(job, nice, 2, alone);
+  assert.match(safe, /1 offre est listée sur cette page|2 offres sont listées sur cette page/);
+  assert.match(safe, /Employeur indiqué\u00a0: A &lt;script&gt; &amp; Co \(2\)/);
+  assert.ok(!safe.includes('<script>'));
+
+  const hidden = stats([{ contract: '', company: 'Confidentiel' }, { company: 'Entreprise confidentielle' }]);
+  const quiet = introHtml(job, nice, 2, hidden);
+  assert.match(quiet, /2 offres sont listées sur cette page/);
+  assert.doesNotMatch(quiet, /Types de contrat|Employeur/);
+
+  const empty = introHtml(job, nice, 0, stats([]));
+  assert.match(empty, /Aucune offre de serveur \/ serveuse n’est publiée/);
+  assert.doesNotMatch(empty, /listée|contrat|Employeur|0 offre/);
+
+  const one = introHtml(job, nice, 1, stats([{ contract: 'CDI', company: 'Groupama' }]));
+  assert.match(one, /<strong>1 offre de serveur \/ serveuse<\/strong> publiée sur France Travail/);
+  assert.match(one, /complétée ensuite/);
+  assert.doesNotMatch(one, /complétées|publiées/);
+  assert.match(one, /1 offre est listée sur cette page/);
+  assert.match(one, /Employeur indiqué\u00a0: Groupama\./);
+});
+
+test('page ville : canonical, fil d’Ariane, faits réels et communes voisines ; page vide en noindex', async () => {
+  mode = 'ok';
+  const r = await call({ kw: 'developpeur', lieu: 'nimes' });
+  assert.equal(r.status, 200);
+  assert.match(r.headers['cache-control'], /s-maxage=3600/);
+  assert.equal(meta(r.body, /<title>([^<]*)<\/title>/), 'Développeur à Nîmes : 152 offres France Travail | TalentPulse');
+  assert.equal(meta(r.body, /<link rel="canonical" href="([^"]*)"/), 'https://talentpulse-topaz.vercel.app/offres/developpeur/nimes');
+  assert.equal(meta(r.body, /<meta name="robots" content="([^"]*)"/), 'index,follow');
+  assert.equal(meta(r.body, /<h1 id="jobsHeader">([^<]*)<\/h1>/), 'Offres d’emploi de développeur / développeuse à Nîmes');
+  assert.equal((r.body.match(/<h1[\s>]/g) || []).length, 1);
+  assert.ok(!/JobPosting/.test(r.body));
+  const ld = JSON.parse(meta(r.body, /<script type="application\/ld\+json">([^<]*)<\/script>/));
+  assert.equal(ld['@type'], 'BreadcrumbList');
+  assert.deepEqual(ld.itemListElement.map(i => i.name), ['Accueil', 'Offres d’emploi', 'Développeur', 'Nîmes']);
+  assert.equal(ld.itemListElement.at(-1).item, 'https://talentpulse-topaz.vercel.app/offres/developpeur/nimes');
+  assert.match(r.body, /12 offres sont listées sur cette page/);
+  assert.match(r.body, /Types de contrat présents\u00a0: CDI et CDD/);
+  assert.match(r.body, /Employeurs les plus fréquents\u00a0: Brasserie Bellecour \(8\) et Hôtel du Parc \(4\)/);
+  const intro = (r.body.match(/<div class="seo-intro">([\s\S]*?)<\/div>/) || [])[1] || '';
+  assert.doesNotMatch(intro, /médiane|€/);
+  const nav = (r.body.match(/<nav class="seo-near"[\s\S]*?<\/nav>/) || [])[0] || '';
+  assert.match(nav, /Communes voisines/);
+  assert.match(nav, /À vol d’oiseau, depuis le centre de la commune/);
+  assert.match(nav, /href="\/offres\/developpeur\/caveirac"/);
+  assert.doesNotMatch(nav, /caveirac[\s\S]*caveirac/);
+  assert.doesNotMatch(nav, /\/nimes"|paris|marseille|fontenay|beaumont/i);
+  const hrefs = [...nav.matchAll(/href="(\/offres\/[^"]+)"/g)].map(m => m[1]);
+  assert.equal(hrefs.length, 6);
+  assert.deepEqual(hrefs, [...new Set(hrefs)]);
+  const kms = [...nav.matchAll(/class="seo-km">(\d+)/g)].map(m => Number(m[1]));
+  assert.equal(kms.length, hrefs.length);
+  for (let i = 1; i < kms.length; i++) assert.ok(kms[i] >= kms[i - 1], 'distances affichées non décroissantes');
+  const origin = communeByInsee('30189');
+  const caveirac = communeByInsee('30075');
+  assert.ok(Math.abs(haversineKm(origin.lat, origin.lon, caveirac.lat, caveirac.lon) - 5.7) < 0.2);
+  assert.equal(kms[0], Math.round(haversineKm(origin.lat, origin.lon, caveirac.lat, caveirac.lon)));
+  const more = (r.body.match(/<section class="seo-more"[\s\S]*?<\/section>/) || [])[0] || '';
+  assert.match(more, /href="\/offres\/developpeur\/montpellier"/);
+  assert.match(more, /href="\/offres\/developpeur\/occitanie"/);
+  const allowed = new Set(curatedPaths());
+  for (const href of more.match(/href="(\/offres\/[^"]+)"/g).map(x => x.slice(6, -1))) assert.ok(allowed.has(href), href);
+
+  const dept = await call({ kw: 'serveur', lieu: 'rhone' });
+  assert.doesNotMatch(dept.body, /Communes voisines/);
+  assert.match(dept.body, /12 offres sont listées sur cette page/);
+
+  const havre = nearbyCommuneNav(JOBS.find(j => j.slug === 'emploi'), PLACES.find(p => p.slug === 'le-havre'));
+  assert.match(havre, /sainte-adresse/);
+  assert.doesNotMatch(havre, /fontenay/i);
+  const clermont = nearbyCommuneNav(JOBS.find(j => j.slug === 'emploi'), PLACES.find(p => p.slug === 'clermont-ferrand'));
+  assert.match(clermont, /aubiere/);
+  assert.doesNotMatch(clermont, /beaumont/i);
+
+  mode = 'empty';
+  const empty = await call({ kw: 'cariste', lieu: 'nice' });
+  assert.equal(meta(empty.body, /<meta name="robots" content="([^"]*)"/), 'noindex,follow');
+  assert.equal(empty.headers['x-robots-tag'], 'noindex, follow');
+  assert.match(empty.headers['cache-control'], /s-maxage=3600/);
+  assert.equal(meta(empty.body, /<link rel="canonical" href="([^"]*)"/), 'https://talentpulse-topaz.vercel.app/offres/cariste/nice');
+  assert.match(empty.body, /Aucune offre de cariste n’est publiée/);
+  assert.doesNotMatch(empty.body, /listées sur cette page|Types de contrat|Employeur/);
+  const emptyNav = (empty.body.match(/<nav class="seo-near"[\s\S]*?<\/nav>/) || [])[0] || '';
+  assert.match(emptyNav, /href="\/offres\/cariste\/saint-andre-de-la-roche"/);
+  assert.match(empty.body, /<nav class="crumbs"/);
+  const emptyLd = JSON.parse(meta(empty.body, /<script type="application\/ld\+json">([^<]*)<\/script>/));
+  assert.equal(emptyLd['@type'], 'BreadcrumbList');
+  assert.equal(emptyLd.itemListElement.at(-1).name, 'Nice');
+  assert.ok(!/JobPosting/.test(empty.body));
+
+  const hits = nearestCommunes(communeByInsee('75056'), { maxKm: 30, excludeCode: '75056', limit: 15 });
+  assert.ok(hits.length >= 6);
+  assert.ok(hits.every((h, i) => i === 0 || h.km >= hits[i - 1].km));
+  assert.ok(hits.every(h => h.km <= 30 && h.row.code !== '75056'));
+  assert.ok(hits.every(h => !/^Paris \d/i.test(h.row.nom)));
 });
