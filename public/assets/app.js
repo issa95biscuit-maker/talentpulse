@@ -23,7 +23,7 @@ const SITE = 'https://talentpulse-topaz.vercel.app';
 // Chaque fonctionnalité s'active côté serveur uniquement si ses variables d'environnement existent :
 // sans clés, le site fonctionne exactement comme avant (tout en local).
 // Informations légales de l'éditeur (défauts publics ; surcharge possible via LEGAL_* / CONTACT_EMAIL lus sur /api/health).
-// Pas d'e-mail ni de téléphone personnels : contactEmail ne se remplit que si CONTACT_EMAIL est défini.
+// Pas de téléphone. E-mail de contact dédié au site et tribunal compétent validés par l’éditeur (17/11/2026).
 const LEGAL = {
   editor: 'Ryadh Issa Klaa',
   status: 'entrepreneur individuel (micro-entreprise)',
@@ -32,6 +32,8 @@ const LEGAL = {
   siret: '85105415500029',
   director: 'Ryadh Issa Klaa',
   vat: 'TVA non applicable, art. 293 B du CGI',
+  contactEmail: 'talentpultze@gmail.com',
+  court: 'tribunal judiciaire de Nanterre',
 };
 const FEATURES = { auth: false, sync: false, savedSearches: false, aiLetter: false, emailAlerts: false, whatsappAlerts: false, accountEmails: false, applyEmail: false, dataEmploi: false };
 let featuresPromise = null;
@@ -517,16 +519,35 @@ function searchPath(params) {
   const city = p.city || '';
   return city ? '/offres/' + slugify(kw) + '/' + slugify(city) : '/offres/' + slugify(kw);
 }
+// Filtre de contrat lisible dans l’URL (?contrat=CDI) : même liste et même tolérance (casse, accents) que /api/jobs.
+const CONTRACT_KEYS = ['CDI', 'CDD', 'Interim', 'Alternance', 'Stage'];
+const CONTRACT_SUFFIX = { CDI: 'en CDI', CDD: 'en CDD', Interim: 'en intérim', Alternance: 'en alternance', Stage: 'en stage' };
+function contractFromSearch(search) {
+  let raw = '';
+  try { raw = new URLSearchParams(search || '').get('contrat') || ''; } catch { raw = ''; }
+  const fold = v => String(v).normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+  return CONTRACT_KEYS.find(k => fold(k) === fold(raw)) || 'all';
+}
+function contractSuffix(c) { return CONTRACT_SUFFIX[c] ? ' ' + CONTRACT_SUFFIX[c] : ''; }
 function searchHref(params) {
   const p = params || {};
   const path = searchPath(p);
+  const qs = new URLSearchParams();
   const d = parseDistance(p.distance);
-  if (!p.city || d === DEFAULT_DISTANCE) return path;
-  return path + '?distance=' + d;
+  if (p.city && d !== DEFAULT_DISTANCE) qs.set('distance', String(d));
+  const c = p.contrat === undefined ? State.filter : p.contrat;
+  if (CONTRACT_KEYS.includes(c)) qs.set('contrat', c);
+  const q = qs.toString();
+  return q ? path + '?' + q : path;
+}
+/** Même page d’atterrissage que le HTML servi (chemin et rayon), quel que soit le contrat. */
+function ssrSamePage(params) {
+  const ssr = getSsr();
+  return !!ssr && searchPath(params) === ssr.path && parseDistance(params.distance) === DEFAULT_DISTANCE;
 }
 function isLandingSsr(params) {
   const ssr = getSsr();
-  return !!ssr && searchPath(params) === ssr.path && parseDistance(params.distance) === DEFAULT_DISTANCE;
+  return !!ssr && searchPath(params) === ssr.path && parseDistance(params.distance) === DEFAULT_DISTANCE && (ssr.contrat || 'all') === State.filter;
 }
 function setDistanceControls(value, hasCity) {
   const d = String(parseDistance(value));
@@ -548,16 +569,17 @@ function setDistanceControls(value, hasCity) {
 function syncSearchRoute(params, replace) {
   const p = params || {};
   const href = searchHref(p);
-  const title = (p.kw || p.city) ? (p.kw || 'Offres') + (p.city ? ' à ' + p.city : '') + ' — TalentPulse' : 'Offres d’emploi — TalentPulse';
-  const description = (p.kw || p.city) ? 'Offres de ' + (p.kw || 'emploi') + (p.city ? ' à ' + p.city : '') + ' issues de France Travail, Adzuna et Choisir le Service Public, réunies sur TalentPulse.' : 'Recherchez parmi les offres France Travail, Adzuna et Choisir le Service Public avec TalentPulse.';
+  const suffix = contractSuffix(p.contrat === undefined ? State.filter : p.contrat);
+  const title = (p.kw || p.city) ? (p.kw || 'Offres') + (p.city ? ' à ' + p.city : '') + suffix + ' — TalentPulse' : 'Offres d’emploi' + suffix + ' — TalentPulse';
+  const description = (p.kw || p.city) ? 'Offres de ' + (p.kw || 'emploi') + (p.city ? ' à ' + p.city : '') + suffix + ' issues de France Travail, Adzuna et Choisir le Service Public, réunies sur TalentPulse.' : 'Recherchez parmi les offres' + suffix + ' France Travail, Adzuna et Choisir le Service Public avec TalentPulse.';
   updatePageMeta(title, description, searchPath(p));
   const cur = window.location.pathname + window.location.search;
   if (cur !== href) window.history[replace ? 'replaceState' : 'pushState']({ talentpulse: true, kw: p.kw || '', city: p.city || '', distance: parseDistance(p.distance) }, '', href);
 }
 
 const STATIC_ROUTES = {
-  '/lettre':     { page: 'lettre',   title: 'Lettre de motivation — TalentPulse', desc: 'Générez une trame de lettre de motivation à personnaliser.' },
-  '/conseils':   { page: 'conseils', title: 'Conseils carrière — TalentPulse', desc: 'Conseils pour réussir votre recherche d’emploi.' },
+  '/lettre':     { page: 'lettre',   title: 'Lettre de motivation — TalentPulse', desc: 'Générez gratuitement une trame de lettre de motivation à partir du poste visé et de l’entreprise, puis relisez-la et personnalisez-la avant de postuler.' },
+  '/conseils':   { page: 'conseils', title: 'Conseils carrière — TalentPulse', desc: 'Conseils carrière gratuits pour rédiger un CV percutant, réussir un entretien, cibler vos candidatures, négocier votre salaire et développer votre réseau.' },
   '/mon-espace': { page: 'profile',  title: 'Mon espace — TalentPulse', desc: 'Vos favoris, votre suivi de candidatures et vos alertes, sur cet appareil ou synchronisés avec votre compte.' },
   '/nouveau-mot-de-passe': { page: 'account-link', title: 'Nouveau mot de passe — TalentPulse', desc: 'Choisissez un nouveau mot de passe pour votre compte TalentPulse.' },
   '/verifier-email': { page: 'account-link', title: 'Confirmation de l’adresse e-mail — TalentPulse', desc: 'Confirmez votre adresse e-mail TalentPulse.' },
@@ -594,11 +616,14 @@ function handleRoute() {
     const kw = parts[1] && parts[1] !== 'emploi' ? humanizeSlug(parts[1]) : '';
     const city = parts[2] ? humanizeSlug(parts[2], true) : '';
     const distance = parseDistance(new URLSearchParams(window.location.search).get('distance'));
+    const contrat = contractFromSearch(window.location.search);
     // Retour depuis une offre : la liste est intacte sous le panneau, on la garde telle quelle (position comprise)
-    if ($('#page-jobs').classList.contains('active') && State.jobs.length && rawPath === searchPath(State.lastSearch || {})) {
+    if ($('#page-jobs').classList.contains('active') && State.jobs.length && rawPath === searchPath(State.lastSearch || {}) && contrat === State.filter) {
       closeDetail({ syncRoute: false });
       return;
     }
+    // L’URL fait foi pour le contrat (lien partagé, retour arrière) : pastilles et cases cochées avant toute requête
+    if (contrat !== State.filter) setContractFilter(contrat, { reload: false });
     const savedY = window.history.state && window.history.state.y;
     if (hydrateSsr(rawPath, { kw, city, distance })) return;
     $('#searchKw').value = kw;
@@ -663,6 +688,8 @@ function hydrateSsr(rawPath, params = {}) {
   if (!ssr || ssr.used || ssr.path !== rawPath) return false;
   // Le HTML SSR est calculé avec le rayon par défaut : un rayon choisi dans l’URL doit relancer la recherche.
   if (parseDistance(params.distance) !== DEFAULT_DISTANCE) return false;
+  // Même règle pour le contrat : la liste servie doit correspondre au filtre de l’URL.
+  if ((ssr.contrat || 'all') !== State.filter) return false;
   ssr.used = true;
   State.lastSearch = { kw: ssr.kw, city: ssr.city, distance: DEFAULT_DISTANCE };
   for (const id of ['searchKw', 'rsKw']) { const el = $('#' + id); if (el) el.value = ssr.kw; }
@@ -1329,8 +1356,11 @@ async function loadJobs(params = {}, { append = false, auto = false, requestId: 
     const header = $('#jobsHeader');
     const ssr = getSsr();
     const onSsr = isLandingSsr(params);
-    toggleSeoBlocks(onSsr);
-    header.textContent = onSsr ? ssr.h1 : (params.kw || params.city) ? `${params.kw ? 'Offres «\u00a0' + params.kw + '\u00a0»' : 'Offres'}${params.city ? ' à ' + params.city : ''}` : 'Offres d’emploi en France';
+    const samePage = ssrSamePage(params);
+    toggleSeoBlocks(samePage);
+    header.textContent = onSsr ? ssr.h1
+      : samePage && ssr.h1Base ? ssr.h1Base + contractSuffix(State.filter)
+      : ((params.kw || params.city) ? `${params.kw ? 'Offres «\u00a0' + params.kw + '\u00a0»' : 'Offres'}${params.city ? ' à ' + params.city : ''}` : 'Offres d’emploi en France') + contractSuffix(State.filter);
     const rk = $('#rsKw'), rc = $('#rsCity');
     if (rk && document.activeElement !== rk) rk.value = params.kw || '';
     if (rc && document.activeElement !== rc) rc.value = params.city || '';
@@ -1378,7 +1408,7 @@ async function loadJobs(params = {}, { append = false, auto = false, requestId: 
       params.city = disp;
       State.lastSearch.city = disp;
       const header = $('#jobsHeader');
-      if (!isLandingSsr(params)) header.textContent = `${params.kw ? 'Offres «\u00a0' + params.kw + '\u00a0»' : 'Offres'} à ${disp}`;
+      if (!ssrSamePage(params)) header.textContent = `${params.kw ? 'Offres «\u00a0' + params.kw + '\u00a0»' : 'Offres'} à ${disp}${contractSuffix(State.filter)}`;
       for (const id of ['rsCity', 'searchCity', 'filterLocation']) { const el = $('#' + id); if (el && document.activeElement !== el) el.value = disp; }
       syncSearchRoute({ kw: params.kw || '', city: disp, distance: State.lastSearch.distance }, true);
     }
@@ -1865,7 +1895,7 @@ function closeDetail({ syncRoute = true, restoreFocus = true } = {}) {
   document.body.classList.remove('no-scroll');
   State.currentJobId = null;
   if (syncRoute && window.location.pathname.startsWith('/offre/')) {
-    const fallback = State.lastSearch && (State.lastSearch.kw || State.lastSearch.city) ? searchPath(State.lastSearch) : '/offres/emploi';
+    const fallback = State.lastSearch && (State.lastSearch.kw || State.lastSearch.city) ? searchHref(State.lastSearch) : searchHref({});
     window.history.replaceState({ talentpulse: true }, '', fallback);
     updatePageMeta('Offres d’emploi — TalentPulse', 'Recherchez parmi les offres France Travail, Adzuna et Choisir le Service Public avec TalentPulse.', fallback);
   }
@@ -3227,7 +3257,9 @@ function defaultFilters() {
 
 function reloadWithFilters() {
   const s = State.lastSearch || {};
-  loadJobs({ kw: s.kw, city: s.city });
+  loadJobs({ kw: s.kw, city: s.city, distance: s.distance });
+  // Le contrat choisi reste dans l’URL : un lien copié reproduit la même liste.
+  if ($('#page-jobs')?.classList.contains('active') && !window.location.pathname.startsWith('/offre/')) syncSearchRoute(State.lastSearch, true);
 }
 
 function setContractFilter(val, { reload = true } = {}) {

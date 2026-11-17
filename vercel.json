@@ -16,6 +16,10 @@
       "destination": "/api/seo?sitemap=offres"
     },
     {
+      "source": "/sitemap-offres-ft.xml",
+      "destination": "/api/seo?sitemap=offres-ft"
+    },
+    {
       "source": "/offres",
       "destination": "/api/seo?kw=emploi&from=offres"
     },

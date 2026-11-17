@@ -19,7 +19,7 @@
     const LEGAL_PAGES = {
       '/mentions-legales': {
         title: 'Mentions légales',
-        description: 'Mentions légales du site TalentPulse : éditeur, hébergeur et contact.',
+        description: 'Mentions légales de TalentPulse : éditeur (entrepreneur individuel), SIREN et SIRET, directeur de la publication, hébergeur Vercel et e-mail de contact.',
         body: () => `<h1 id="legalPageTitle">Mentions légales</h1>
     <h2>Éditeur du site</h2>
     <p>Le site TalentPulse (talentpulse-topaz.vercel.app) est édité par ${LV('editor', 'nom et prénom de l’éditeur ou raison sociale')}, ${LV('status', 'statut : particulier, micro-entreprise, SAS…')}.</p>
@@ -72,7 +72,7 @@
         title: 'Conditions générales d’utilisation',
         description: 'Conditions d’utilisation du service gratuit TalentPulse : offres tierces, candidatures, compte, données et droit applicable.',
         body: () => `<h1 id="legalPageTitle">Conditions Générales d’Utilisation</h1>
-    <p class="legal-meta">Dernière mise à jour : 10 novembre 2026</p>
+    <p class="legal-meta">Dernière mise à jour : 17 novembre 2026</p>
     <h2>1. Objet</h2>
     <p>Les présentes conditions encadrent l’utilisation du service gratuit TalentPulse.</p>
     <h2>2. Offres tierces</h2>
@@ -86,7 +86,7 @@
     <h2>6. Propriété intellectuelle</h2>
     <p>Voir les <a href="/mentions-legales" data-route="/mentions-legales" style="text-decoration:underline">mentions légales</a> (marque TalentPulse, licences des sources et crédits).</p>
     <h2>7. Droit applicable</h2>
-    <p>Droit français. ${TODO('tribunal compétent')}.</p>
+    <p>Droit français. Tribunal compétent : ${LV('court', 'tribunal compétent')}.</p>
     <h2>8. Contact</h2>
     <p>Pour toute question relative aux présentes CGU : ${contactMail()}.</p>`
       }
@@ -115,7 +115,7 @@
       processors.push('<li><strong>France Travail</strong> et <strong>Adzuna</strong> reçoivent uniquement les critères de recherche (via nos serveurs), sans donnée personnelle. Les offres <strong>Choisir le Service Public</strong> viennent d’un fichier ouvert (data.gouv.fr) : aucune donnée personnelle ne leur est transmise.</li>');
       processors.push('<li><strong>geo.api.gouv.fr</strong> (service public de la DINUM) : pour suggérer villes, départements et régions, votre navigateur lui envoie directement les lettres saisies dans le champ « Lieu » ; comme pour tout site web, il voit votre adresse IP. Aucune autre donnée n’est transmise.</li>');
       return `<h1 id="legalPageTitle">Politique de confidentialité</h1>
-    <p class="legal-meta">Dernière mise à jour : 7 novembre 2026</p>
+    <p class="legal-meta">Dernière mise à jour : 17 novembre 2026</p>
     <h2>En résumé</h2>
     <p>TalentPulse fonctionne <strong>sans compte</strong> : vos données restent alors dans votre navigateur.${accounts ? ' Si vous créez un compte (facultatif), nous conservons le strict nécessaire pour synchroniser votre espace entre vos appareils.' : ''} Nous ne déposons <strong>aucun cookie publicitaire ni de mesure d’audience</strong>${accounts ? ' ; le seul cookie est un cookie de session technique, strictement nécessaire, déposé lorsque vous vous connectez' : ''}.</p>
     <h2>Responsable du traitement</h2>
