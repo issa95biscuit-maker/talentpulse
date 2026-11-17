@@ -209,7 +209,7 @@ test('offre inconnue ou expirée : 410, message, noindex, pas de liste nationale
   assert.equal(ld.jobLocation.address.addressRegion, 'Rhône');
   assert.equal(ld.jobLocation.address.postalCode, '69003');
   assert.equal(ld.jobLocation.address.addressCountry, 'FR');
-  assert.deepEqual(ld.employmentType, ['FULL_TIME', 'PART_TIME']);
+  assert.equal(ld.employmentType, 'PART_TIME', 'CDI à temps partiel : PART_TIME seul');
   assert.equal(ld.baseSalary.currency, 'EUR');
   assert.equal(ld.baseSalary.value.unitText, 'MONTH');
   assert.equal(ld.baseSalary.value.value, 1800);
@@ -303,12 +303,12 @@ test('pages statiques : title, description et canonical propres ; connexion et m
     cgu: ['Conditions générales d’utilisation — TalentPulse', 'Conditions d’utilisation du service gratuit TalentPulse : offres tierces, candidatures, compte, données et droit applicable.', '/cgu', 'index,follow', null],
     contact: ['Contact — TalentPulse', 'Contacter l’éditeur de TalentPulse pour une question, une suggestion ou un problème technique.', '/contact', 'index,follow', null],
     'a-propos': ['À propos — TalentPulse', 'TalentPulse, agrégateur gratuit d’offres d’emploi France Travail, Adzuna et Choisir le Service Public.', '/a-propos', 'index,follow', null],
-    'mentions-legales': ['Mentions légales — TalentPulse', 'Mentions légales du site TalentPulse : éditeur, hébergeur et contact.', '/mentions-legales', 'index,follow', null],
+    'mentions-legales': ['Mentions légales — TalentPulse', 'Mentions légales de TalentPulse : éditeur (entrepreneur individuel), SIREN et SIRET, directeur de la publication, hébergeur Vercel et e-mail de contact.', '/mentions-legales', 'index,follow', null],
     confidentialite: ['Politique de confidentialité — TalentPulse', 'Comment TalentPulse traite vos données : stockage local, compte optionnel, sous-traitants, durées de conservation et droits.', '/confidentialite', 'index,follow', null],
     connexion: ['Connexion — TalentPulse', 'Connectez-vous ou créez un compte gratuit pour synchroniser favoris, suivi et alertes.', '/connexion', 'noindex, nofollow', 'page-login'],
     'mon-espace': ['Mon espace — TalentPulse', 'Vos favoris, votre suivi de candidatures et vos alertes, sur cet appareil ou synchronisés avec votre compte.', '/mon-espace', 'noindex, nofollow', 'page-profile'],
-    lettre: ['Lettre de motivation — TalentPulse', 'Générez une trame de lettre de motivation à personnaliser.', '/lettre', 'index,follow', 'page-lettre'],
-    conseils: ['Conseils carrière — TalentPulse', 'Conseils pour réussir votre recherche d’emploi.', '/conseils', 'index,follow', 'page-conseils'],
+    lettre: ['Lettre de motivation — TalentPulse', 'Générez gratuitement une trame de lettre de motivation à partir du poste visé et de l’entreprise, puis relisez-la et personnalisez-la avant de postuler.', '/lettre', 'index,follow', 'page-lettre'],
+    conseils: ['Conseils carrière — TalentPulse', 'Conseils carrière gratuits pour rédiger un CV percutant, réussir un entretien, cibler vos candidatures, négocier votre salaire et développer votre réseau.', '/conseils', 'index,follow', 'page-conseils'],
   };
   for (const [page, [title, description, path, robots, section]] of Object.entries(pages)) {
     const r = await call({ page });
@@ -346,10 +346,13 @@ test('pages statiques : title, description et canonical propres ; connexion et m
   const mentions = await call({ page: 'mentions-legales' });
   assert.match(mentions.body, /SIREN/);
   assert.match(mentions.body, /Vercel Inc\./);
-  assert.match(mentions.body, /\[À COMPLÉTER : adresse email de contact vérifiée\]/);
+  assert.match(mentions.body, /<a href="mailto:talentpultze@gmail\.com"[^>]*>talentpultze@gmail\.com<\/a>/);
+  assert.ok(!/À COMPLÉTER/.test(mentions.body), 'plus aucun marqueur [À COMPLÉTER] dans les mentions');
   const article = mentions.body.split('id="legalPage"')[1] || '';
   assert.ok(article.length > 500, 'le corps légal est dans le HTML SSR');
-  assert.match((await call({ page: 'cgu' })).body, /\[À COMPLÉTER : tribunal compétent\]/);
+  const cgu = (await call({ page: 'cgu' })).body;
+  assert.match(cgu, /Droit français\. Tribunal compétent : tribunal judiciaire de Nanterre\./);
+  assert.ok(!/À COMPLÉTER/.test(cgu), 'plus aucun marqueur [À COMPLÉTER] dans les CGU');
 });
 
 test('titre d’atterrissage : 1 offre au singulier, total attribué à France Travail', () => {

@@ -29,7 +29,7 @@ test('employmentType : CDI, CDD, intérim, stage, alternance, temps partiel', ()
   assert.equal(employmentTypes({ contract: 'Alternance' }), 'OTHER');
   assert.equal(employmentTypes({ contract: 'Saisonnier' }), undefined);
   assert.equal(employmentTypes({ tempsPlein: 'Temps partiel' }), 'PART_TIME');
-  assert.deepEqual(employmentTypes({ contract: 'CDI', tempsPlein: 'Temps partiel' }), ['FULL_TIME', 'PART_TIME']);
+  assert.equal(employmentTypes({ contract: 'CDI', tempsPlein: 'Temps partiel' }), 'PART_TIME', 'un CDI à temps partiel n’est pas un temps plein');
   assert.deepEqual(employmentTypes({ contract: 'CDD', tempsPlein: 'Temps partiel' }), ['TEMPORARY', 'PART_TIME']);
 });
 

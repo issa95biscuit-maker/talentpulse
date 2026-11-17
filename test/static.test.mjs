@@ -92,7 +92,7 @@ test('recherche : sélecteur de distance 0/5/10/20/50 km, défaut 10', async () 
   }
   const app = await readFile(new URL('../public/assets/app.js', import.meta.url), 'utf8');
   assert.match(app, /qs\.set\('distance', String\(parseDistance\(params\.distance\)\)\)/);
-  assert.match(app, /path \+ '\?distance=' \+ d/);
+  assert.match(app, /if \(p\.city && d !== DEFAULT_DISTANCE\) qs\.set\('distance', String\(d\)\)/);
 });
 
 test('fonctions en fra1, pages SEO routées vers le rendu serveur', () => {

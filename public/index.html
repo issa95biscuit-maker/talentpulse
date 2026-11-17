@@ -11,6 +11,7 @@
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="robots" content="index,follow">
 <link rel="canonical" href="https://talentpulse-topaz.vercel.app/">
+<script type="application/ld+json" id="homeLd">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://talentpulse-topaz.vercel.app/#website","name":"TalentPulse","url":"https://talentpulse-topaz.vercel.app/","inLanguage":"fr-FR","description":"Agrégateur gratuit d’offres d’emploi France Travail, Adzuna et Choisir le Service Public.","publisher":{"@id":"https://talentpulse-topaz.vercel.app/#organization"}},{"@type":"Organization","@id":"https://talentpulse-topaz.vercel.app/#organization","name":"TalentPulse","url":"https://talentpulse-topaz.vercel.app/","logo":{"@type":"ImageObject","url":"https://talentpulse-topaz.vercel.app/icon-512.png","width":512,"height":512}}]}</script>
 <meta property="og:site_name" content="TalentPulse">
 <meta property="og:locale" content="fr_FR">
 <meta property="og:type" content="website">
@@ -1312,7 +1313,12 @@ body.dark .detail-grid-item{background:rgba(255,255,255,.035)}
   .detail-cta{grid-template-columns:1fr 1fr}
   .detail-cta .btn-view{min-height:54px}
 }
-@media(max-width:379px){
+/* Barre d’actions de la fiche sur mobile : 2 colonnes dès 340 px (libellés courts), pour qu’elle
+   ne couvre pas un quart de l’écran ; une seule colonne sous 340 px. */
+@media(min-width:340px) and (max-width:379px){
+  .detail-cta{grid-template-columns:1fr 1fr}
+}
+@media(max-width:339px){
   .detail-cta{grid-template-columns:1fr}
   .lbl-long{display:inline}
   .lbl-short{display:none}
@@ -2123,7 +2129,7 @@ body.dark .job{-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter
 <script src="/assets/metiers-fr.js?v=10" defer></script>
 <script src="/assets/display-text.js?v=15" defer></script>
 <script src="/assets/dedupe.js?v=1" defer></script>
-<script src="/assets/legal-pages.js?v=14" defer></script>
-<script src="/assets/app.js?v=18" defer></script>
+<script src="/assets/legal-pages.js?v=15" defer></script>
+<script src="/assets/app.js?v=19" defer></script>
 </body>
 </html>
