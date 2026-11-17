@@ -4,8 +4,10 @@
  * Il n'utilise ni import ni export : il expose globalThis.TP_DISPLAY.
  *
  * typoTitle : nettoyage typographique (casse, H/F en doublon, accents manquants).
- *             Appliqué aux données et, le cas échéant, au JSON-LD.
- * displayTitle : typoTitle + écriture inclusive développée, pour l'affichage uniquement.
+ *             Appliqué aux données et, le cas échéant, au JSON-LD. Le titre d'API reste celui-ci.
+ * displayTitle : typoTitle + affichage seulement : ponctuation, formes inclusives à point
+ *             réduites au masculin quand (H/F) est déjà là, doublets « mot, féminin »,
+ *             puis écriture inclusive développée (parenthèses et barres).
  * displayContract : durée France Travail (« Intérim - 3 Jour(s) ») rendue lisible.
  *             Affichage seulement : contractDetail de l'API reste la valeur source.
  * displayCompany : ellipse propre si le nom Service Public a été coupé à la source (90 car.).
@@ -132,10 +134,6 @@
       if (!fem) return all;
       return masc + ' / ' + sameCap(masc, fem);
     });
-    out = out.replace(/\b(\p{L}+)\.fe\b/gu, (all, masc) => {
-      if (/^chef$/i.test(masc)) return masc + ' / ' + sameCap(masc, 'cheffe');
-      return all;
-    });
     out = out.replace(new RegExp('(\\p{L}[\\p{L}\'’.-]*)\\s*\\/\\s*(' + SLASH_SUF + ')\\b', 'giu'), (all, masc, suf) => expandSlashPair(masc, suf) || all);
     out = out.replace(/\b(\p{L}*t)eurs?\/trices?\b/giu, (all, stem) => {
       const masc = all.split('/')[0];
@@ -153,9 +151,114 @@
     return out.replace(/\s+/g, ' ').trim();
   }
 
+  const DOTTED_SUF = 'euses|euse|trices|trice|rices|rice|ières|ière|ieres|iere|ères|ère|eres|ere|iennes|ienne|ives|ive|ses|se|nes|ne|fes|fe|es|e';
+  const DOTTED_RE = new RegExp('(?<![.\\p{L}])(\\p{L}{4,})\\.(' + DOTTED_SUF + ')(?![.\\p{L}])', 'giu');
+  const SHORT_ABBR = /^(st|dr|pr|me|mr|vol|doc|fig|art|cf|nb|bd|av|ste|resp|tel|fax|apt|rte|www|http|https|sa|sas|sarl)$/i;
+
+  /** « .e » seul est trop court pour être une forme inclusive sûre (abréviation, sigle). */
+  function plainEStem(stem) {
+    const low = stem.toLowerCase();
+    if (low.length < 5) return false;
+    if (/e$/i.test(low)) return false;
+    if (stem.length <= 5 && stem === stem.toUpperCase()) return false;
+    if (ACRONYMS.has(stem.toUpperCase()) || SHORT_ABBR.test(stem)) return false;
+    if (/\d/.test(stem)) return false;
+    return true;
+  }
+
+  function suffixFitsStem(stem, sufBare) {
+    const low = String(stem || '').toLowerCase();
+    const suf = String(sufBare || '').toLowerCase();
+    if (!low || !suf) return false;
+    if (suf === 'euse' || suf === 'se') return /eur$/.test(low);
+    if (suf === 'trice') return /teur$/.test(low);
+    if (suf === 'rice') return /eur$/.test(low);
+    if (suf === 'iere' || suf === 'ere') return /er$/.test(low);
+    if (suf === 'ienne') return /ien$/.test(low);
+    if (suf === 'ive') return /if$/.test(low);
+    if (suf === 'ne') return /(ien|on)$/.test(low);
+    if (suf === 'fe') return low === 'chef';
+    if (suf === 'e') return plainEStem(stem);
+    return false;
+  }
+
+  /** Vrai seulement si le suffixe après le point est une finale inclusive de ce radical. */
+  function dottedInclusiveOk(stem, sufRaw) {
+    if (!stem || stem.length < 4) return false;
+    if (ACRONYMS.has(stem.toUpperCase()) || SHORT_ABBR.test(stem) || /\d/.test(stem)) return false;
+    const bare = String(sufRaw || '').toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
+    if (suffixFitsStem(stem, bare)) return true;
+    if (bare.endsWith('s') && suffixFitsStem(stem, bare.slice(0, -1))) return true;
+    if (stem.length > 4 && /s$/i.test(stem) && bare.endsWith('s') && suffixFitsStem(stem.slice(0, -1), bare.slice(0, -1))) return true;
+    return false;
+  }
+
+  /**
+   * « Apprenti.e », « Serveur.se », « Boulanger.ère » → radical masculin.
+   * Uniquement quand l'intitulé porte déjà (H/F) : sans ce marqueur, le mot reste tel quel.
+   */
+  function collapseDottedInclusive(s) {
+    return String(s).replace(DOTTED_RE, (all, stem, suf) => (dottedInclusiveOk(stem, suf) ? stem : all));
+  }
+
+  function foldKey(w) {
+    return String(w || '').toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
+  }
+
+  /** « Serveur, Serveuse » est un doublet de genre, pas une énumération. */
+  function isFemininePair(masc, fem) {
+    let m = foldKey(masc);
+    let f = foldKey(fem);
+    if (m.length < 4 || f.length < 4 || m === f) return false;
+    if (ACRONYMS.has(String(masc).toUpperCase()) || ACRONYMS.has(String(fem).toUpperCase())) return false;
+    if (/s$/.test(m) && /s$/.test(f) && m.length > 4 && f.length > 4) {
+      m = m.slice(0, -1);
+      f = f.slice(0, -1);
+    }
+    const cands = new Set();
+    if (/eur$/.test(m)) {
+      cands.add(m.slice(0, -3) + 'euse');
+      cands.add(m + 'e');
+      if (/teur$/.test(m)) cands.add(m.slice(0, -4) + 'trice');
+      cands.add(m.slice(0, -3) + 'rice');
+    }
+    if (/er$/.test(m)) cands.add(m.slice(0, -2) + 'ere');
+    if (/ien$/.test(m)) cands.add(m.slice(0, -3) + 'ienne');
+    if (/on$/.test(m)) cands.add(m + 'ne');
+    if (/if$/.test(m)) cands.add(m.slice(0, -2) + 'ive');
+    if (m === 'chef') cands.add('cheffe');
+    if (/[^e]$/.test(m) && m.length >= 5) cands.add(m + 'e');
+    return cands.has(f);
+  }
+
+  function foldGenderComma(s) {
+    return String(s).replace(/(\p{L}{4,})\s*,\s*(\p{L}{4,})/gu, (all, a, b) => {
+      if (!isFemininePair(a, b)) return all;
+      const fem = b.charAt(0).toLowerCase() + b.slice(1).toLowerCase();
+      return a + ' / ' + sameCap(a, fem);
+    });
+  }
+
+  /**
+   * Pas d'espace avant , . ; : ), une seule espace, une espace après , ; : entre des mots.
+   * On ne touche ni aux décimales (« 2.5 », « 1,5 »), ni aux sigles (« S.A. », « B.T.S »),
+   * ni aux domaines (« site.fr »).
+   */
+  function fixTitlePunctuation(s) {
+    let out = String(s).replace(/[ \t\u00a0\u202f]+([,.;:)])/g, '$1');
+    out = out.replace(/([,;:])(?=\p{L})/gu, '$1 ');
+    return out.replace(/[ \t\u00a0\u202f]{2,}/g, ' ').trim();
+  }
+
   function displayTitle(t) {
     const s = typoTitle(t);
-    return s ? expandInclusive(s) : s;
+    if (!s) return s;
+    let out = fixTitlePunctuation(s);
+    if (/\(H\/F\)/.test(out)) {
+      out = collapseDottedInclusive(out);
+      out = foldGenderComma(out);
+    }
+    return expandInclusive(out);
   }
 
   const CONTRACT_UNIT = {
