@@ -33,7 +33,7 @@ const LEGAL = {
   director: 'Ryadh Issa Klaa',
   vat: 'TVA non applicable, art. 293 B du CGI',
 };
-const FEATURES = { auth: false, sync: false, savedSearches: false, aiLetter: false, emailAlerts: false, whatsappAlerts: false, accountEmails: false, applyEmail: false };
+const FEATURES = { auth: false, sync: false, savedSearches: false, aiLetter: false, emailAlerts: false, whatsappAlerts: false, accountEmails: false, applyEmail: false, dataEmploi: false };
 let featuresPromise = null;
 function loadFeatures() { return (featuresPromise ||= fetchFeatures()); }
 async function fetchFeatures() {
@@ -1467,7 +1467,9 @@ function parseAggregatedJob(j) {
     categoriePublique: j.categoriePublique || '',
     cat: j.cat || '',
     applyEmail: /^[^\s@<>"]+@[^\s@<>"]+\.[a-z]{2,24}$/i.test(j.applyEmail || '') ? j.applyEmail : '',
-    applyUrl: /^https?:\/\//i.test(j.applyUrl || '') ? j.applyUrl : ''
+    applyUrl: /^https?:\/\//i.test(j.applyUrl || '') ? j.applyUrl : '',
+    rome: /^[A-Z]\d{4}$/i.test(j.rome || '') ? String(j.rome).toUpperCase() : '',
+    romeLabel: String(j.romeLabel || '').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim().slice(0, 120)
   };
 }
 
@@ -1789,7 +1791,8 @@ function openDetail(id, { push = true } = {}) {
     ${detailSection('Qualités professionnelles', j.qualites)}
     ${detailSection('Avantages et compléments de salaire', j.avantages)}
     ${j.source === 'Adzuna' ? `<p class="detail-attr">${adzunaAttribution()}</p>` : j.source === 'France Travail' ? `<p class="detail-attr">Source : France Travail${j.updated ? `, offre mise à jour le ${esc(fmtDate(j.updated))}` : ''}. Réutilisation soumise à la <a href="${FT_LICENCE_URL}" target="_blank" rel="noopener">licence de réutilisation des offres d’emploi de France Travail</a>.</p>` : j.publicSector ? `<p class="detail-attr">Source : Choisir le Service Public (DGAFP), <a href="${CSP_DATA_URL}" target="_blank" rel="noopener">jeu de données ouvert publié sur data.gouv.fr</a> sous Licence Ouverte 2.0. Offre de la fonction publique : la rémunération suit la grille indiciaire du grade.</p>` : ''}
-    <p class="detail-note">${icon('info')}<span>${applyMode(j) === 'send' ? 'Ce recruteur reçoit les candidatures par e-mail : avec « Postuler en 1 clic », TalentPulse lui envoie votre lettre et votre CV.' : applyMode(j) === 'mailto' ? 'Ce recruteur reçoit les candidatures par e-mail : « Postuler » prépare l’e-mail complet, envoyé depuis votre messagerie.' : `« Postuler » ouvre le formulaire officiel sur ${esc(site)}, qui n’accepte pas les candidatures transmises par un autre site. Vous pouvez aussi préparer votre lettre ici avant de la coller.`} Votre suivi est ${State.user ? 'synchronisé avec votre compte' : 'enregistré sur cet appareil'}.</span></p>`;
+    <p class="detail-note">${icon('info')}<span>${applyMode(j) === 'send' ? 'Ce recruteur reçoit les candidatures par e-mail : avec « Postuler en 1 clic », TalentPulse lui envoie votre lettre et votre CV.' : applyMode(j) === 'mailto' ? 'Ce recruteur reçoit les candidatures par e-mail : « Postuler » prépare l’e-mail complet, envoyé depuis votre messagerie.' : `« Postuler » ouvre le formulaire officiel sur ${esc(site)}, qui n’accepte pas les candidatures transmises par un autre site. Vous pouvez aussi préparer votre lettre ici avant de la coller.`} Votre suivi est ${State.user ? 'synchronisé avec votre compte' : 'enregistré sur cet appareil'}.</span></p>
+    <div id="detailMarket"></div>`;
 
   $('#detailCta').innerHTML = `
     <button class="btn btn-primary btn-lg btn-view" id="detailApply" type="button" aria-haspopup="dialog">${applyCtaLabel(j)}</button>
@@ -1809,6 +1812,47 @@ function openDetail(id, { push = true } = {}) {
   on($('#detailApply'), 'click', () => openApply(id));
   on($('#detailTrack'), 'click', () => toggleTrack(id));
   on($('#detailView'), 'click', () => historyAdd(j, 'viewed'));
+  loadDetailMarket(j);
+}
+
+// Encart « Le marché en chiffres » : un seul appel, après l’ouverture de la fiche.
+// Jamais depuis une carte de la liste. Échec ou réponse vide : le bloc reste masqué.
+let marketReq = 0;
+function offerSalaryKnown(j) {
+  const label = String(j?.salary || '').trim();
+  return Boolean(label) && !/estimation/i.test(label) && /\d/.test(label);
+}
+function loadDetailMarket(j) {
+  const seq = ++marketReq;
+  const dept = String(j?.dept || '').trim().toUpperCase();
+  if (!/^(\d{2,3}|2A|2B)$/.test(dept)) return;
+  const rome = String(j?.rome || '').trim().toUpperCase();
+  const hasRome = /^[A-Z]\d{4}$/.test(rome);
+  const title = String(j?.title || '').trim();
+  if (!hasRome && title.length < 3) return;
+  const params = new URLSearchParams({ dept });
+  if (hasRome) params.set('rome', rome);
+  else {
+    params.set('q', title.slice(0, 120));
+    if (j.city) params.set('city', String(j.city).slice(0, 80));
+  }
+  if (offerSalaryKnown(j)) params.set('salary', '1');
+  loadFeatures().then(() => {
+    if (seq !== marketReq || State.currentJobId !== j.id || !FEATURES.dataEmploi) return;
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 12000);
+    fetch('/api/marche?' + params, { headers: { Accept: 'application/json' }, signal: ctrl.signal })
+      .then(r => (r.ok ? r.json() : null))
+      .then(data => {
+        if (seq !== marketReq || State.currentJobId !== j.id) return;
+        const html = data && typeof data.html === 'string' ? data.html : '';
+        const host = $('#detailMarket');
+        if (!host || !html.includes('class="market-figures market-compact"') || /<script/i.test(html)) return;
+        host.innerHTML = html;
+      })
+      .catch(() => {})
+      .finally(() => clearTimeout(timer));
+  }).catch(() => {});
 }
 
 function closeDetail({ syncRoute = true, restoreFocus = true } = {}) {

@@ -37,6 +37,16 @@ test('les boutons orange restent assez foncés pour le blanc (WCAG AA)', () => {
   assert.match(notFound, /outline:3px solid #C2410C/);
 });
 
+test('encart compact de la fiche : une colonne sous 480 px, texte non coupé, couleurs déjà conformes', () => {
+  const block = style.slice(style.indexOf('.market-compact{'), style.indexOf('.seo-links{'));
+  assert.ok(block.includes('.market-compact{'), 'règles compactes présentes');
+  assert.match(block, /@media\(max-width:479px\)\{[\s\S]*\.market-compact \.market-grid\{grid-template-columns:1fr\}/);
+  assert.ok(!/text-overflow:\s*ellipsis|white-space:\s*nowrap|-webkit-line-clamp/.test(block), block);
+  assert.match(block, /\.market-compare\{[^}]*color:var\(--text\)/);
+  assert.match(block, /\.market-base\{[^}]*color:var\(--text-2\)/);
+  assert.ok(!/#(?:94A3B8|9CA3AF|A1A1AA|CBD5E1)/i.test(block), 'gris trop clair');
+});
+
 test('le focus d’une carte d’offre n’est pas un anneau à 30 % d’opacité', () => {
   assert.ok(!/color-mix\(in srgb,var\(--focus\) 2[80]%/.test(style));
   assert.match(style, /\.job:focus-within\{[^}]*0 0 0 4px var\(--focus\)/);

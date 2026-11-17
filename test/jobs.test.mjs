@@ -275,6 +275,21 @@ test('API : contractDetail et le titre restent la valeur source', async () => {
   assert.equal(cdd.title, 'Vendeur en boulangerie (H/F)');
 });
 
+test('mapFT conserve le code ROME de France Travail, pas un code illisible', async () => {
+  const { _test } = await import('../lib/jobs.js');
+  const job = _test.mapFT({
+    id: 'R1', intitule: 'Serveur (H/F)', romeCode: 'g1803', romeLibelle: 'Serveur / Serveuse de café',
+    lieuTravail: { libelle: '69 - LYON' }, dateCreation: '2026-11-01T00:00:00.000Z',
+  });
+  assert.equal(job.rome, 'G1803');
+  assert.equal(job.romeLabel, 'Serveur / Serveuse de café');
+  assert.equal(job.dept, '69');
+  const bad = _test.mapFT({ id: 'R2', intitule: 'Serveur', romeCode: 'ROME-??', dateCreation: '2026-11-01T00:00:00.000Z' });
+  assert.equal(bad.rome, undefined);
+  const adz = _test.mapAdzuna({ id: 3, title: 'Serveur', location: { display_name: 'Lyon, Rhône' }, redirect_url: 'https://www.adzuna.fr/3' });
+  assert.equal(adz.rome, undefined);
+});
+
 test('contrat : alternance prioritaire, déduction si vide, pastille non inventée côté API', async () => {
   const { _test } = await import('../lib/jobs.js');
   const alt = _test.mapFT({ id: '1', intitule: 'Alternance - serveur (H/F)', typeContrat: 'CDD', alternance: false, description: 'Contrat de professionnalisation', dateCreation: '2026-10-01T00:00:00Z' });
