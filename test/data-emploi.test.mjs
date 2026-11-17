@@ -5,9 +5,12 @@ import {
   pickActivite, pickFrance, pickLatestRow, readIndicateur, formatPrincipal, formatPeriode,
   formatFrInt, formatEuro, matchTerritoryType, resolveTerritory, sourceSentence, marketFiguresHtml,
   dataEmploiEnabled, loadMarketSnapshot,
+  normalizeDept, normalizeRome, offerSalaryKnown, romeSearchText, compareParts, marketCompactHtml, loadOfferMarket,
 } from '../lib/data-emploi.js';
+import { readFileSync } from 'node:fs';
 import health from '../api/health.js';
 import seo from '../api/seo.js';
+import marche from '../api/marche.js';
 import { _clearCache } from '../lib/seo.js';
 import { call, setEnv } from './helpers.mjs';
 
@@ -269,4 +272,150 @@ test('page SEO : encart réel si l’API répond, masqué si le scope est refus�
   assert.doesNotMatch(html, /Le marché en chiffres/);
   assert.doesNotMatch(html, /1\u202f850/);
   assert.match(html, /Offres d’emploi de serveur/);
+});
+
+test('ligne de comparaison : base, tout âge, année, aucun jugement', () => {
+  assert.equal(normalizeDept('69'), '69');
+  assert.equal(normalizeDept('2a'), '2A');
+  assert.equal(normalizeDept('lyon'), '');
+  assert.equal(normalizeRome('g1803'), 'G1803');
+  assert.equal(normalizeRome('ROME'), '');
+  assert.equal(offerSalaryKnown({ salary: '2\u202f200 €/mois' }), true);
+  assert.equal(offerSalaryKnown({ salary: '12 €/h (estimation Adzuna)' }), false);
+  assert.equal(offerSalaryKnown({ salary: '' }), false);
+  assert.equal(romeSearchText('Serveur (H/F) - CDI', 'Lyon'), 'Serveur');
+  assert.equal(romeSearchText('Stage - assistant comptable', 'Lyon'), 'assistant comptable');
+  assert.equal(romeSearchText('CDI', 'Lyon'), '');
+  const parts = compareParts({
+    id: 'SAL_3',
+    value: { text: '2\u202f047\u00a0€', kind: 'money' },
+    libNomenclature: 'Salaire net mensuel',
+    periode: { label: 'année 2022', kind: 'year', year: '2022' },
+  });
+  assert.equal(parts.lead, 'Salaire en poste du métier\u00a0: 2\u202f047\u00a0€.');
+  assert.equal(parts.base, 'Base\u00a0: Salaire net mensuel, tout âge, année 2022.');
+  assert.doesNotMatch(parts.lead + parts.base, /au-dessus|en dessous|au-dessous|mieux pay|sous-pay|compétitif/i);
+  const band = compareParts({
+    value: { text: '1\u202f800\u00a0€', kind: 'money' },
+    libNomenclature: 'Salaire net mensuel',
+    libCaracteristique: 'Moins de 30 ans',
+    periode: { label: 'année 2022', kind: 'year', year: '2022' },
+  });
+  assert.match(band.base, /Moins de 30 ans/);
+  assert.doesNotMatch(band.base, /tout âge/);
+  assert.equal(compareParts({ value: { text: 'Forte', kind: 'text' } }), null);
+  const html = marketCompactHtml({
+    activityLabel: 'Serveur <br>',
+    territoryLabel: 'Rhône',
+    figures: [
+      { id: 'OFF_1', title: 'Offres enregistrées', value: { text: '890', kind: 'count' }, periode: { label: '3e trimestre 2025', kind: 'quarter' }, libNomenclature: 'Toutes offres' },
+      { id: 'SAL_3', title: 'Salaires en poste', value: { text: '2\u202f047\u00a0€', kind: 'money' }, libNomenclature: 'Salaire net mensuel', periode: { label: 'année 2022', kind: 'year', year: '2022' } },
+    ],
+  }, { salaryKnown: true });
+  assert.match(html, /id="detailMarketTitle">Le marché en chiffres/);
+  assert.match(html, /Serveur &lt;br&gt;/);
+  assert.match(html, /Salaire en poste du métier\u00a0: 2\u202f047\u00a0€\./);
+  assert.match(html, /tout âge, année 2022/);
+  assert.match(html, /données de l’année 2022|Source\u00a0: France Travail\./);
+  assert.doesNotMatch(html, /id="marketFiguresTitle"/);
+  assert.doesNotMatch(html, /au-dessus du marché|placeholder|à venir/);
+  assert.equal(marketCompactHtml({
+    figures: [{ id: 'SAL_3', title: 'Salaires en poste', value: { text: '2\u202f047\u00a0€', kind: 'money' }, periode: { label: 'année 2022', kind: 'year', year: '2022' } }],
+  }, { salaryKnown: false }).includes('market-compare'), false);
+  assert.equal(marketCompactHtml(null), '');
+});
+
+function marketFetch(routes) {
+  return async (url, opts) => {
+    const u = String(url);
+    if (u.includes('access_token')) return json({ access_token: 'marche', expires_in: 1500 });
+    if (u.includes('/type-territoires')) return json({ typeTerritoires: [{ codeTypeTerritoire: 'DEP', libelleTypeTerritoire: 'Département' }] });
+    if (u.includes('/type-activites')) return json({ typeActivites: [{ codeTypeActivite: 'ROME', libelleTypeActivite: 'ROME' }] });
+    if (u.includes('/activites/')) return routes.activites(u);
+    if (u.includes('/details-indicateurs')) return json({ listeIndicateurs: [] });
+    if (u.includes('/stat-offres') && opts?.method === 'POST') {
+      const sent = JSON.parse(opts.body);
+      routes.sent = sent;
+      return json({ listeValeursParPeriode: [{ codePeriode: '2026T2', libTerritoire: 'RHONE', libActivite: 'Serveur / Serveuse', codeNomenclature: 'TOFF', libNomenclature: 'Toutes offres', valeurPrincipaleNombre: 370 }] });
+    }
+    if (u.includes('salaire-rome-fap')) {
+      routes.salaryUrl = u;
+      return json({ listeValeursParPeriode: [{ codePeriode: '2022', libPeriode: 'ANNEE 2022', libTerritoire: 'Rhône', libActivite: 'Serveur / Serveuse', codeNomenclature: 'SAL3', valeurPrincipaleMontant: 2047 }] });
+    }
+    if (u.includes('/nomenclatures/TYPESALAIRE')) return json({ nomenclatures: [{ codeNomenclature: 'SAL3', libelleNomenclature: 'Salaire net mensuel' }] });
+    return new Response('', { status: 404 });
+  };
+}
+
+test('fiche : ROME France Travail et département, titre ambigu ignoré, cache', async () => {
+  setEnv({ FT_CLIENT_ID: 'id-test', FT_CLIENT_SECRET: 'secret-test' });
+  const routes = {
+    sent: null,
+    salaryUrl: '',
+    activites(u) {
+      if (u.includes('filtreActivite=Serveur')) {
+        return json({ activites: [
+          { codeActivite: 'G1801', codeTypeActivite: 'ROME', libelleActivite: 'Serveur en café' },
+          { codeActivite: 'G1803', codeTypeActivite: 'ROME', libelleActivite: 'Serveur en restauration' },
+        ] });
+      }
+      if (u.includes('filtreActivite=Comptable')) {
+        return json({ activites: [{ codeActivite: 'M1203', codeTypeActivite: 'ROME', libelleActivite: 'Comptable' }] });
+      }
+      return json({ activites: [] });
+    },
+  };
+  global.fetch = marketFetch(routes);
+  assert.equal(await loadOfferMarket({ title: 'Serveur', dept: '' }, { now: NOW }), null);
+  assert.equal(await loadOfferMarket({ title: 'Serveur (H/F)', city: 'Lyon', dept: '69', source: 'Adzuna' }, { now: NOW }), null, 'deux ROME pour « serveur » : pas d’encart');
+  const adz = await loadOfferMarket({ title: 'Comptable - CDI', city: 'Lyon', dept: '69', source: 'Adzuna', salary: '2 200 €/mois' }, { now: NOW });
+  assert.equal(adz.activityLabel, 'Comptable');
+  assert.equal(adz.figures.find(f => f.id === 'SAL_3').value.text, '2\u202f047\u00a0€');
+  assert.equal(routes.sent.codeActivite, 'M1203');
+  assert.match(routes.salaryUrl, /codeRome=M1203/);
+  routes.sent = null;
+  const ft = await loadOfferMarket({ rome: 'G1803', romeLabel: 'Serveur <x>', title: 'Serveur polyvalent urgent', dept: '69', salary: '1 900 €/mois' }, { now: NOW });
+  assert.equal(ft.figures.find(f => f.id === 'OFF_1').value.text, '370');
+  assert.equal(routes.sent.codeActivite, 'G1803', 'le code de l’offre prime sur le titre');
+  assert.equal(routes.sent.codeTerritoire, '69');
+  assert.equal(routes.sent.codeTypeTerritoire, 'DEP');
+  assert.equal(ft.activityLabel, 'Serveur / Serveuse');
+  assert.equal(ft.territoryLabel, 'Rhône', 'le libellé API « RHONE » est affiché avec l’accent du département');
+  const html = marketCompactHtml(ft, { salaryKnown: offerSalaryKnown({ salary: '1 900 €/mois' }) });
+  assert.match(html, /Salaire en poste du métier/);
+  assert.match(html, /Salaire net mensuel, tout âge, année 2022/);
+  assert.doesNotMatch(html, /<x>/);
+  const postsBefore = routes.sent;
+  const again = await loadOfferMarket({ rome: 'G1803', dept: '69' }, { now: NOW + 1000 });
+  assert.equal(again.figures.find(f => f.id === 'OFF_1').value.text, '370');
+  assert.equal(routes.sent, postsBefore, 'second passage servi par le cache');
+  global.fetch = async () => { throw new Error('coupé'); };
+  _resetDataEmploi();
+  assert.equal(await loadOfferMarket({ rome: 'G1803', dept: '69' }, { now: NOW }), null);
+});
+
+test('GET /api/marche : HTML réel ou corps vide, sans appel depuis la liste', async () => {
+  setEnv({ FT_CLIENT_ID: 'id-test', FT_CLIENT_SECRET: 'secret-test' });
+  const routes = { sent: null, salaryUrl: '', activites: () => json({ activites: [] }) };
+  global.fetch = marketFetch(routes);
+  const bad = await call(marche, { query: { dept: 'lyon', rome: 'G1803', salary: '1' } });
+  assert.equal(bad.status, 200);
+  assert.equal(bad.body.html, '');
+  const ok = await call(marche, { query: { dept: '69', rome: 'G1803', salary: '1', q: '<script>' } });
+  assert.equal(ok.status, 200);
+  assert.match(ok.body.html, /2\u202f047\u00a0€/);
+  assert.match(ok.body.html, /tout âge, année 2022/);
+  assert.match(ok.headers['cache-control'], /s-maxage=86400/);
+  assert.doesNotMatch(ok.body.html, /<script>|au-dessus/);
+  const quiet = await call(marche, { query: { dept: '69', q: 'Serveur (H/F)', city: 'Lyon' } });
+  assert.equal(quiet.body.html, '');
+  assert.match(quiet.headers['cache-control'], /s-maxage=600/);
+  const app = readFileSync(new URL('../public/assets/app.js', import.meta.url), 'utf8');
+  const card = app.slice(app.indexOf('function jobCard('), app.indexOf('function toggleSave('));
+  assert.ok(!card.includes('/api/marche'), 'la liste ne charge pas le marché');
+  const detail = app.slice(app.indexOf('function openDetail('), app.indexOf('function closeDetail('));
+  assert.match(detail, /id="detailMarket"/);
+  assert.match(detail, /loadDetailMarket\(j\)/);
+  assert.match(app, /function loadDetailMarket/);
+  assert.match(app, /!\/estimation\/i\.test\(label\)/);
 });

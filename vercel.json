@@ -182,6 +182,9 @@
     "api/jobs.js": {
       "includeFiles": "lib/data/**",
       "maxDuration": 15
+    },
+    "api/marche.js": {
+      "maxDuration": 15
     }
   },
   "crons": [
