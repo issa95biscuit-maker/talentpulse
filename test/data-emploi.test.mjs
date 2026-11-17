@@ -336,7 +336,7 @@ function marketFetch(routes) {
     if (u.includes('/stat-offres') && opts?.method === 'POST') {
       const sent = JSON.parse(opts.body);
       routes.sent = sent;
-      return json({ listeValeursParPeriode: [{ codePeriode: '2026T2', libTerritoire: 'Rhône', libActivite: 'Serveur / Serveuse', codeNomenclature: 'TOFF', libNomenclature: 'Toutes offres', valeurPrincipaleNombre: 370 }] });
+      return json({ listeValeursParPeriode: [{ codePeriode: '2026T2', libTerritoire: 'RHONE', libActivite: 'Serveur / Serveuse', codeNomenclature: 'TOFF', libNomenclature: 'Toutes offres', valeurPrincipaleNombre: 370 }] });
     }
     if (u.includes('salaire-rome-fap')) {
       routes.salaryUrl = u;
@@ -380,6 +380,7 @@ test('fiche : ROME France Travail et département, titre ambigu ignoré, cache',
   assert.equal(routes.sent.codeTerritoire, '69');
   assert.equal(routes.sent.codeTypeTerritoire, 'DEP');
   assert.equal(ft.activityLabel, 'Serveur / Serveuse');
+  assert.equal(ft.territoryLabel, 'Rhône', 'le libellé API « RHONE » est affiché avec l’accent du département');
   const html = marketCompactHtml(ft, { salaryKnown: offerSalaryKnown({ salary: '1 900 €/mois' }) });
   assert.match(html, /Salaire en poste du métier/);
   assert.match(html, /Salaire net mensuel, tout âge, année 2022/);
