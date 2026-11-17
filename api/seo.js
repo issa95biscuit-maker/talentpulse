@@ -3,6 +3,7 @@
  * (via les rewrites de vercel.json). HTML rendu côté serveur, mis en cache sur le CDN.
  */
 import { renderLanding, renderOffer, renderStaticPage, sitemap } from '../lib/seo.js';
+import { renderSitesPro } from '../lib/sites-pro.js';
 import { applyCacheHeaders } from '../lib/http.js';
 
 export default async function handler(req, res) {
@@ -18,7 +19,9 @@ export default async function handler(req, res) {
   // Paramètres de suivi conservés lors d'une redirection de normalisation (?utm_…)
   const search = (() => { const u = String(req.url || ''); const i = u.indexOf('?'); if (i < 0) return ''; const p = new URLSearchParams(u.slice(i)); p.delete('kw'); p.delete('lieu'); p.delete('from'); p.delete('page'); const s = p.toString(); return s ? '?' + s : ''; })();
   try {
-    const r = q.page ? renderStaticPage(q.page) : q.offre ? await renderOffer(q.offre) : await renderLanding({ kw: q.kw, lieu: q.lieu, search, from: q.from });
+    const r = q.page === 'sites-pro'
+      ? renderSitesPro({ envoye: q.envoye, erreur: q.erreur })
+      : q.page ? renderStaticPage(q.page) : q.offre ? await renderOffer(q.offre) : await renderLanding({ kw: q.kw, lieu: q.lieu, search, from: q.from });
     if (!r) return res.status(404).end();
     for (const [k, v] of Object.entries(r.headers)) res.setHeader(k, v);
     return res.status(r.status).end(req.method === 'HEAD' ? '' : r.body);

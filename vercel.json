@@ -82,6 +82,10 @@
     {
       "source": "/cgu",
       "destination": "/api/seo?page=cgu"
+    },
+    {
+      "source": "/sites-pro",
+      "destination": "/api/seo?page=sites-pro"
     }
   ],
   "headers": [
