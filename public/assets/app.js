@@ -653,6 +653,11 @@ function getSsr() {
 function toggleSeoBlocks(show) {
   ['#seoCrumbs', '#seoIntro', '#seoMore'].forEach(sel => { const el = $(sel); if (el && el.children.length) el.hidden = !show; });
 }
+/** Même clé que l'API (public/assets/dedupe.js), pour la page qui recolle Adzuna après France Travail. */
+function dedupeJobs(jobs) {
+  return globalThis.TP_DEDUPE ? TP_DEDUPE.dedupe(jobs) : jobs;
+}
+
 function hydrateSsr(rawPath, params = {}) {
   const ssr = getSsr();
   if (!ssr || ssr.used || ssr.path !== rawPath) return false;
@@ -690,7 +695,7 @@ function hydrateSsr(rawPath, params = {}) {
       csp: Number(t.csp) || 0,
     };
     State.total = State.totals.ft + State.totals.adzuna + State.totals.csp;
-    if (extra.length) State.jobs = State.jobs.concat(extra);
+    if (extra.length) State.jobs = dedupeJobs(State.jobs.concat(extra));
     State.hasMore = State.hasMore || !!data.hasMore;
     renderJobs();
   }).catch(() => {});
@@ -1348,9 +1353,9 @@ async function loadJobs(params = {}, { append = false, auto = false, requestId: 
   const fresh = ((data && data.resultats) || []).map(parseAggregatedJob).filter(Boolean);
   if (append) {
     const known = new Set(State.jobs.map(j => j.id));
-    State.jobs = State.jobs.concat(fresh.filter(j => !known.has(j.id)));
+    State.jobs = dedupeJobs(State.jobs.concat(fresh.filter(j => !known.has(j.id))));
   } else {
-    State.jobs = fresh;
+    State.jobs = dedupeJobs(fresh);
   }
   if (!netError) {
     State.apiPage = page;
