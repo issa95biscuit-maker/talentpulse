@@ -38,6 +38,9 @@ test('période, nombres français et ligne de source', () => {
   assert.equal(sourceSentence(figures), 'Source\u00a0: France Travail, données du 3e trimestre 2025.');
   assert.equal(sourceSentence([{ periode: formatPeriode('2025M03') }]), 'Source\u00a0: France Travail, données de mars 2025.');
   assert.equal(sourceSentence([{ periode: formatPeriode('2025T3') }, { periode: formatPeriode('2025T2') }]), 'Source\u00a0: France Travail.');
+  assert.deepEqual(formatPeriode('2022', 'ANNEE 2022'), { label: 'année 2022', kind: 'year', year: '2022' });
+  assert.equal(formatPeriode('2026T2', '2ème trimestre 2026').label, '2ème trimestre 2026');
+  assert.equal(sourceSentence([{ periode: formatPeriode('2022', 'ANNEE 2022') }]), 'Source\u00a0: France Travail, données de l’année 2022.');
 });
 
 test('sélection de ligne : une valeur, un total, ou rien si le cumul serait inventé', () => {
@@ -46,6 +49,30 @@ test('sélection de ligne : une valeur, un total, ou rien si le cumul serait inv
   const c = { codePeriode: '2025T3', codeNomenclature: 'B', valeurPrincipaleNombre: 6 };
   assert.equal(pickLatestRow([a]), a);
   assert.equal(pickLatestRow([b, c]), null);
+  const offres = [
+    { codePeriode: '2026T2', codeNomenclature: 'PE', valeurPrincipaleNombre: 240 },
+    { codePeriode: '2026T2', codeNomenclature: 'PE-CUMUL12MOIS', libNomenclature: 'Cumul 12 derniers mois', valeurPrincipaleNombre: 1010 },
+    { codePeriode: '2026T2', codeNomenclature: 'TOFF', libNomenclature: 'Toutes offres', valeurPrincipaleNombre: 370 },
+    { codePeriode: '2026T2', codeNomenclature: 'TOFF-CUMUL12MOIS', valeurPrincipaleNombre: 1720 },
+  ];
+  assert.equal(pickLatestRow(offres).codeNomenclature, 'TOFF');
+  const tension = [
+    { codePeriode: '2025', codeNomenclature: 'INT_EMB', valeurPrincipaleNombre: 5 },
+    { codePeriode: '2025', codeNomenclature: 'PERSPECTIVE', libNomenclature: 'Indicateur principal tension', valeurPrincipaleNombre: 3 },
+  ];
+  assert.equal(pickLatestRow(tension).codeNomenclature, 'PERSPECTIVE');
+  const salaire = readIndicateur({
+    valeursParPeriode: [{
+      codePeriode: '2022', libPeriode: 'ANNEE 2022', libActivite: 'Serveurs de cafés restaurants',
+      salaireValeurMontant: [
+        { codeNomenclature: 'SAL1', valeurPrincipaleMontant: 2032 },
+        { codeNomenclature: 'SAL3', valeurPrincipaleMontant: 2045 },
+      ],
+    }],
+  });
+  assert.equal(salaire.codeNomenclature, 'SAL3');
+  assert.equal(salaire.value.text, '2\u202f045\u00a0€');
+  assert.equal(salaire.periode.label, 'année 2022');
   const total = { codePeriode: '2025T3', codeNomenclature: 'ABC', libNomenclature: 'Ensemble', valeurPrincipaleNombre: 10 };
   assert.equal(pickLatestRow([b, c, total]), total);
   assert.equal(readIndicateur({ listeValeursParPeriode: [b, c] }), null);
@@ -147,6 +174,7 @@ test('panne et 500 : aucun chiffre, aucune exception', async () => {
     return new Response('nope', { status: 500 });
   };
   assert.equal(await loadMarketSnapshot({ slug: 'serveur', q: 'serveur' }, { type: 'departement', dep: '33', code: '33' }, { now: NOW }), null);
+  assert.equal(await dataEmploiEnabled({ now: NOW }), true, 'une erreur de donnée ne retire pas l’accès');
 });
 
 test('cache 24 h : le second affichage ne rappelle pas l’indicateur', async () => {
