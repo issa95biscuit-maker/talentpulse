@@ -80,3 +80,13 @@ test('stubs : France Travail Connect et sources sur accord restent inactifs sans
   assert.ok((await ex.fetchEmployerFeeds({})).disabled);
   assert.deepEqual(ex.parseEmployerFeeds('smartrecruiters:Accor, inconnu:X, smartrecruiters:../x'), [{ kind: 'smartrecruiters', id: 'Accor' }]);
 });
+
+test('mapCSP : intitulés typographiques (accents, sigles, H/F), lien officiel inchangé', () => {
+  const base = { employer: 'Service du commissariat des armées (SCA)', dep: '75', city: 'Paris', versant: 'FPE', categorie: 'A', contrat: 'CDI', metier: 'Contrôleur', first: '2026-10-01', end: '2026-12-01', teletravail: 0, tempsPlein: 1 };
+  const cadre = mapCSP({ ...base, ref: 'DEF_21-00070257', title: 'CADRE CONTROLE INTERNE RHL' });
+  assert.equal(cadre.title, 'Cadre contrôle interne RHL');
+  const raw = { title: 'CADRE CONTROLE INTERNE RHL', ref: 'DEF_21-00070257' };
+  assert.match(cspUrl(raw), /cadre-controle-interne-rhl-reference-DEF_21-00070257\//);
+  const aux = mapCSP({ ...base, ref: '2026-2407088', title: '1 AUXILIAIRE DE PUERICULTURE (H/F)', employer: 'Mairie' });
+  assert.equal(aux.title, '1 auxiliaire de puériculture (H/F)');
+});

@@ -153,3 +153,25 @@ test('displayCompany : ellipse au dernier mot complet, sans inventer la suite', 
   );
   assert.equal(displayCompany('Déjà tronqué…'), 'Déjà tronqué…');
 });
+
+test('typoTitle : accents manquants, sigles et casse des titres Service Public', () => {
+  assert.equal(typoTitle('CADRE CONTROLE INTERNE RHL'), 'Cadre contrôle interne RHL');
+  assert.equal(typoTitle('1 AUXILIAIRE DE PUERICULTURE (H/F)'), '1 auxiliaire de puériculture (H/F)');
+  assert.equal(typoTitle('1 auxiliaire de puericulture (h/f)'), '1 auxiliaire de puériculture (H/F)');
+  assert.equal(typoTitle('Developpeur'), 'Développeur');
+  assert.equal(typoTitle('DEVELOPPEUR FULL STACK E'), 'Développeur full stack e');
+  assert.equal(typoTitle('CORRESPONDANT RH'), 'Correspondant RH');
+  assert.equal(typoTitle('AGENT DOCUMENTATION ET BIBLIOTHEQUE CONFIRME'), 'Agent documentation et bibliothèque confirmé');
+  assert.equal(typoTitle('SSD - OFFICIER MANDATAIRE EN SECURITE DE DEFENSE-CHEF DU BPS'), 'SSD - officier mandataire en sécurité de défense-chef du BPS');
+  assert.equal(typoTitle('ADJOINT GERANT RESTAURANT'), 'Adjoint gérant restaurant');
+  assert.equal(typoTitle("CHARGE D'ETUDES MOBILITE"), "Chargé d'études mobilité");
+  assert.equal(typoTitle('prise en charge de la paie'), 'Prise en charge de la paie');
+  assert.equal(typoTitle('Agent en charge du contrôle'), 'Agent en charge du contrôle');
+  // déjà propre : idempotent, on ne retouche pas un mot juste
+  assert.equal(typoTitle('Cadre contrôle interne RHL'), 'Cadre contrôle interne RHL');
+  assert.equal(typoTitle('1 auxiliaire de puériculture (H/F)'), '1 auxiliaire de puériculture (H/F)');
+  assert.equal(typoTitle('Auxiliaire de puériculture - COM. COM. SUNDGAU'), 'Auxiliaire de puériculture - COM. COM. Sundgau');
+  assert.equal(typoTitle('Gestionnaire paie'), 'Gestionnaire paie');
+  assert.equal(displayTitle('CADRE CONTROLE INTERNE RHL'), 'Cadre contrôle interne RHL');
+  assert.equal(displayTitle('1 AUXILIAIRE DE PUERICULTURE (H/F)'), '1 auxiliaire de puériculture (H/F)');
+});
