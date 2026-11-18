@@ -171,6 +171,9 @@ test('typoTitle : accents manquants, sigles et casse des titres Service Public',
   assert.equal(typoTitle('Cadre contrôle interne RHL'), 'Cadre contrôle interne RHL');
   assert.equal(typoTitle('1 auxiliaire de puériculture (H/F)'), '1 auxiliaire de puériculture (H/F)');
   assert.equal(typoTitle('Auxiliaire de puériculture - COM. COM. SUNDGAU'), 'Auxiliaire de puériculture - COM. COM. Sundgau');
+  assert.equal(typoTitle('DRIS Chargé de la gestion financière'), 'DRIS Chargé de la gestion financière');
+  assert.equal(typoTitle('ACMOSS -SG-Chargé(e) de facturation'), 'ACMOSS -SG-Chargé(e) de facturation');
+  assert.equal(typoTitle('SDPQVT/B-Auxiliaire de puériculture'), 'SDPQVT/B-Auxiliaire de puériculture');
   assert.equal(typoTitle('Gestionnaire paie'), 'Gestionnaire paie');
   assert.equal(displayTitle('CADRE CONTROLE INTERNE RHL'), 'Cadre contrôle interne RHL');
   assert.equal(displayTitle('1 AUXILIAIRE DE PUERICULTURE (H/F)'), '1 auxiliaire de puériculture (H/F)');

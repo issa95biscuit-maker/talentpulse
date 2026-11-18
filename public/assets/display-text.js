@@ -195,7 +195,9 @@
     if (letters.length > 6 && letters === letters.toUpperCase()) {
       s = s.toLowerCase().replace(/[a-zà-ÿ0-9]+/g, w => (keptAcronym(w) ? w.toUpperCase() : w));
     } else {
-      s = s.replace(/\b[A-ZÀ-Ÿ]{4,}\b/g, w => (ACRONYMS.has(w) ? w : w.charAt(0) + w.slice(1).toLowerCase()));
+      // 7 lettres ou plus : un mot crié (« SUNDGAU », « VENDEUR ») reprend une casse normale.
+      // 4 à 6 lettres déjà en capitales : on conserve le sigle (DRIS, ACMOSS, APHP, ICND).
+      s = s.replace(/\b[A-ZÀ-Ÿ]{7,}\b/g, w => (ACRONYMS.has(w) ? w : w.charAt(0) + w.slice(1).toLowerCase()));
     }
     s = s.replace(/(\p{L})\s+\((e|ne|se|euse|ère|rice|trice)\)/gu, '$1($2)');
     s = applyInclusiveAccents(s);
