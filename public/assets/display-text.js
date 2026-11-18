@@ -15,7 +15,152 @@
  *             Affichage seulement : le filtre contrat de l’API n’est pas concerné.
  */
 (function () {
-  const ACRONYMS = new Set(['CDI', 'CDD', 'BTP', 'RH', 'IT', 'SAV', 'VTC', 'ASH', 'AES', 'AESH', 'ATSEM', 'DRH', 'CAP', 'BEP', 'BTS', 'BAC', 'BAFA', 'BAFD', 'SNCF', 'RATP', 'PL', 'SPL', 'VL', 'CACES', 'SSIAP', 'ADV', 'QHSE', 'HSE', 'IDE', 'AS', 'DAF', 'PME', 'TPE', 'B2B', 'B2C', 'SEO', 'UX', 'UI', 'QA', 'SAP', 'ERP', 'CRM', 'IA', 'BIM', 'CVC', 'GMS', 'ETAM', 'EHPAD', 'SMS', 'CHU']);
+  const ACRONYMS = new Set(['CDI', 'CDD', 'BTP', 'RH', 'IT', 'SAV', 'VTC', 'ASH', 'AES', 'AESH', 'ATSEM', 'DRH', 'CAP', 'BEP', 'BTS', 'BAC', 'BAFA', 'BAFD', 'SNCF', 'RATP', 'PL', 'SPL', 'VL', 'CACES', 'SSIAP', 'ADV', 'QHSE', 'HSE', 'IDE', 'AS', 'DAF', 'PME', 'TPE', 'B2B', 'B2C', 'SEO', 'UX', 'UI', 'QA', 'SAP', 'ERP', 'CRM', 'IA', 'BIM', 'CVC', 'GMS', 'ETAM', 'EHPAD', 'SMS', 'CHU', 'CCAS']);
+  /**
+   * Accents manquants (titres CSP/FT souvent tout en capitales).
+   * Clé = forme minuscule sans accent. Pas de mot ambigu (« cote », « diplome »).
+   * « charges » n'est pas inclus (charges sociales ≠ chargés de mission).
+   */
+  const ACCENT_WORDS = {
+    controle: 'contrôle', controles: 'contrôles',
+    controleur: 'contrôleur', controleurs: 'contrôleurs',
+    controleuse: 'contrôleuse', controleuses: 'contrôleuses',
+    puericulture: 'puériculture',
+    developpeur: 'développeur', developpeurs: 'développeurs',
+    developpeuse: 'développeuse', developpeuses: 'développeuses',
+    developpement: 'développement', developpements: 'développements',
+    developpe: 'développé', developpee: 'développée', developpes: 'développés', developpees: 'développées',
+    medecin: 'médecin', medecins: 'médecins', medecine: 'médecine',
+    creche: 'crèche', creches: 'crèches',
+    etablissement: 'établissement', etablissements: 'établissements',
+    securite: 'sécurité', securites: 'sécurités',
+    qualite: 'qualité', qualites: 'qualités',
+    tresorerie: 'trésorerie', tresoreries: 'trésoreries',
+    tresorier: 'trésorier', tresoriers: 'trésoriers',
+    tresoriere: 'trésorière', tresorieres: 'trésorières',
+    depot: 'dépôt', depots: 'dépôts',
+    gerant: 'gérant', gerants: 'gérants', gerante: 'gérante', gerantes: 'gérantes',
+    bibliotheque: 'bibliothèque', bibliotheques: 'bibliothèques',
+    secretaire: 'secrétaire', secretaires: 'secrétaires', secretariat: 'secrétariat',
+    deontologie: 'déontologie', mixite: 'mixité',
+    petrolier: 'pétrolier', petroliers: 'pétroliers',
+    petroliere: 'pétrolière', petrolieres: 'pétrolières',
+    medical: 'médical', medicale: 'médicale', medicales: 'médicales', medicaux: 'médicaux',
+    defense: 'défense', defenses: 'défenses',
+    referent: 'référent', referents: 'référents',
+    referente: 'référente', referentes: 'référentes',
+    operationnel: 'opérationnel', operationnels: 'opérationnels',
+    operationnelle: 'opérationnelle', operationnelles: 'opérationnelles',
+    operation: 'opération', operations: 'opérations',
+    operateur: 'opérateur', operateurs: 'opérateurs',
+    operatrice: 'opératrice', operatrices: 'opératrices',
+    hopital: 'hôpital', hopitaux: 'hôpitaux',
+    etudiant: 'étudiant', etudiants: 'étudiants',
+    etudiante: 'étudiante', etudiantes: 'étudiantes',
+    etude: 'étude', etudes: 'études',
+    prefecture: 'préfecture', prefectures: 'préfectures',
+    materiel: 'matériel', materiels: 'matériels',
+    materielle: 'matérielle', materielles: 'matérielles',
+    materiau: 'matériau', materiaux: 'matériaux',
+    general: 'général', generale: 'générale', generales: 'générales', generaux: 'généraux',
+    cinema: 'cinéma', cinemas: 'cinémas',
+    region: 'région', regions: 'régions',
+    regional: 'régional', regionale: 'régionale',
+    regionales: 'régionales', regionaux: 'régionaux',
+    etat: 'état', etats: 'états',
+    legal: 'légal', legale: 'légale', legales: 'légales', legaux: 'légaux',
+    prevention: 'prévention',
+    superieur: 'supérieur', superieurs: 'supérieurs',
+    superieure: 'supérieure', superieures: 'supérieures',
+    reseau: 'réseau', reseaux: 'réseaux',
+    special: 'spécial', speciale: 'spéciale', speciales: 'spéciales', speciaux: 'spéciaux',
+    specialise: 'spécialisé', specialisee: 'spécialisée',
+    specialises: 'spécialisés', specialisees: 'spécialisées',
+    interim: 'intérim', interimaire: 'intérimaire', interimaires: 'intérimaires',
+    experience: 'expérience', experiences: 'expériences',
+    responsabilite: 'responsabilité', responsabilites: 'responsabilités',
+    accessibilite: 'accessibilité', mobilite: 'mobilité', conformite: 'conformité',
+    strategie: 'stratégie', strategies: 'stratégies',
+    strategique: 'stratégique', strategiques: 'stratégiques',
+    metier: 'métier', metiers: 'métiers',
+    societe: 'société', societes: 'sociétés',
+    mediatheque: 'médiathèque', mediatheques: 'médiathèques',
+    mediateur: 'médiateur', mediateurs: 'médiateurs',
+    mediatrice: 'médiatrice', mediatrices: 'médiatrices', mediation: 'médiation',
+    beneficiaire: 'bénéficiaire', beneficiaires: 'bénéficiaires',
+    realisation: 'réalisation', realisations: 'réalisations',
+    educateur: 'éducateur', educateurs: 'éducateurs',
+    educatrice: 'éducatrice', educatrices: 'éducatrices', education: 'éducation',
+    electricite: 'électricité',
+    electricien: 'électricien', electriciens: 'électriciens',
+    electricienne: 'électricienne', electriciennes: 'électriciennes',
+    vehicule: 'véhicule', vehicules: 'véhicules',
+    integration: 'intégration',
+    integrateur: 'intégrateur', integrateurs: 'intégrateurs',
+    aeronautique: 'aéronautique', aerien: 'aérien', aerienne: 'aérienne',
+    etancheite: 'étanchéité',
+    ministere: 'ministère', ministeres: 'ministères',
+    armee: 'armée', armees: 'armées',
+    reglementaire: 'réglementaire', reglementaires: 'réglementaires',
+    reglementation: 'réglementation', reglementations: 'réglementations',
+    reglement: 'règlement', reglements: 'règlements',
+    confirme: 'confirmé', confirmee: 'confirmée',
+    confirmes: 'confirmés', confirmees: 'confirmées',
+    charge: 'chargé', chargee: 'chargée',
+    ingenieur: 'ingénieur', ingenieurs: 'ingénieurs',
+    ingenieure: 'ingénieure', ingenieures: 'ingénieures',
+    equipe: 'équipe', equipes: 'équipes',
+    ecole: 'école', ecoles: 'écoles',
+    elu: 'élu', elus: 'élus', elue: 'élue', elues: 'élues',
+    election: 'élection', elections: 'élections',
+    economie: 'économie', economique: 'économique', economiques: 'économiques',
+    decision: 'décision', decisions: 'décisions',
+    dechet: 'déchet', dechets: 'déchets',
+    previsionnel: 'prévisionnel', previsionnels: 'prévisionnels',
+    previsionnelle: 'prévisionnelle', previsionnelles: 'prévisionnelles',
+    regulation: 'régulation', sante: 'santé',
+    donnee: 'donnée', donnees: 'données',
+    systeme: 'système', systemes: 'systèmes',
+    navigabilite: 'navigabilité',
+    hotel: 'hôtel', hotels: 'hôtels',
+    hotelier: 'hôtelier', hoteliere: 'hôtelière', hotellerie: 'hôtellerie',
+    energie: 'énergie', energies: 'énergies',
+    energetique: 'énergétique', energetiques: 'énergétiques',
+    remuneration: 'rémunération', remunerations: 'rémunérations',
+    departement: 'département', departements: 'départements',
+    departemental: 'départemental', departementale: 'départementale',
+    departementales: 'départementales', departementaux: 'départementaux',
+    methode: 'méthode', methodes: 'méthodes',
+    interet: 'intérêt', interets: 'intérêts',
+    eleve: 'élève', eleves: 'élèves',
+    elevage: 'élevage', elevages: 'élevages',
+    evenement: 'événement', evenements: 'événements', evenementiel: 'événementiel',
+    acces: 'accès',
+    decideur: 'décideur', decideurs: 'décideurs',
+    teletravail: 'télétravail', telephone: 'téléphone',
+    teleconseiller: 'téléconseiller', teleconseillers: 'téléconseillers',
+    teleconseillere: 'téléconseillère',
+    telesurveillance: 'télésurveillance',
+    teleoperateur: 'téléopérateur', teleoperatrice: 'téléopératrice',
+    telepilote: 'télépilote',
+    pediatrique: 'pédiatrique', pediatriques: 'pédiatriques', pediatrie: 'pédiatrie',
+    reanimation: 'réanimation',
+    cloture: 'clôture', foret: 'forêt', forets: 'forêts',
+    depannage: 'dépannage', depanneur: 'dépanneur', depanneurs: 'dépanneurs',
+    nucleaire: 'nucléaire', nucleaires: 'nucléaires',
+    propriete: 'propriété', proprietes: 'propriétés',
+    identite: 'identité', identites: 'identités',
+    entite: 'entité', entites: 'entités',
+    quantite: 'quantité', quantites: 'quantités',
+    complementaire: 'complémentaire', complementaires: 'complémentaires',
+    comptabilite: 'comptabilité',
+    regisseur: 'régisseur', regisseuse: 'régisseuse', regie: 'régie',
+    theatre: 'théâtre', theatres: 'théâtres',
+    apres: 'après',
+    employe: 'employé', employee: 'employée', employes: 'employés', employees: 'employées',
+    delegue: 'délégué', deleguee: 'déléguée', delegues: 'délégués', deleguees: 'déléguées',
+    attache: 'attaché', attachee: 'attachée', attaches: 'attachés', attachees: 'attachées',
+  };
   const CSP_EMPLOYER_MAX = 90;
   const SKIP_FEM = /^(managers?|designers?|engineers?|developers?|leaders?|traders?|partners?|webmaster)$/i;
 
@@ -40,7 +185,7 @@
       .replace(/\b([Aa])ttache\((e)\)/g, '$1ttaché($2)');
   }
 
-  /** Nettoyage typographique : casse, H/F unique, « Employé (e) » → « Employé(e) », accents manquants. */
+  /** Nettoyage typographique : casse, H/F unique, « Employé (e) » → « Employé(e) », accents et sigles manquants. */
   function typoTitle(t) {
     let s = dedupeTitlePrefix(String(t || '').replace(/\s+/g, ' ').trim());
     const marker = /\s*[(\[]?\s*\b(?:h\s*\/\s*f\s*\/\s*x|f\s*\/\s*h\s*\/\s*x|h\s*\/\s*f|f\s*\/\s*h|h\s*-\s*f|f\s*-\s*h)\b\s*[)\]]?/gi;
@@ -48,14 +193,37 @@
     s = s.replace(marker, ' ').replace(/\(\s*\)/g, ' ').replace(/\s+/g, ' ').replace(/\s*[-–,/]\s*$/, '').trim();
     const letters = s.replace(/[^A-Za-zÀ-ÿ]/g, '');
     if (letters.length > 6 && letters === letters.toUpperCase()) {
-      s = s.toLowerCase().replace(/[a-zà-ÿ0-9]+/g, w => (ACRONYMS.has(w.toUpperCase()) ? w.toUpperCase() : w));
+      s = s.toLowerCase().replace(/[a-zà-ÿ0-9]+/g, w => (keptAcronym(w) ? w.toUpperCase() : w));
     } else {
-      s = s.replace(/\b[A-ZÀ-Ÿ]{4,}\b/g, w => (ACRONYMS.has(w) ? w : w.charAt(0) + w.slice(1).toLowerCase()));
+      // 7 lettres ou plus : un mot crié (« SUNDGAU », « VENDEUR ») reprend une casse normale.
+      // 4 à 6 lettres déjà en capitales : on conserve le sigle (DRIS, ACMOSS, APHP, ICND).
+      s = s.replace(/\b[A-ZÀ-Ÿ]{7,}\b/g, w => (ACRONYMS.has(w) ? w : w.charAt(0) + w.slice(1).toLowerCase()));
     }
     s = s.replace(/(\p{L})\s+\((e|ne|se|euse|ère|rice|trice)\)/gu, '$1($2)');
     s = applyInclusiveAccents(s);
+    s = restoreAccents(s);
     if (had) s += ' (H/F)';
     return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+  }
+
+  /** Sigle connu, ou 2 à 5 lettres sans voyelle typiques d'un titre tout en capitales (RHL, BPS, SSD, ICND). */
+  function keptAcronym(w) {
+    const up = String(w || '').toUpperCase();
+    if (ACRONYMS.has(up)) return true;
+    return /^[A-Z]{2,5}$/.test(up) && !/[AEIOUY]/.test(up);
+  }
+
+  function restoreAccents(s) {
+    return String(s).replace(/(?<![\p{L}\p{N}_])([\p{L}]+)(?![\p{L}\p{N}_])/gu, (w, _m, offset, str) => {
+      const key = foldKey(w);
+      const fix = ACCENT_WORDS[key];
+      if (!fix) return w;
+      if (key === 'charge' || key === 'chargee') {
+        const before = str.slice(Math.max(0, offset - 12), offset).toLowerCase();
+        if (/\ben\s+$/.test(before)) return w;
+      }
+      return sameCap(w, fix);
+    });
   }
 
   function sameCap(sample, word) {
