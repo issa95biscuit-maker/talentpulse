@@ -464,10 +464,46 @@
    * Nom d'employeur coupé à 90 caractères : on s'arrête au dernier mot complet et on ajoute une ellipse.
    * On n'invente jamais la fin du mot (pas « Départemental » à partir de « Départementa »).
    */
+  const COMPANY_ACCENTS = {
+    ministere: 'ministère', generale: 'générale', generales: 'générales', general: 'général',
+    penitentiaire: 'pénitentiaire', penitentiaires: 'pénitentiaires',
+    interregionale: 'interrégionale', interregional: 'interrégional',
+    collectivite: 'collectivité', collectivites: 'collectivités', economie: 'économie',
+  };
+
+  /**
+   * Champ employeur Service Public parfois rempli comme un formulaire :
+   * « Direction : X Affectation :Y », « X Adresse : 254 rue… », « X est un établissement public… ».
+   * On garde le nom de la structure, sans rien inventer. Renvoie aussi si un morceau a été retiré.
+   */
+  function cleanCompanyLabel(raw) {
+    let s = raw;
+    let cut = false;
+    s = s.replace(/^(?:direction|affectation|employeur|structure)\s*:\s*/i, '');
+    s = s.replace(/\s+affectation\s*:\s*/gi, ' · ');
+    const addr = s.search(/\s+adresse\s*:/i);
+    if (addr > 0) { s = s.slice(0, addr); cut = true; }
+    const intro = s.match(/^(.{4,}?\S)\s+(?:est|sont)\s+(?:un|une|le|la|l['’]|des)(?=[\s\p{L}])/iu);
+    if (intro && intro[1].split(' ').length >= 2) { s = intro[1]; cut = true; }
+    s = s.replace(/\s+:(?=\p{L})/gu, ' : ');
+    s = s.replace(/(?<![\p{L}\p{N}_])(\p{L}+)(?![\p{L}\p{N}_])/gu, w => {
+      const fix = COMPANY_ACCENTS[w.toLowerCase()];
+      return fix && w.toLowerCase() === w.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase() ? sameCap(w, fix) : w;
+    });
+    return { s: s.replace(/\s+/g, ' ').replace(/[\s·,;:–—-]+$/, '').trim(), cut };
+  }
+
   function displayCompany(name) {
-    const s = String(name || '').replace(/\s+/g, ' ').trim();
-    if (!s) return s;
+    const raw = String(name || '').replace(/\s+/g, ' ').trim();
+    if (!raw) return raw;
+    const { s, cut: trimmed } = cleanCompanyLabel(raw);
+    if (!s) return raw;
     if (/[…]$/.test(s) || /\.{3}$/.test(s)) return s.replace(/\.{3}$/, '…');
+    // Source coupée à 90 caractères : on garde l’ellipse même si le libellé a raccourci au nettoyage.
+    if (!trimmed && raw.length >= CSP_EMPLOYER_MAX && s.length < CSP_EMPLOYER_MAX) {
+      const atWord = s.replace(/[\s/·,;:.\-–—]+[^\s/·]*$/, '').replace(/[\s/·,;:.\-–—]+$/, '');
+      return (atWord.length >= 12 ? atWord : s) + '…';
+    }
     if (s.length < CSP_EMPLOYER_MAX) return s;
     const cut = s.slice(0, CSP_EMPLOYER_MAX);
     const atWord = cut.replace(/[\s/·,;:.\-–—]+[^\s/·]*$/, '').replace(/[\s/·,;:.\-–—]+$/, '');
