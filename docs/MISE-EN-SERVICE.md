@@ -52,3 +52,20 @@ Dans tous les cas la candidature est enregistrée (appareil, ou table `applicati
 La table `applications` est créée automatiquement au premier usage ; `npm run migrate` reste la méthode de référence.
 
 Activer l'envoi réel : vérifier `talentpulse.fr` dans Resend (DNS OVH), puis définir `APPLY_FROM_EMAIL="TalentPulse <candidatures@talentpulse.fr>"` dans Vercel et redéployer.
+
+## Abonnement TalentPulse Pro (Stripe)
+Sans les variables ci-dessous, rien ne change : tous les comptes gardent les limites actuelles (20 alertes, 20 lettres IA/jour, WhatsApp).
+Dès qu'elles sont présentes : **Gratuit** = 3 alertes, 3 lettres IA/jour, e-mail uniquement ; **Pro** = 20 alertes, 50 lettres IA/jour, WhatsApp.
+
+1. Stripe > Produits : créer « TalentPulse Pro » avec deux prix récurrents (9,90 €/mois et 79 €/an). Noter les `price_…`.
+2. Stripe > Paramètres > Portail client : activer (résiliation, changement de carte, factures).
+3. Stripe > Développeurs > Webhooks : point de terminaison `https://<domaine>/api/billing/webhook`, événements
+   `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`. Noter le `whsec_…`.
+4. Vercel (Production, puis Preview avec les clés de test) : `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`,
+   `STRIPE_PRICE_MONTHLY`, `STRIPE_PRICE_YEARLY`. Redéployer.
+5. Les colonnes `plan`, `plan_until`, `stripe_customer_id`, `stripe_subscription_id` et la table `stripe_events`
+   sont créées automatiquement au premier appel (ou via `npm run migrate`).
+6. Vérifier : `GET /api/health` → `billing: true` ; carte de test `4242 4242 4242 4242` en mode test.
+
+Routes : `GET /api/billing/status`, `POST /api/billing/checkout { interval: 'month'|'year' }`, `POST /api/billing/portal`, `POST /api/billing/webhook`.
+Erreurs de limite : `{ error: { code: 'limit_reached' | 'pro_required', upgrade: true } }` → le front affiche l'offre Pro.

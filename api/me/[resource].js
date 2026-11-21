@@ -15,9 +15,16 @@ import { enforce } from '../../lib/ratelimit.js';
 import { parse, favoriteSchema, pipelineSchema, alertSchema, alertPatchSchema, profileSchema, syncSchema, applicationSchema, jobId as jobIdSchema } from '../../lib/validate.js';
 import * as data from '../../lib/userdata.js';
 import { z } from 'zod';
+import { limitsFor } from '../../lib/billing.js';
 
 const uuid = z.uuid({ message: 'Identifiant invalide.' });
 const qp = (req, k) => String(req.query?.[k] || '');
+
+/** Alertes WhatsApp réservées au Pro quand la facturation est active. */
+function withAllowedChannels(a, lim) {
+  if (lim.whatsapp || !Array.isArray(a.channels) || !a.channels.includes('whatsapp')) return a;
+  throw new HttpError(403, 'Les alertes WhatsApp sont incluses dans TalentPulse Pro.', 'pro_required', { upgrade: true });
+}
 
 function alertsDelivery() {
   const f = features();
@@ -40,9 +47,13 @@ const RESOURCES = {
   async alerts(req, res, user) {
     const m = allowMethods(req, res, ['GET', 'POST', 'PATCH', 'DELETE']);
     if (m === 'GET') return sendJson(res, 200, { alerts: await data.listAlerts(user.id), delivery: alertsDelivery() });
-    if (m === 'POST') return sendJson(res, 201, { alert: await data.createAlert(user.id, parse(alertSchema, await readJson(req))), delivery: alertsDelivery() });
+    if (m === 'POST') {
+      const lim = await limitsFor(user);
+      const a = withAllowedChannels(parse(alertSchema, await readJson(req)), lim);
+      return sendJson(res, 201, { alert: await data.createAlert(user.id, a, { max: lim.alerts }), delivery: alertsDelivery() });
+    }
     const id = parse(uuid, qp(req, 'id'));
-    if (m === 'PATCH') return sendJson(res, 200, { alert: await data.updateAlert(user.id, id, parse(alertPatchSchema, await readJson(req))) });
+    if (m === 'PATCH') return sendJson(res, 200, { alert: await data.updateAlert(user.id, id, withAllowedChannels(parse(alertPatchSchema, await readJson(req)), await limitsFor(user))) });
     return sendJson(res, 200, { deleted: await data.deleteAlert(user.id, id) });
   },
   async applications(req, res, user) {
@@ -60,7 +71,7 @@ const RESOURCES = {
   async sync(req, res, user) {
     allowMethods(req, res, ['POST']);
     await enforce([{ key: 'sync:' + user.id, limit: 20, windowSec: 3600 }]);
-    const merged = await data.mergeLocalData(user.id, parse(syncSchema, await readJson(req)));
+    const merged = await data.mergeLocalData(user.id, parse(syncSchema, await readJson(req)), { maxAlerts: (await limitsFor(user)).alerts });
     return sendJson(res, 200, { ...merged, user: publicUser(merged.user || user), delivery: alertsDelivery() });
   },
   async export(req, res, user) {
