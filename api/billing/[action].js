@@ -1,6 +1,6 @@
 /**
  * /api/billing/status    GET  (connecté) -> { enabled, plan, planUntil, canManage, prices, limits }
- * /api/billing/checkout  POST (connecté) { interval: 'month' | 'year' } -> { url } (Stripe Checkout)
+ * /api/billing/checkout  POST (connecté) { interval: 'month' | 'year', acceptCgv: true } -> { url } (Stripe Checkout)
  * /api/billing/portal    POST (connecté) -> { url } (portail client Stripe : facture, carte, résiliation)
  * /api/billing/webhook   POST (Stripe, signé) -> { received: true }
  */
@@ -37,8 +37,8 @@ const ACTIONS = {
     assertSameOrigin(req);
     const user = await requireUser(req, res);
     await enforce([{ key: 'checkout:' + user.id, limit: 10, windowSec: 3600 }]);
-    const { interval } = await readJson(req);
-    return sendJson(res, 200, { url: await createCheckout(user, interval === 'year' ? 'year' : 'month') });
+    const { interval, acceptCgv } = await readJson(req);
+    return sendJson(res, 200, { url: await createCheckout(user, interval === 'year' ? 'year' : 'month', { acceptedCgv: acceptCgv === true }) });
   },
   async portal(req, res) {
     allowMethods(req, res, ['POST']);

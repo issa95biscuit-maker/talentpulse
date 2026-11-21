@@ -41,7 +41,7 @@ test('facturation non configurée : limites historiques, aucune route payante', 
   await setup({});
   assert.deepEqual(await limitsFor({ id: userId }), LIMITS.legacy);
   assert.equal((await B('status')).body.enabled, false);
-  assert.equal((await B('checkout', { method: 'POST', body: { interval: 'month' } })).status, 503);
+  assert.equal((await B('checkout', { method: 'POST', body: { interval: 'month', acceptCgv: true } })).status, 503);
   assert.equal(await proUserIds([userId]), null);
   for (let i = 0; i < 5; i++) assert.equal((await M('alerts', { method: 'POST', body: { query: { kw: 'metier' + i } } })).status, 201);
 });
@@ -57,13 +57,15 @@ test('compte gratuit : 3 alertes, WhatsApp réservé au Pro, invitation à passe
 });
 
 test('checkout : client Stripe créé une seule fois, session d’abonnement, non connecté refusé', async () => {
-  assert.equal((await call(billing, { method: 'POST', query: { action: 'checkout' }, body: { interval: 'month' } })).status, 401);
-  const r = await B('checkout', { method: 'POST', body: { interval: 'year' } });
+  assert.equal((await call(billing, { method: 'POST', query: { action: 'checkout' }, body: { interval: 'month', acceptCgv: true } })).status, 401);
+  const noCgv = await B('checkout', { method: 'POST', body: { interval: 'year' } });
+  assert.equal(noCgv.status, 400); assert.equal(noCgv.body.error.code, 'cgv_required');
+  const r = await B('checkout', { method: 'POST', body: { interval: 'year', acceptCgv: true } });
   assert.equal(r.status, 200); assert.equal(r.body.url, 'https://checkout.stripe.com/c/cs_1');
   const cs = stripeCalls.find(c => c.url.endsWith('/checkout/sessions')).body;
   assert.equal(cs.get('mode'), 'subscription'); assert.equal(cs.get('line_items[0][price]'), 'price_y');
-  assert.equal(cs.get('client_reference_id'), userId); assert.equal(cs.get('subscription_data[metadata][user_id]'), userId);
-  await B('checkout', { method: 'POST', body: { interval: 'month' } });
+  assert.equal(cs.get('client_reference_id'), userId); assert.equal(cs.get('subscription_data[metadata][cgv_version]'), '2026-11-21'); assert.equal(cs.get('subscription_data[metadata][user_id]'), userId);
+  await B('checkout', { method: 'POST', body: { interval: 'month', acceptCgv: true } });
   assert.equal(stripeCalls.filter(c => c.url.endsWith('/customers')).length, 1, 'client réutilisé');
   assert.equal((await pg.query('select stripe_customer_id from users'))[0].stripe_customer_id, 'cus_1');
 });
@@ -80,7 +82,7 @@ test('webhook : signature obligatoire, activation Pro, idempotence, résiliation
   assert.equal(s.body.plan, 'pro'); assert.equal(s.body.limits.alerts, 20); assert.equal(s.body.canManage, true);
   assert.deepEqual([...await proUserIds([userId])], [userId]);
   assert.equal((await M('alerts', { method: 'POST', body: { query: { kw: 'x' }, channels: ['whatsapp'], whatsappTo: '+33612345678' } })).status, 201);
-  assert.equal((await B('checkout', { method: 'POST', body: { interval: 'month' } })).status, 409, 'déjà Pro');
+  assert.equal((await B('checkout', { method: 'POST', body: { interval: 'month', acceptCgv: true } })).status, 409, 'déjà Pro');
   assert.equal((await B('portal', { method: 'POST' })).body.url, 'https://billing.stripe.com/p/1');
 
   // Événement tardif d'un ancien abonnement : ignoré
@@ -97,7 +99,7 @@ test('webhook : signature obligatoire, activation Pro, idempotence, résiliation
 });
 
 test('webhook checkout.session.completed : relit l’abonnement et active le Pro', async () => {
-  await B('checkout', { method: 'POST', body: { interval: 'month' } });
+  await B('checkout', { method: 'POST', body: { interval: 'month', acceptCgv: true } });
   const ev = { id: 'evt_cs', type: 'checkout.session.completed', data: { object: { mode: 'subscription', subscription: 'sub_1', customer: 'cus_1', client_reference_id: userId } } };
   assert.equal((await call(billing, { ...signed(ev), query: { action: 'webhook' } })).status, 200);
   assert.equal((await B('status')).body.plan, 'pro');

@@ -970,7 +970,7 @@ async function startCheckout(btn) {
   }
   const label = btn.textContent; btn.disabled = true; btn.textContent = 'Redirection…';
   try {
-    const { url } = await apiFetch('/api/billing/checkout', { method: 'POST', body: { interval: billingInterval }, auth: true });
+    const { url } = await apiFetch('/api/billing/checkout', { method: 'POST', body: { interval: billingInterval, acceptCgv: !!$('#tarifsCgv')?.checked }, auth: true });
     if (url && /^https:\/\/checkout\.stripe\.com\//.test(url)) { window.location.assign(url); return; }
     throw new ApiError('Lien de paiement invalide.', 'server');
   } catch (e) { toast(e.message, 'err'); btn.disabled = false; btn.textContent = label; }
@@ -993,7 +993,8 @@ async function renderTarifs() {
   let cta;
   if (!FEATURES.billing) cta = '<button class="btn btn-primary btn-lg btn-block" type="button" disabled>Bientôt disponible</button>';
   else if (pro) cta = `<p class="price-note">Votre abonnement Pro est actif${st.planUntil ? ' jusqu’au ' + esc(new Date(st.planUntil).toLocaleDateString('fr-FR')) : ''}.</p><button class="btn btn-outline btn-lg btn-block" type="button" id="tarifsPortal">Gérer mon abonnement</button>`;
-  else cta = `<button class="btn btn-primary btn-lg btn-block" type="button" id="tarifsCheckout">Passer à Pro</button>`;
+  else cta = `<label class="check" style="font-size:var(--fs-sm)"><input type="checkbox" id="tarifsCgv"><span>J’accepte les <a href="/cgv" data-route="/cgv" style="text-decoration:underline">conditions générales de vente</a> et je demande l’accès immédiat au service (remboursement intégral en cas de rétractation sous 14 jours).</span></label>
+    <button class="btn btn-primary btn-lg btn-block" type="button" id="tarifsCheckout" disabled>Passer à Pro</button>`;
   root.innerHTML = frTypo(`<div class="price-wrap">
     <div class="price-toggle" role="group" aria-label="Période de facturation">
       <button type="button" data-interval="month" aria-pressed="${billingInterval === 'month'}">Mensuel</button>
@@ -1027,6 +1028,7 @@ async function renderTarifs() {
     </div>
   </div>`);
   $$('[data-interval]', root).forEach(b => on(b, 'click', () => { billingInterval = b.dataset.interval; renderTarifs(); }));
+  on($('#tarifsCgv'), 'change', e => { const b = $('#tarifsCheckout'); if (b) b.disabled = !e.currentTarget.checked; });
   on($('#tarifsCheckout'), 'click', e => startCheckout(e.currentTarget));
   on($('#tarifsPortal'), 'click', e => openPortal(e.currentTarget));
   bindNavLinks(root);

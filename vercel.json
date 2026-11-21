@@ -88,6 +88,10 @@
       "destination": "/api/seo?page=cgu"
     },
     {
+      "source": "/cgv",
+      "destination": "/api/seo?page=cgv"
+    },
+    {
       "source": "/tarifs",
       "destination": "/api/seo?page=tarifs"
     }

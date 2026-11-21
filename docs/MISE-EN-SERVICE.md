@@ -69,3 +69,8 @@ Dès qu'elles sont présentes : **Gratuit** = 3 alertes, 3 lettres IA/jour, e-ma
 
 Routes : `GET /api/billing/status`, `POST /api/billing/checkout { interval: 'month'|'year' }`, `POST /api/billing/portal`, `POST /api/billing/webhook`.
 Erreurs de limite : `{ error: { code: 'limit_reached' | 'pro_required', upgrade: true } }` → le front affiche l'offre Pro.
+
+### CGV et médiation (obligatoire avant d'encaisser)
+- Page `/cgv` ajoutée ; case « J'accepte les CGV » obligatoire avant le paiement, version tracée dans les métadonnées Stripe (`cgv_version`).
+- **Médiateur de la consommation** : tout professionnel vendant à des consommateurs doit en désigner un (art. L612-1 du Code de la consommation). Adhérer à un médiateur agréé, puis définir `LEGAL_MEDIATOR` (nom, site, adresse) dans Vercel.
+- Faire relire les CGV par un juriste avant le lancement commercial.
