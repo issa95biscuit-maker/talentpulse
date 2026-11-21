@@ -19,8 +19,14 @@ export default api(async (req, res) => {
   const msg = 'Limite de lettres générées atteinte. Utilisez le modèle ou réessayez plus tard.';
   if (user) {
     const lim = await limitsFor(user);
-    await enforce([{ key: 'lettre-u:' + user.id, limit: lim.lettresPerDay, windowSec: 86400 }],
-      lim.plan === 'free' && lim.lettresPerDay < 20 ? `Vous avez utilisé vos ${lim.lettresPerDay} lettres IA du jour. Passez à TalentPulse Pro pour en générer sans compter.` : msg);
+    const upsell = lim.plan === 'free' && lim.lettresPerDay < 20;
+    try {
+      await enforce([{ key: 'lettre-u:' + user.id, limit: lim.lettresPerDay, windowSec: 86400 }],
+        upsell ? `Vous avez utilisé vos ${lim.lettresPerDay} lettres IA du jour. Passez à TalentPulse Pro pour en générer davantage.` : msg);
+    } catch (e) {
+      if (upsell && e instanceof HttpError && e.status === 429) throw new HttpError(429, e.message, e.code, { ...e.extra, upgrade: true });
+      throw e;
+    }
   }
   else await enforce([{ key: 'lettre-ip:' + fingerprint('ip', clientIp(req)), limit: 5, windowSec: 3600 }], msg);
   const input = parse(lettreSchema, await readJson(req));

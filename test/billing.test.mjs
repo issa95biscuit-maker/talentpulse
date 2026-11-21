@@ -53,7 +53,7 @@ test('compte gratuit : 3 alertes, WhatsApp réservé au Pro, invitation à passe
   const over = await M('alerts', { method: 'POST', body: { query: { kw: 'de trop' } } });
   assert.equal(over.status, 409); assert.equal(over.body.error.upgrade, true);
   const wa = await M('alerts', { method: 'POST', body: { query: { kw: 'x' }, channels: ['whatsapp'], whatsappTo: '+33612345678' } });
-  assert.equal(wa.status, 403); assert.equal(wa.body.error.code, 'pro_required');
+  assert.equal(wa.status, 402); assert.equal(wa.body.error.code, 'pro_required');
 });
 
 test('checkout : client Stripe créé une seule fois, session d’abonnement, non connecté refusé', async () => {

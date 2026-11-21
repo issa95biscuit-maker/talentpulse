@@ -23,7 +23,7 @@ const qp = (req, k) => String(req.query?.[k] || '');
 /** Alertes WhatsApp réservées au Pro quand la facturation est active. */
 function withAllowedChannels(a, lim) {
   if (lim.whatsapp || !Array.isArray(a.channels) || !a.channels.includes('whatsapp')) return a;
-  throw new HttpError(403, 'Les alertes WhatsApp sont incluses dans TalentPulse Pro.', 'pro_required', { upgrade: true });
+  throw new HttpError(402, 'Les alertes WhatsApp sont incluses dans TalentPulse Pro.', 'pro_required', { upgrade: true });
 }
 
 function alertsDelivery() {
