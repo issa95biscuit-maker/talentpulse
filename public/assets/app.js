@@ -35,7 +35,7 @@ const LEGAL = {
   contactEmail: 'talentpultze@gmail.com',
   court: 'tribunal judiciaire de Nanterre',
 };
-const FEATURES = { auth: false, sync: false, savedSearches: false, aiLetter: false, emailAlerts: false, whatsappAlerts: false, accountEmails: false, applyEmail: false, dataEmploi: false };
+const FEATURES = { auth: false, sync: false, savedSearches: false, aiLetter: false, emailAlerts: false, whatsappAlerts: false, accountEmails: false, applyEmail: false, dataEmploi: false, billing: false };
 let featuresPromise = null;
 function loadFeatures() { return (featuresPromise ||= fetchFeatures()); }
 async function fetchFeatures() {
@@ -583,9 +583,10 @@ const STATIC_ROUTES = {
   '/mon-espace': { page: 'profile',  title: 'Mon espace — TalentPulse', desc: 'Vos favoris, votre suivi de candidatures et vos alertes, sur cet appareil ou synchronisés avec votre compte.' },
   '/nouveau-mot-de-passe': { page: 'account-link', title: 'Nouveau mot de passe — TalentPulse', desc: 'Choisissez un nouveau mot de passe pour votre compte TalentPulse.' },
   '/verifier-email': { page: 'account-link', title: 'Confirmation de l’adresse e-mail — TalentPulse', desc: 'Confirmez votre adresse e-mail TalentPulse.' },
+  '/tarifs':     { page: 'tarifs',   title: 'Tarifs — TalentPulse Pro', desc: 'La recherche d’emploi reste gratuite. TalentPulse Pro : 20 alertes, alertes WhatsApp et lettres de motivation IA à volonté, sans engagement.' },
   '/connexion':  { page: 'login',    title: 'Connexion — TalentPulse', desc: 'Connectez-vous ou créez un compte gratuit pour synchroniser favoris, suivi et alertes.' },
 };
-const PAGE_PATHS = { home: '/', jobs: null, lettre: '/lettre', conseils: '/conseils', profile: '/mon-espace', login: '/connexion' };
+const PAGE_PATHS = { home: '/', jobs: null, lettre: '/lettre', conseils: '/conseils', profile: '/mon-espace', login: '/connexion', tarifs: '/tarifs' };
 
 /** Mémorise la position de défilement de l'entrée courante (restaurée au retour arrière). */
 function rememberScroll() {
@@ -818,6 +819,7 @@ function showPage(name, { load = true } = {}) {
   if (name === 'conseils') renderConseils();
   if (name === 'home') renderCategories();
   if (name === 'login') refreshAuthForms();
+  if (name === 'tarifs') renderTarifs();
 }
 
 function goToPage(name) {
@@ -942,6 +944,106 @@ function setupLiveValidation() {
     });
   });
 }
+/* ─── ABONNEMENT PRO ─────────────────────────────────────────────
+   GET /api/billing/status (connecté) ; Stripe Checkout et portail client par redirection. */
+const PRICES = { month: { amount: '9,90 €', per: '/ mois', note: 'Sans engagement, résiliable en 2 clics.' }, year: { amount: '79 €', per: '/ an', note: 'Soit 6,58 € par mois : 4 mois offerts.' } };
+let billingCache = null, billingInterval = 'month';
+async function loadBilling(force = false) {
+  if (!State.user || !FEATURES.billing) return null;
+  if (billingCache && billingCache.uid === State.user.id && !force) return billingCache.data;
+  try { billingCache = { uid: State.user.id, data: await apiFetch('/api/billing/status', { auth: true }) }; } catch { billingCache = null; }
+  return billingCache?.data || null;
+}
+function showUpgrade(msg) {
+  const bar = $('#upgradeBar');
+  if (!bar || !FEATURES.billing) return;
+  $('#upgradeMsg').textContent = msg;
+  bar.hidden = false;
+}
+function hideUpgrade() { const bar = $('#upgradeBar'); if (bar) bar.hidden = true; }
+async function startCheckout(btn) {
+  if (!State.user) {
+    try { sessionStorage.setItem('tp_next', '/tarifs'); } catch { /* stockage indisponible */ }
+    goToPage('login');
+    toast('Créez un compte gratuit ou connectez-vous pour passer à Pro.');
+    return;
+  }
+  const label = btn.textContent; btn.disabled = true; btn.textContent = 'Redirection…';
+  try {
+    const { url } = await apiFetch('/api/billing/checkout', { method: 'POST', body: { interval: billingInterval, acceptCgv: !!$('#tarifsCgv')?.checked }, auth: true });
+    if (url && /^https:\/\/checkout\.stripe\.com\//.test(url)) { window.location.assign(url); return; }
+    throw new ApiError('Lien de paiement invalide.', 'server');
+  } catch (e) { toast(e.message, 'err'); btn.disabled = false; btn.textContent = label; }
+}
+async function openPortal(btn) {
+  const label = btn.textContent; btn.disabled = true; btn.textContent = 'Ouverture…';
+  try {
+    const { url } = await apiFetch('/api/billing/portal', { method: 'POST', auth: true });
+    if (url && /^https:\/\/billing\.stripe\.com\//.test(url)) { window.location.assign(url); return; }
+    throw new ApiError('Lien invalide.', 'server');
+  } catch (e) { toast(e.message, 'err'); btn.disabled = false; btn.textContent = label; }
+}
+async function renderTarifs() {
+  const root = $('#tarifsRoot');
+  if (!root) return;
+  await loadFeatures();
+  const st = await loadBilling(true);
+  const pro = st?.plan === 'pro';
+  const p = PRICES[billingInterval];
+  let cta;
+  if (!FEATURES.billing) cta = '<button class="btn btn-primary btn-lg btn-block" type="button" disabled>Bientôt disponible</button>';
+  else if (pro) cta = `<p class="price-note">Votre abonnement Pro est actif${st.planUntil ? ' jusqu’au ' + esc(new Date(st.planUntil).toLocaleDateString('fr-FR')) : ''}.</p><button class="btn btn-outline btn-lg btn-block" type="button" id="tarifsPortal">Gérer mon abonnement</button>`;
+  else cta = `<label class="check" style="font-size:var(--fs-sm)"><input type="checkbox" id="tarifsCgv"><span>J’accepte les <a href="/cgv" data-route="/cgv" style="text-decoration:underline">conditions générales de vente</a> et je demande l’accès immédiat au service (remboursement intégral en cas de rétractation sous 14 jours).</span></label>
+    <button class="btn btn-primary btn-lg btn-block" type="button" id="tarifsCheckout" disabled>Passer à Pro</button>`;
+  root.innerHTML = frTypo(`<div class="price-wrap">
+    <div class="price-toggle" role="group" aria-label="Période de facturation">
+      <button type="button" data-interval="month" aria-pressed="${billingInterval === 'month'}">Mensuel</button>
+      <button type="button" data-interval="year" aria-pressed="${billingInterval === 'year'}">Annuel −33 %</button>
+    </div>
+    <div class="price-grid">
+      <div class="price-card">
+        <div class="price-name">Gratuit</div>
+        <div class="price-amount">0 € <small>pour toujours</small></div>
+        <ul>
+          <li>Toutes les offres France Travail, Adzuna et Service Public</li>
+          <li>Favoris et suivi de candidatures</li>
+          <li>3 alertes par e-mail</li>
+          <li>3 lettres de motivation IA par jour</li>
+        </ul>
+        ${State.user ? '<p class="price-note">' + (pro ? 'Inclus dans votre offre.' : 'Votre offre actuelle.') + '</p>' : '<a class="btn btn-outline btn-lg btn-block" href="/connexion" data-nav="login">Créer un compte gratuit</a>'}
+      </div>
+      <div class="price-card pro">
+        <div class="price-name">Pro <span class="pro-badge">PRO</span></div>
+        <div class="price-amount">${p.amount} <small>${p.per}</small></div>
+        <ul>
+          <li>Tout le gratuit</li>
+          <li>20 alertes quotidiennes</li>
+          <li>Alertes WhatsApp</li>
+          <li>Jusqu’à 50 lettres de motivation IA par jour</li>
+          <li>Soutien direct d’un projet indépendant</li>
+        </ul>
+        <p class="price-note">${p.note} Paiement sécurisé par Stripe.</p>
+        ${cta}
+      </div>
+    </div>
+  </div>`);
+  $$('[data-interval]', root).forEach(b => on(b, 'click', () => { billingInterval = b.dataset.interval; renderTarifs(); }));
+  on($('#tarifsCgv'), 'change', e => { const b = $('#tarifsCheckout'); if (b) b.disabled = !e.currentTarget.checked; });
+  on($('#tarifsCheckout'), 'click', e => startCheckout(e.currentTarget));
+  on($('#tarifsPortal'), 'click', e => openPortal(e.currentTarget));
+  bindNavLinks(root);
+}
+async function renderPlanSlot() {
+  const slot = $('#planSlot');
+  if (!slot) return;
+  const st = await loadBilling();
+  if (!st?.enabled) { slot.innerHTML = ''; return; }
+  const pro = st.plan === 'pro';
+  slot.innerHTML = `<div class="prof-display-row"><span class="k">Offre</span><span class="v">${pro ? '<span class="pro-badge">PRO</span>' + (st.planUntil ? ' jusqu’au ' + esc(new Date(st.planUntil).toLocaleDateString('fr-FR')) : '') : 'Gratuite'}</span></div>
+    <div style="margin-top:var(--sp-3)">${pro || st.canManage ? '<button class="btn btn-outline btn-block" type="button" id="planPortal">Gérer mon abonnement</button>' : '<a class="btn btn-primary btn-block" href="/tarifs" data-route="/tarifs">Passer à Pro</a>'}</div>`;
+  on($('#planPortal'), 'click', e => openPortal(e.currentTarget));
+}
+
 /* ─── COUCHE RÉSEAU CENTRALISÉE (fix #4) ───────────────────────────
    Tous les appels passent par ici : timeout, détection hors-ligne,
    messages d'erreur lisibles, et déconnexion auto sur 401/403.
@@ -1001,6 +1103,7 @@ async function apiFetch(path, { method = 'GET', body, auth = false, timeout = AP
     throw new ApiError('Le service est temporairement indisponible. Réessayez plus tard.', 'server', res.status, data);
   }
   if (!res.ok) {
+    if (data?.error?.upgrade) showUpgrade(apiErrorMessage(data, 'Fonctionnalité incluse dans TalentPulse Pro.'));
     throw new ApiError(apiErrorMessage(data, 'Requête refusée par le serveur.'), 'client', res.status, data);
   }
   return data;
@@ -1047,7 +1150,9 @@ async function afterAuth(user, isNew) {
   writeSession(user);
   refreshAuthUI();
   // Navigation tout de suite : la synchro ne doit pas laisser le bouton sur « Création… ».
-  navigate('/mon-espace');
+  let next = '';
+  try { next = sessionStorage.getItem('tp_next') || ''; sessionStorage.removeItem('tp_next'); } catch { /* stockage indisponible */ }
+  navigate(next === '/tarifs' ? '/tarifs' : '/mon-espace');
   const prenom = user?.prenom || State.user?.prenom || '';
   toast(isNew ? (prenom ? `Compte créé. Bienvenue ${prenom}.` : 'Compte créé.') : (prenom ? `Bienvenue ${prenom}.` : 'Bienvenue.'), 'ok');
   syncAfterLogin({ quiet: true }).then(imported => {
@@ -2538,11 +2643,13 @@ function renderAccountBox() {
     box.innerHTML = `<h2>Mon compte</h2>
       <div class="prof-display-row"><span class="k">E-mail</span><span class="v">${esc(u.email)}${FEATURES.accountEmails && u.emailVerified ? ' <span class="tag tag-ok">Confirmée</span>' : ''}</span></div>
       ${since ? `<div class="prof-display-row"><span class="k">Membre depuis</span><span class="v">${esc(since)}</span></div>` : ''}
+      <div id="planSlot"></div>
       <div class="account-actions" style="margin-top:var(--sp-4)">
         <button class="btn btn-outline btn-block" id="signOutBtn" type="button">Se déconnecter</button>
         <button class="btn btn-danger btn-block" id="deleteAccountBtn" type="button">Supprimer mon compte</button>
       </div>`;
     on($('#signOutBtn'), 'click', signOut);
+    renderPlanSlot();
 
     on($('#deleteAccountBtn'), 'click', openDeleteAccount);
   } else if (FEATURES.auth) {
@@ -3669,7 +3776,18 @@ function init() {
   on(document, 'pointerdown', e => { if (!e.target.closest('.search-field')) closeAllAutocomplete(); });
 }
 
-function start() { init(); handleRoute(); }
+function start() {
+  init(); handleRoute();
+  on($('#upgradeClose'), 'click', hideUpgrade);
+  on($('#upgradeGo'), 'click', hideUpgrade);
+  const q = new URLSearchParams(window.location.search);
+  if (q.get('pro') === 'merci') {
+    window.history.replaceState(window.history.state, '', window.location.pathname);
+    toast('Bienvenue dans TalentPulse Pro ✓', 'ok');
+    // Le webhook Stripe peut arriver quelques secondes après la redirection
+    setTimeout(() => { billingCache = null; if ($('#page-profile').classList.contains('active')) renderAccountBox(); }, 4000);
+  }
+}
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', start);
 } else {

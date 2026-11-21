@@ -126,3 +126,16 @@ create table if not exists applications (
   primary key (user_id, job_id)
 );
 insert into schema_migrations (version) values ('2026-10-12-applications') on conflict do nothing;
+
+-- Abonnement Pro (Stripe). Appliqué aussi à la volée par lib/billing.js (ensureBilling).
+alter table users add column if not exists plan text not null default 'free';
+alter table users add column if not exists plan_until timestamptz;
+alter table users add column if not exists stripe_customer_id text;
+alter table users add column if not exists stripe_subscription_id text;
+create unique index if not exists users_stripe_customer_idx on users (stripe_customer_id) where stripe_customer_id is not null;
+create table if not exists stripe_events (
+  id          text primary key,
+  type        text not null,
+  received_at timestamptz not null default now()
+);
+insert into schema_migrations (version) values ('2026-11-21-billing') on conflict do nothing;

@@ -68,6 +68,35 @@
     <p><strong>Email :</strong> ${contactMail()}</p>
     <p>Pour une question sur une offre, contactez directement l’employeur ou la source indiquée dans l’annonce. TalentPulse n’est pas l’employeur.</p>`
       },
+      '/cgv': {
+        title: 'Conditions générales de vente',
+        description: 'Conditions de vente de l’abonnement TalentPulse Pro : prix, paiement, renouvellement, résiliation, droit de rétractation et médiation.',
+        body: () => `<h1 id="legalPageTitle">Conditions Générales de Vente — TalentPulse Pro</h1>
+    <p class="legal-meta">Version du 21 novembre 2026</p>
+    <h2>1. Objet</h2>
+    <p>Les présentes conditions régissent la vente de l’abonnement payant « TalentPulse Pro » par ${LV('editor', 'nom de l’éditeur')}, ${LV('status', 'statut')}${LEGAL.siren ? ', SIREN ' + esc(LEGAL.siren) : ''}${LEGAL.address ? ', ' + esc(LEGAL.address) : ''} (« TalentPulse »). L’utilisation du service gratuit reste régie par les <a href="/cgu" data-route="/cgu" style="text-decoration:underline">CGU</a>. Toute souscription suppose l’acceptation préalable des présentes CGV, matérialisée par une case à cocher.</p>
+    <h2>2. Offre et prix</h2>
+    <p>TalentPulse Pro donne accès, tant que l’abonnement est actif, à : 20 recherches enregistrées avec alertes, des alertes WhatsApp (lorsque ce canal est proposé) et jusqu’à 50 lettres de motivation générées par IA par jour. Deux formules sont proposées : <strong>9,90 € par mois</strong> ou <strong>79 € par an</strong>. ${LEGAL.vat ? esc(LEGAL.vat) + ' : les prix sont nets.' : 'Les prix sont indiqués toutes taxes comprises.'} Le prix applicable est celui affiché sur la page <a href="/tarifs" data-route="/tarifs" style="text-decoration:underline">Tarifs</a> au moment de la souscription.</p>
+    <h2>3. Souscription et paiement</h2>
+    <p>La souscription nécessite un compte TalentPulse. Après le choix de la formule et l’acceptation des CGV, le paiement s’effectue par carte bancaire sur la page sécurisée de notre prestataire Stripe ; TalentPulse n’a jamais accès à vos numéros de carte. Le contrat est conclu à la validation du paiement. Une confirmation vous est adressée par e-mail et votre offre apparaît dans « Mon espace ». Le montant est prélevé à la souscription puis à chaque échéance.</p>
+    <h2>4. Durée, renouvellement et résiliation</h2>
+    <p>L’abonnement est conclu pour un mois ou un an selon la formule choisie, puis renouvelé automatiquement pour la même durée. Vous pouvez le résilier à tout moment, sans frais ni justification, depuis « Mon espace » &gt; « Gérer mon abonnement ». La résiliation prend effet à la fin de la période déjà payée, jusqu’à laquelle vous conservez l’accès Pro. Pour la formule annuelle, vous êtes informé par e-mail de la possibilité de ne pas reconduire l’abonnement au plus tôt trois mois et au plus tard un mois avant son renouvellement.</p>
+    <h2>5. Droit de rétractation</h2>
+    <p>Vous disposez d’un délai de 14 jours à compter de la souscription pour vous rétracter, sans motif. En souscrivant, vous demandez que le service commence immédiatement, pendant ce délai. Si vous vous rétractez dans les 14 jours, TalentPulse vous rembourse <strong>intégralement</strong>, au plus tard 14 jours après réception de votre demande, par le moyen de paiement utilisé. Pour exercer ce droit, adressez une déclaration dénuée d’ambiguïté à ${contactMail()}, par exemple :</p>
+    <p><em>« À l’attention de ${LV('editor', 'nom de l’éditeur')}, ${LEGAL.contactEmail ? esc(LEGAL.contactEmail) : ''} : je vous notifie par la présente ma rétractation du contrat d’abonnement TalentPulse Pro souscrit le [date], avec l’adresse e-mail [adresse du compte]. Nom : [nom]. Date : [date]. »</em></p>
+    <h2>6. Incident de paiement</h2>
+    <p>En cas d’échec de prélèvement, Stripe peut effectuer de nouvelles tentatives. Sans régularisation, l’abonnement prend fin et le compte revient à l’offre gratuite ; vos données sont conservées.</p>
+    <h2>7. Évolution des prix et du service</h2>
+    <p>Toute modification de prix vous est notifiée par e-mail au moins 30 jours avant de s’appliquer, à compter du renouvellement suivant ; vous pouvez résilier avant cette date. TalentPulse peut faire évoluer les fonctionnalités sans réduire de façon substantielle celles décrites à l’article 2 pendant une période payée.</p>
+    <h2>8. Responsabilité</h2>
+    <p>TalentPulse est tenu d’une obligation de moyens. Le service agrège des offres publiées par des tiers et ne garantit ni leur exactitude ni l’obtention d’un emploi. Les lettres générées par IA sont des propositions à relire avant envoi. En cas d’interruption prolongée imputable à TalentPulse, vous pouvez demander un remboursement au prorata.</p>
+    <h2>9. Données personnelles</h2>
+    <p>Voir la <a href="/confidentialite" data-route="/confidentialite" style="text-decoration:underline">politique de confidentialité</a>. Les données de paiement sont traitées par Stripe Payments Europe Ltd.</p>
+    <h2>10. Réclamations et médiation</h2>
+    <p>Pour toute réclamation : ${contactMail()}. Si aucune solution amiable n’est trouvée dans un délai de 60 jours, vous pouvez recourir gratuitement au médiateur de la consommation${LEGAL.mediator ? ' : ' + esc(LEGAL.mediator) : ' dont TalentPulse vous communique les coordonnées sur simple demande'}.</p>
+    <h2>11. Droit applicable</h2>
+    <p>Droit français. Sous réserve des règles protectrices du consommateur, qui peut notamment saisir la juridiction de son domicile, le tribunal compétent est le ${LV('court', 'tribunal compétent')}.</p>`
+      },
       '/cgu': {
         title: 'Conditions générales d’utilisation',
         description: 'Conditions d’utilisation du service gratuit TalentPulse : offres tierces, candidatures, compte, données et droit applicable.',
@@ -110,6 +139,7 @@
       const processors = ['<li><strong>Vercel Inc.</strong> (hébergement, États-Unis, clauses contractuelles types / Data Privacy Framework)</li>'];
       if (accounts) processors.push('<li><strong>Neon</strong> (base de données PostgreSQL, hébergée dans l’Union européenne)</li>');
       if (F.emailAlerts || F.accountEmails || F.applyEmail) processors.push('<li><strong>Resend</strong> (sous-traitant d’envoi des e-mails : confirmation d’adresse, réinitialisation du mot de passe, alertes ou candidatures, selon les fonctions activées ; Union européenne / États-Unis, accord de traitement)</li>');
+      if (F.billing) processors.push('<li><strong>Stripe Payments Europe Ltd</strong> (paiement et gestion de l’abonnement Pro ; données de carte traitées uniquement par Stripe)</li>');
       if (F.whatsappAlerts) processors.push('<li><strong>Twilio</strong> et <strong>Meta (WhatsApp)</strong> (envoi des alertes WhatsApp)</li>');
       if (F.aiLetter) processors.push('<li><strong>Vercel AI Gateway</strong> et le fournisseur du modèle de langage (génération de la lettre ; les données ne servent pas à entraîner les modèles selon leurs conditions)</li>');
       processors.push('<li><strong>France Travail</strong> et <strong>Adzuna</strong> reçoivent uniquement les critères de recherche (via nos serveurs), sans donnée personnelle. Les offres <strong>Choisir le Service Public</strong> viennent d’un fichier ouvert (data.gouv.fr) : aucune donnée personnelle ne leur est transmise.</li>');

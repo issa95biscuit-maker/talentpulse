@@ -1,7 +1,7 @@
 /**
  * POST /api/lettre { poste, entreprise?, atouts?, profile?, offre? }
  * Génère une lettre via Vercel AI Gateway (modèle AI_MODEL, par défaut économique).
- * Limites : 5 / heure par connexion anonyme, 20 / jour par compte. En cas d'échec : modèle local.
+ * Limites : 5 / heure par connexion anonyme ; par compte : 20 / jour (facturation inactive), 3 (gratuit) ou 50 (Pro). En cas d'échec : modèle local.
  */
 import { api, sendJson, readJson, allowMethods, assertSameOrigin, clientIp, HttpError } from '../lib/http.js';
 import { features } from '../lib/env.js';
@@ -9,6 +9,7 @@ import { parse, lettreSchema } from '../lib/validate.js';
 import { enforce, fingerprint } from '../lib/ratelimit.js';
 import { currentUser } from '../lib/auth.js';
 import { generateLettre, localTemplate } from '../lib/lettre.js';
+import { limitsFor } from '../lib/billing.js';
 
 export default api(async (req, res) => {
   allowMethods(req, res, ['POST']);
@@ -16,7 +17,17 @@ export default api(async (req, res) => {
   if (!features().aiLetter) throw new HttpError(503, 'La rédaction assistée par IA arrive bientôt.', 'feature_disabled');
   const user = await currentUser(req, res).catch(() => null);
   const msg = 'Limite de lettres générées atteinte. Utilisez le modèle ou réessayez plus tard.';
-  if (user) await enforce([{ key: 'lettre-u:' + user.id, limit: 20, windowSec: 86400 }], msg);
+  if (user) {
+    const lim = await limitsFor(user);
+    const upsell = lim.plan === 'free' && lim.lettresPerDay < 20;
+    try {
+      await enforce([{ key: 'lettre-u:' + user.id, limit: lim.lettresPerDay, windowSec: 86400 }],
+        upsell ? `Vous avez utilisé vos ${lim.lettresPerDay} lettres IA du jour. Passez à TalentPulse Pro pour en générer davantage.` : msg);
+    } catch (e) {
+      if (upsell && e instanceof HttpError && e.status === 429) throw new HttpError(429, e.message, e.code, { ...e.extra, upgrade: true });
+      throw e;
+    }
+  }
   else await enforce([{ key: 'lettre-ip:' + fingerprint('ip', clientIp(req)), limit: 5, windowSec: 3600 }], msg);
   const input = parse(lettreSchema, await readJson(req));
   try {

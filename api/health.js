@@ -8,7 +8,7 @@ export default api(async (req, res) => {
   const f = features();
   return sendJson(res, 200, {
     ok: true,
-    features: { auth: f.auth, sync: f.sync, savedSearches: f.savedSearches, aiLetter: f.aiLetter, emailAlerts: f.emailAlerts, whatsappAlerts: f.whatsappAlerts, accountEmails: f.accountEmails, applyEmail: f.applyEmail, dataEmploi: await dataEmploiEnabled() },
+    features: { auth: f.auth, sync: f.sync, savedSearches: f.savedSearches, aiLetter: f.aiLetter, emailAlerts: f.emailAlerts, whatsappAlerts: f.whatsappAlerts, accountEmails: f.accountEmails, applyEmail: f.applyEmail, billing: f.billing, dataEmploi: await dataEmploiEnabled() },
     legal: legalInfo(),
     version: String(process.env.VERCEL_GIT_COMMIT_SHA || 'dev').slice(0, 7),
   }, { cache: 'public, max-age=0, s-maxage=60' });
