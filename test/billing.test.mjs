@@ -5,6 +5,7 @@ import { freshDb, call, setEnv, ENV_BASE } from './helpers.mjs';
 import auth from '../api/auth/[action].js';
 import me from '../api/me/[resource].js';
 import billing from '../api/billing/[action].js';
+import health from '../api/health.js';
 import { _setStripeFetch, verifySignature, limitsFor, proUserIds, LIMITS } from '../lib/billing.js';
 
 const STRIPE = { STRIPE_SECRET_KEY: 'sk_test_x', STRIPE_WEBHOOK_SECRET: 'whsec_test', STRIPE_PRICE_MONTHLY: 'price_m', STRIPE_PRICE_YEARLY: 'price_y', APP_URL: 'https://talentpulse.test' };
@@ -116,4 +117,10 @@ test('verifySignature : plusieurs v1 acceptés, en-tête malformé refusé', () 
   assert.equal(verifySignature(raw, `t=${t},v1=abc,v1=${good}`, 's'), true);
   assert.equal(verifySignature(raw, 'n_importe_quoi', 's'), false);
   assert.equal(verifySignature(raw, `t=${t},v1=${good}`, ''), false);
+});
+
+test('/api/health annonce la facturation au site (sinon /tarifs reste « Bientôt disponible »)', async () => {
+  assert.equal((await call(health, {})).body.features.billing, true);
+  await setup({});
+  assert.equal((await call(health, {})).body.features.billing, false);
 });
